@@ -1,26 +1,68 @@
-# VIALSA — Sistema de Control de Almacén (Modernizado)
-**Java 17 · Spring Boot 3 · MySQL 8 · Bootstrap 5 (rojo/azul)**
+# 🏭 VIALSA Almacén — Sistema de Control de Inventario
 
-## 🚀 Ejecutar (IntelliJ)
-1. Asegura que existe la BD **`vialsa`** en MySQL (usa tu propio dump).
-2. Abre este proyecto en IntelliJ.
-3. Ejecuta `com.vialsa.almacen.VialsaAlmacenApplication`.
-4. Abre `http://localhost:8080/login` → **admin / admin123** (se crea automáticamente si no existe).
+**Autor:** Brayan Santamaría Gonzales  
+**Repositorio:** [GitHub - santamariabrayan966-jpg/vialsa-almacen](https://github.com/santamariabrayan966-jpg/vialsa-almacen)
 
-## 🔐 Seguridad
-- Spring Security (form login)
-- BCrypt para contraseñas
-- CSRF habilitado en formularios
-- Roles mapeados desde `usuarios.idRol` (1=ADMIN, 2=VENDEDOR, 3=ALMACENERO, 4=CAJERO, 5=GERENTE)
+---
 
-## 🧱 Arquitectura
-- **MVC**: Controller → Service → DAO → DB
-- **DAO**: `JdbcTemplate` + `BeanPropertyRowMapper`
-- **SOLID**: Interfaces y responsabilidades claras
-- **@Transactional**: (recomendado) aplicar en servicios de inventario/ventas
+## 🚀 Descripción general
 
-## 🎨 UI
-- Bootstrap 5 con tema rojo/azul
-- Dashboard y login modernos
-- Imagen abstracta en `/images/abstract-glass.svg`
+VIALSA Almacén es un sistema web desarrollado en **Java 17 + Spring Boot 3 + MySQL 8 + Bootstrap 5**, diseñado para la gestión de inventarios, productos, usuarios, compras y ventas, con control de roles y autenticación segura.
 
+---
+
+## 🧱 Arquitectura y principios aplicados
+
+El proyecto sigue los principios de **MVC**, **DAO**, **SOLID** y **Seguridad**:
+
+- 🧩 **MVC (Model–View–Controller):**  
+  Separación de capas en `controller`, `service`, `dao`, `model` y `templates`.
+- 💾 **DAO (Data Access Object):**  
+  Interfaz `UsuarioDao` y clase `JdbcUsuarioDao` para acceso a datos.
+- 🔐 **Seguridad:**  
+  Implementación de **Spring Security** con roles `ADMIN` y `USER`.
+- 🧠 **SOLID:**  
+  Clases con responsabilidad única y bajo acoplamiento entre capas.
+
+---
+
+## 📚 Librerías y recursos Java
+
+El proyecto incorpora librerías modernas para mejorar la eficiencia:
+
+| Librería | Uso |
+|-----------|-----|
+| **Google Guava** | Colecciones y utilidades de Java |
+| **Apache POI** | Exportación de datos a Excel |
+| **Apache Commons Lang** | Manejo de strings y validaciones |
+| **Logback** | Registro de logs de aplicación |
+
+---
+
+## 🧩 Funcionalidades principales
+
+- 🔑 Login con autenticación y roles (Spring Security)
+- 🛒 Módulo de **productos** (CRUD completo)
+- 🧾 Módulo de **ventas y compras**
+- 👥 Gestión de **usuarios y roles** (solo admin)
+- 🏷️ Control de inventario en tiempo real
+- 💾 Persistencia con MySQL
+
+---
+
+## 🖥️ Interfaz gráfica
+
+Diseñada con **Bootstrap 5**, siguiendo una estética moderna y responsiva:
+
+- Logo institucional (`/images/logovialsa.png`)
+- Navbar dinámica con nombre y logo de VIALSA
+- Dashboard con módulos de acceso rápido
+- Formularios validados con mensajes claros
+
+---
+
+## 🧩 Ejecución del proyecto
+
+1. Crea la base de datos MySQL:
+   ```sql
+   CREATE DATABASE vialsa CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
