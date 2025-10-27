@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${titulo}">Registrar Compra</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light">
+
+<div th:replace="~{fragments/header :: header}"></div>
+
+<div class="container mt-4 flex-grow-1">
+    <h2 class="text-primary mb-4">🧾 Registrar Nueva Compra</h2>
+
+    <form th:action="@{/compras/guardar}" th:object="${compraForm}" method="post" id="compraForm">
+
+        <!-- PROVEEDOR -->
+        <div class="row mb-3 align-items-end">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Proveedor</label>
+                <select name="idProveedor" class="form-select" required>
+                    <option value="">Seleccione...</option>
+                    <option th:each="prov : ${proveedores}"
+                            th:value="${prov.idProveedor}"
+                            th:text="${prov.nombreProveedor}"></option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">N° Comprobante</label>
+                <input type="text" th:field="*{nroComprobante}" class="form-control" placeholder="Ej. C001-000123" required>
+            </div>
+        </div>
+
+        <hr>
+
+        <!-- PRODUCTOS -->
+        <h5 class="text-primary mb-2">📦 Productos Comprados</h5>
+        <table class="table table-bordered align-middle" id="tablaProductos">
+            <thead class="table-light text-center">
+            <tr>
+                <th>Producto</th>
+                <th>Unidad</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario (S/)</th>
+                <th>Descuento (S/)</th>
+                <th>Subtotal (S/)</th>
+                <th>Acción</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr class="producto-item">
+                <td>
+                    <select name="idProducto" class="form-select" required>
+                        <option value="">Seleccione...</option>
+                        <option th:each="p : ${productos}" th:value="${p.idProducto}" th:text="${p.nombreProducto}"></option>
+                    </select>
+                </td>
+                <td>
+                    <select name="idUnidad" class="form-select" required>
+                        <option value="">Seleccione...</option>
+                        <option th:each="u : ${unidades}" th:value="${u.idUnidad}" th:text="${u.nombreUnidad}"></option>
+                    </select>
+                </td>
+                <td><input type="number" name="cantidad" class="form-control cantidad" min="1" step="0.01" value="1"></td>
+                <td><input type="number" name="precioUnitario" class="form-control precio" step="0.01" value="0.00"></td>
+                <td><input type="number" name="descuento" class="form-control descuento" step="0.01" value="0.00"></td>
+                <td class="subtotal text-end">0.00</td>
+                <td class="text-center"><button type="button" class="btn btn-danger btn-sm eliminar">❌</button></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="mb-3">
+            <button type="button" class="btn btn-success btn-sm" id="agregarProducto">➕ Agregar Producto</button>
+        </div>
+
+        <!-- TOTAL -->
+        <div class="text-end mt-3">
+            <h4>Total Compra: <span id="totalCompra" class="text-success fw-bold">S/ 0.00</span></h4>
+            <input type="hidden" th:field="*{totalCompra}" id="totalInput">
+        </div>
+
+        <hr>
+
+        <div class="text-end">
+            <button class="btn btn-primary">💾 Registrar Compra</button>
+            <a th:href="@{/compras}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<div th:replace="~{fragments/footer :: footer}"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+
+        function calcularTotales() {
+            let total = 0;
+            document.querySelectorAll("#tablaProductos tbody tr").forEach(fila => {
+                const cantidad = parseFloat(fila.querySelector(".cantidad").value) || 0;
+                const precio = parseFloat(fila.querySelector(".precio").value) || 0;
+                const descuento = parseFloat(fila.querySelector(".descuento").value) || 0;
+                const subtotal = (cantidad * precio) - descuento;
+                fila.querySelector(".subtotal").textContent = subtotal.toFixed(2);
+                total += subtotal;
+            });
+            document.getElementById("totalCompra").textContent = "S/ " + total.toFixed(2);
+            document.getElementById("totalInput").value = total.toFixed(2);
+        }
+
+        document.addEventListener("input", e => {
+            if (e.target.matches(".cantidad, .precio, .descuento")) calcularTotales();
+        });
+
+        document.getElementById("agregarProducto").addEventListener("click", () => {
+            const fila = document.querySelector(".producto-item").cloneNode(true);
+            fila.querySelectorAll("input").forEach(i => i.value = i.defaultValue);
+            document.querySelector("#tablaProductos tbody").appendChild(fila);
+        });
+
+        document.addEventListener("click", e => {
+            if (e.target.classList.contains("eliminar")) {
+                const filas = document.querySelectorAll(".producto-item");
+                if (filas.length > 1) {
+                    e.target.closest("tr").remove();
+                    calcularTotales();
+                } else alert("Debe haber al menos un producto.");
+            }
+        });
+    });
+</script>
+
+</body>
+</html>

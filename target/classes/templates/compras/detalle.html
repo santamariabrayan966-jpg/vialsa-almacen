@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${titulo}">Detalle de Compra | VIALSA</title>
+    <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
+</head>
+<body>
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">🧾 Detalle de Compra</h2>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Información de la Compra</h5>
+            <p><strong>ID:</strong> <span th:text="${compra.idCompra}"></span></p>
+            <p><strong>Fecha:</strong> <span th:text="${#temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm')}"></span></p>
+            <p><strong>Proveedor:</strong> <span th:text="${compra.nombreProveedor}"></span></p>
+            <p><strong>Usuario:</strong> <span th:text="${compra.nombreUsuario}"></span></p>
+            <p><strong>N° Comprobante:</strong> <span th:text="${compra.nroComprobante}"></span></p>
+        </div>
+    </div>
+
+    <h4>🧩 Detalle de Productos Comprados</h4>
+
+    <table class="table table-striped table-bordered mt-3">
+        <thead class="table-dark text-center">
+        <tr>
+            <th>#</th>
+            <th>Producto</th>
+            <th>Unidad</th>
+            <th>Cantidad</th>
+            <th>Precio Unitario</th>
+            <th>Descuento</th>
+            <th>Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="detalle, stat : ${detalles}">
+            <td th:text="${stat.index + 1}"></td>
+            <td th:text="${detalle.nombreProducto}"></td>
+            <td th:text="${detalle.nombreUnidad}"></td>
+            <td th:text="${detalle.cantidad}"></td>
+            <td th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 2)}"></td>
+            <td th:text="${#numbers.formatDecimal(detalle.descuento, 1, 2)}"></td>
+            <td th:text="${#numbers.formatDecimal(detalle.subtotal, 1, 2)}"></td>
+        </tr>
+        </tbody>
+        <tfoot class="fw-bold">
+        <tr>
+            <td colspan="6" class="text-end">TOTAL:</td>
+            <td th:text="${#numbers.formatDecimal(#lists.sum(detalles.^[#this.subtotal]), 1, 2)}"></td>
+        </tr>
+        </tfoot>
+    </table>
+
+    <div class="text-center mt-4">
+        <a th:href="@{/compras}" class="btn btn-secondary">⬅ Volver al listado</a>
+    </div>
+</div>
+
+</body>
+</html>

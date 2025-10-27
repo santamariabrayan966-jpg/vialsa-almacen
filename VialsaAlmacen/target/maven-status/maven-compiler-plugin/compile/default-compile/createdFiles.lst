@@ -1,0 +1,15 @@
+com\vialsa\almacen\controller\HomeController.class
+com\vialsa\almacen\dao\Jdbc\JdbcUsuarioDao.class
+com\vialsa\almacen\controller\ProductoController.class
+com\vialsa\almacen\dao\interfaces\IProductoDao.class
+com\vialsa\almacen\model\Usuario.class
+com\vialsa\almacen\security\SecurityConfig.class
+com\vialsa\almacen\dao\interfaces\UsuarioDao.class
+com\vialsa\almacen\model\Producto.class
+com\vialsa\almacen\config\StartupConfig.class
+com\vialsa\almacen\service\ProductoService.class
+com\vialsa\almacen\dao\Jdbc\JdbcProductoDao.class
+com\vialsa\almacen\VialsaAlmacenApplication.class
+com\vialsa\almacen\dao\Jdbc\JdbcProductoDao$ProductoMapper.class
+com\vialsa\almacen\service\ServiceException.class
+com\vialsa\almacen\security\DbUserDetailsService.class
