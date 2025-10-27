@@ -11,7 +11,7 @@
 - Spring Security (form login)
 - BCrypt para contraseñas
 - CSRF habilitado en formularios
-- Roles mapeados desde `usuarios.idRol` (1=ADMIN, 2=VENDEDOR, 3=ALMACENERO)
+- Roles mapeados desde `usuarios.idRol` (1=ADMIN, 2=VENDEDOR, 3=ALMACENERO, 4=CAJERO, 5=GERENTE)
 
 ## 🧱 Arquitectura
 - **MVC**: Controller → Service → DAO → DB
