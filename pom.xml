@@ -9,10 +9,6 @@
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
-    <name>VialsaAlmacen</name>
-    <description>Sistema de Almacén VIALSA - Spring Boot + Thymeleaf + MySQL</description>
-
-    <!-- ✅ Configuración principal -->
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
@@ -22,7 +18,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <!-- ✅ Dependencias gestionadas por Spring Boot -->
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -35,30 +30,24 @@
         </dependencies>
     </dependencyManagement>
 
-    <!-- ✅ Dependencias del proyecto -->
     <dependencies>
-        <!-- Spring Boot Core -->
+        <!-- Spring Boot -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
-        <!-- Integración de Thymeleaf con Spring Security -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>
             <artifactId>thymeleaf-extras-springsecurity6</artifactId>
         </dependency>
-
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-jdbc</artifactId>
@@ -70,51 +59,41 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Conector MySQL -->
+        <!-- MySQL -->
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Librerías adicionales -->
+        <!-- Utilidades -->
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>33.2.1-jre</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.14.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>5.2.5</version>
         </dependency>
-
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>5.2.5</version>
         </dependency>
 
-        <!-- Logging -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-        </dependency>
-
-        <!-- Test y Mockito -->
+        <!-- Tests -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
@@ -123,17 +102,23 @@
         </dependency>
     </dependencies>
 
-    <!-- ✅ Plugins -->
     <build>
         <plugins>
-            <!-- Plugin principal de Spring Boot -->
+            <!-- Spring Boot plugin: asegura fat-jar al empaquetar -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
 
-            <!-- Compilador configurado para Java 17 con soporte de nombres de parámetros -->
+            <!-- Compilador -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -141,37 +126,17 @@
                 <configuration>
                     <source>${java.version}</source>
                     <target>${java.version}</target>
-                    <!-- ✅ Agregado para evitar el error de @PathVariable -->
                     <parameters>true</parameters>
                 </configuration>
             </plugin>
         </plugins>
     </build>
 
-    <!-- ✅ Repositorios de dependencias -->
+    <!-- Repos (Maven Central ya es default; puedes dejar solo este bloque si quieres) -->
     <repositories>
-        <repository>
-            <id>spring-releases</id>
-            <url>https://repo.spring.io/release</url>
-        </repository>
         <repository>
             <id>maven-central</id>
             <url>https://repo.maven.apache.org/maven2</url>
         </repository>
     </repositories>
-
-    <!-- ✅ Repositorios de plugins -->
-    <pluginRepositories>
-        <pluginRepository>
-            <id>spring-plugins</id>
-            <url>https://repo.spring.io/plugins-release/</url>
-        </pluginRepository>
-        <pluginRepository>
-            <id>maven-central</id>
-            <url>https://repo.maven.apache.org/maven2</url>
-        </pluginRepository>
-    </pluginRepositories>
-
-
-
 </project>
