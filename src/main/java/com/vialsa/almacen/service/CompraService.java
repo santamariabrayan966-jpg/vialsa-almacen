@@ -5,6 +5,8 @@ import com.vialsa.almacen.model.Compra;
 import com.vialsa.almacen.model.DetalleCompra;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -23,11 +25,13 @@ public class CompraService {
 
     // 💾 Registrar compra simple
     public boolean registrar(Compra compra) {
+        prepararCompra(compra);
         return compraDao.registrar(compra) > 0;
     }
 
     // 💾 Registrar compra y devolver el ID generado
     public int registrarYObtenerId(Compra compra) {
+        prepararCompra(compra);
         return compraDao.registrarYObtenerId(compra);
     }
 
@@ -44,5 +48,15 @@ public class CompraService {
     // 🔍 Obtener ID de usuario por su nombre
     public Integer obtenerIdUsuarioPorNombre(String nombreUsuario) {
         return compraDao.obtenerIdUsuarioPorNombre(nombreUsuario);
+    }
+
+    // 🧩 Método interno para completar datos faltantes
+    private void prepararCompra(Compra compra) {
+        if (compra.getFechaCompra() == null) {
+            compra.setFechaCompra(LocalDateTime.now());
+        }
+        if (compra.getTotalCompra() == null) {
+            compra.setTotalCompra(BigDecimal.ZERO);
+        }
     }
 }

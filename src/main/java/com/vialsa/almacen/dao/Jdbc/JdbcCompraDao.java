@@ -59,7 +59,11 @@ public class JdbcCompraDao implements ICompraDao {
     // 💾 Registrar compra y devolver ID generado
     @Override
     public int registrarYObtenerId(Compra compra) {
-        String sql = "INSERT INTO compras (FechaCompra, NroComprobante, idProveedor, idUsuario) VALUES (?, ?, ?, ?)";
+        String sql = """
+        INSERT INTO compras (FechaCompra, NroComprobante, idProveedor, idUsuario)
+        VALUES (?, ?, ?, ?)
+    """;
+
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
         jdbcTemplate.update(connection -> {
@@ -73,6 +77,7 @@ public class JdbcCompraDao implements ICompraDao {
 
         return keyHolder.getKey().intValue();
     }
+
 
     // 🔍 Buscar compra por ID
     @Override
@@ -150,4 +155,5 @@ public class JdbcCompraDao implements ICompraDao {
 
         return compra;
     }
+
 }

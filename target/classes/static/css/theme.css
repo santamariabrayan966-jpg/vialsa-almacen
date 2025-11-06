@@ -1,120 +1,42 @@
-:root {
-    --azul: #214c9c;
-    --rojo: #c0392b;
-    --blanco: #fff;
-    --gris: #f5f7fa;
+/* ==============================
+   📦 Estilos para Inventario
+   ============================== */
+
+/* General */
+body {
+    background-color: #f8f9fa;
 }
 
-/* ======== Estructura base ======== */
-html, body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Poppins', system-ui, Arial, sans-serif;
-    background: linear-gradient(135deg, rgba(192,57,43,.10), rgba(33,76,156,.10)), #f6f8fc;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
+/* Título */
+h2 {
+    color: #b22222;
+    font-weight: bold;
 }
 
-.container {
-    flex: 1;
-}
-
-/* ======== Navbar ======== */
-.navbar {
-    background: linear-gradient(90deg, var(--azul), var(--rojo));
-}
-
-/* ======== Botones ======== */
-.btn-primary {
-    background-color: var(--rojo);
-    border-color: var(--rojo);
-}
-
-.btn-secondary {
-    background-color: var(--azul);
-    border-color: var(--azul);
-}
-
-.btn-outline-primary {
-    border-color: var(--azul);
-    color: var(--azul);
-    transition: all 0.3s ease;
-}
-
-.btn-outline-primary:hover {
-    background-color: var(--azul);
-    color: var(--blanco);
-}
-
-.btn-outline-danger {
-    border-color: var(--rojo);
-    color: var(--rojo);
-    transition: all 0.3s ease;
-}
-
-.btn-outline-danger:hover {
-    background-color: var(--rojo);
-    color: var(--blanco);
-}
-
-/* ======== Tarjetas ======== */
-.card {
-    box-shadow: 0 10px 20px rgba(0,0,0,.08);
-    border: none;
-    border-radius: 14px;
-}
-
-/* ======== Tabla de productos ======== */
-.table {
-    background-color: var(--blanco);
-    border-radius: 10px;
-    overflow: hidden;
-}
-
+/* Tabla */
 .table thead th {
-    background-color: rgba(33,76,156,0.15);
-    color: var(--azul);
+    background-color: #dce6f7;
+    color: #212529;
     font-weight: 600;
-    text-align: center;
 }
 
-.table td, .table th {
-    vertical-align: middle;
+/* Buscador */
+#buscador {
+    border-radius: 0 0.375rem 0.375rem 0;
 }
 
-.table .btn {
-    min-width: 75px;
+/* Botón "Nuevo Movimiento" */
+.btn-primary {
+    background-color: #007bff;
+    border: none;
 }
 
-/* ======== Pie de p�gina fijo ======== */
-footer {
-    background-color: var(--azul);
-    color: var(--blanco);
-    text-align: center;
-    padding: 10px 0;
-    margin-top: auto;
-    width: 100%;
+.btn-primary:hover {
+    background-color: #0056b3;
 }
 
-/* ======== Hero (si lo usas) ======== */
-.hero {
-    min-height: 40vh;
-    background: url('/images/abstract-glass.svg'),
-                radial-gradient(circle at 20% -10%, rgba(33,76,156,.30), transparent 60%),
-                radial-gradient(circle at 110% 10%, rgba(192,57,43,.30), transparent 60%);
-    background-repeat: no-repeat;
-    background-size: cover;
-    display: flex;
-    align-items: center;
+/* Alertas */
+.alert-warning {
+    font-weight: 500;
+    border-left: 5px solid #ffc107;
 }
-footer {
-    background-color: var(--azul);
-    color: var(--blanco);
-    text-align: center;
-    padding: 10px 0;
-    margin-top: auto;
-    border-radius: 0;
-}
-

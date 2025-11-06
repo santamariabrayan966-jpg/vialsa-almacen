@@ -1,0 +1,21 @@
+/* Estilo para el formulario de movimientos */
+h2 {
+    color: #B22222;
+}
+
+form {
+    border: 1px solid #ddd;
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+form:hover {
+    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+}
+
+label {
+    color: #333;
+}
+
+.btn-outline-primary i {
+    font-size: 0.9rem;
+}
