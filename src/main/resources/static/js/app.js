@@ -1,5 +1,7 @@
+// src/main/resources/static/js/app.js
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Bootstrap tooltips
-  const list = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-  list.map(el => new bootstrap.Tooltip(el));
+  // Inicializar tooltips de Bootstrap en toda la app
+  const tooltipTriggerList = Array.from(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.forEach(el => new bootstrap.Tooltip(el));
 });

@@ -1,19 +1,39 @@
 package com.vialsa.almacen.model;
 
 public class Rol {
-    private int idRol;
+    private Integer idRol;
     private String nombreRol;
+    private Boolean activo;   // 👈 NUEVO
 
-    public Rol() {}
+    public Rol() {
+    }
 
-    public Rol(int idRol, String nombreRol) {
+    public Rol(Integer idRol, String nombreRol) {
         this.idRol = idRol;
         this.nombreRol = nombreRol;
     }
 
-    public int getIdRol() { return idRol; }
-    public void setIdRol(int idRol) { this.idRol = idRol; }
+    public Integer getIdRol() {
+        return idRol;
+    }
 
-    public String getNombreRol() { return nombreRol; }
-    public void setNombreRol(String nombreRol) { this.nombreRol = nombreRol; }
+    public void setIdRol(Integer idRol) {
+        this.idRol = idRol;
+    }
+
+    public String getNombreRol() {
+        return nombreRol;
+    }
+
+    public void setNombreRol(String nombreRol) {
+        this.nombreRol = nombreRol;
+    }
+
+    public Boolean getActivo() {
+        return activo;
+    }
+
+    public void setActivo(Boolean activo) {
+        this.activo = activo;
+    }
 }

@@ -2,41 +2,42 @@
    📦 Estilos para Inventario
    ============================== */
 
-/* General */
-body {
+/* General para la página de inventario */
+.inventario-page {
     background-color: #f8f9fa;
+    padding-bottom: 1.5rem;
 }
 
-/* Título */
-h2 {
+/* Título solo dentro de inventario */
+.inventario-page h2 {
     color: #b22222;
     font-weight: bold;
 }
 
-/* Tabla */
-.table thead th {
+/* Tabla de inventario */
+.inventario-page .table thead th {
     background-color: #dce6f7;
     color: #212529;
     font-weight: 600;
 }
 
-/* Buscador */
-#buscador {
+/* Buscador (input) dentro de inventario */
+.inventario-page #buscador {
     border-radius: 0 0.375rem 0.375rem 0;
 }
 
-/* Botón "Nuevo Movimiento" */
-.btn-primary {
+/* Botón "Nuevo Movimiento" (más específico para no pisar todos los btn-primary) */
+.inventario-page .btn-nuevo-movimiento {
     background-color: #007bff;
     border: none;
 }
 
-.btn-primary:hover {
+.inventario-page .btn-nuevo-movimiento:hover {
     background-color: #0056b3;
 }
 
-/* Alertas */
-.alert-warning {
+/* Alertas dentro de inventario */
+.inventario-page .alert-warning {
     font-weight: 500;
     border-left: 5px solid #ffc107;
 }
