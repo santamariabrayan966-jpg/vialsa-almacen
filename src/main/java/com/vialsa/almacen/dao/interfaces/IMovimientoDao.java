@@ -2,6 +2,7 @@ package com.vialsa.almacen.dao.interfaces;
 
 import com.vialsa.almacen.model.Movimiento;
 import java.util.List;
+import java.math.BigDecimal;
 
 public interface IMovimientoDao {
 
@@ -13,4 +14,13 @@ public interface IMovimientoDao {
 
     // 🔍 Buscar ID de usuario por su nombre (usado por el controlador)
     Integer obtenerIdUsuarioPorNombre(String nombreUsuario);
+
+    // 🔍 Buscar movimiento por ID
+    Movimiento buscarPorId(Integer id);
+
+    // 📦 Listar movimientos de un producto
+    List<Movimiento> listarPorProducto(Integer idProducto);
+
+    // 📊 Obtener stock actual (debe existir en DAO)
+    BigDecimal obtenerStockActual(Integer idProducto);
 }

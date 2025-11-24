@@ -1,21 +1,26 @@
-/* Estilo para el formulario de movimientos */
-h2 {
-    color: #B22222;
+.animate-modal {
+    animation: fadeInScale .25s ease;
 }
 
-form {
-    border: 1px solid #ddd;
-    transition: box-shadow 0.3s ease-in-out;
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
-form:hover {
-    box-shadow: 0 0 10px rgba(0,0,0,0.15);
+.modal-content {
+    border-radius: 12px;
 }
 
-label {
-    color: #333;
+.form-label {
+    font-weight: 600;
 }
 
-.btn-outline-primary i {
-    font-size: 0.9rem;
+input:focus, select:focus {
+    box-shadow: 0 0 4px rgba(0,120,255,.4) !important;
 }

@@ -36,20 +36,29 @@ public class DbUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username)
             throws UsernameNotFoundException {
 
-        log.info(">>> BUSCANDO USUARIO: {}", username);
+        log.info(">>> BUSCANDO USUARIO POR NOMBRE O CORREO: {}", username);
 
+        // 1) Buscar por NombreUsuario
         Usuario u = usuarioDao.findByNombreUsuario(username)
+                // 2) Si no lo encuentra, buscar por Correo
+                .or(() -> usuarioDao.findByCorreo(username))
                 .orElseThrow(() -> {
-                    log.warn(">>> Usuario NO ENCONTRADO: {}", username);
+                    log.warn(">>> Usuario NO ENCONTRADO (usuario/correo): {}", username);
                     return new UsernameNotFoundException("Usuario no encontrado");
                 });
 
-        int idRol = u.getIdRol(); // 👈 es int, nunca null
+        log.info(">>> USUARIO ENCONTRADO: idUsuario={}, nombreUsuario={}, correo={}",
+                u.getIdUsuario(), u.getNombreUsuario(), u.getCorreo());
 
-        log.info(">>> USUARIO ENCONTRADO: idUsuario={}, idRol={}",
-                u.getIdUsuario(), idRol);
+        // Validar si el usuario está activo (campo 'activo' en usuarios)
+        if (u.getActivo() != null && !u.getActivo()) {
+            log.warn(">>> Usuario {} inactivo. Lanzando DisabledException", username);
+            throw new DisabledException("USUARIO_INACTIVO");
+        }
 
-        // ✅ Consultamos si el rol está activo (false si no existe o está inactivo)
+        int idRol = u.getIdRol(); // int (no null)
+
+        // Validar si el rol está activo
         Boolean rolActivo = rolDao.esRolActivo(idRol);
         log.info(">>> ROL {} ACTIVO? {}", idRol, rolActivo);
 
@@ -58,24 +67,32 @@ public class DbUserDetailsService implements UserDetailsService {
             throw new DisabledException("ROL_INACTIVO");
         }
 
-        String role = switch (idRol) {
-            case 1 -> "ROLE_ADMIN";
-            case 2 -> "ROLE_VENDEDOR";
-            case 3 -> "ROLE_ALMACENERO";
-            case 4 -> "ROLE_GERENTE";
-            case 5 -> "ROLE_CAJERO";
-            case 6 -> "ROLE_SUPERVISOR";
-            default -> "ROLE_USER";
-        };
+        // 🔹 Mapear roles de acuerdo a tu tabla 'roles'
+        // Asegúrate de que el id de CLIENTE coincida con tu BD (en tu dump es 8)
+        // Obtener nombre del rol desde la BD
+        String nombreRol = rolDao.obtenerNombreRol(idRol);
+
+        if (nombreRol == null || nombreRol.isBlank()) {
+            nombreRol = "USER"; // fallback mínimo
+        }
+
+// SPRING NECESITA EL PREFIJO ROLE_
+        String role = "ROLE_" + nombreRol.toUpperCase().trim().replace(" ", "_");
 
         log.info(">>> Asignando authority: {}", role);
 
+
+        log.info(">>> Asignando authority: {}", role);
+
+        // Si NombreUsuario es null (por registro vía correo o Google), usamos el correo
+        String usernameSpring = (u.getNombreUsuario() != null && !u.getNombreUsuario().isBlank())
+                ? u.getNombreUsuario()
+                : u.getCorreo();
+
         return new User(
-                u.getNombreUsuario(),
+                usernameSpring,          // lo que quedará como principal en el SecurityContext
                 u.getContrasena(),
                 List.of(new SimpleGrantedAuthority(role))
         );
-
     }
-
 }

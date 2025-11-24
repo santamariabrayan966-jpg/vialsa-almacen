@@ -16,7 +16,19 @@ public class Movimiento {
     // 🔹 Campo adicional para mostrar el nombre del producto en la vista
     private String nombreProducto;
 
-    // ✅ Getters y Setters
+    // ============================================
+    // 🆕 NUEVOS CAMPOS (coinciden con tu tabla SQL)
+    // ============================================
+
+    private String origen;            // COMPRA / VENTA / MANUAL / AJUSTE / DEVOLUCION
+    private Integer idDocumento;      // ID de compra/venta (si aplica)
+    private String observacion;       // Nota opcional del movimiento
+    private BigDecimal stockAntes;    // Stock antes del movimiento
+    private BigDecimal stockDespues;  // Stock después del movimiento
+
+    // ============================================
+    // GETTERS & SETTERS
+    // ============================================
 
     public Integer getIdMovimientosAlmacen() {
         return idMovimientosAlmacen;
@@ -74,12 +86,55 @@ public class Movimiento {
         this.idUsuario = idUsuario;
     }
 
-    // 🔹 Nuevo campo para mostrar nombre del producto
     public String getNombreProducto() {
         return nombreProducto;
     }
 
     public void setNombreProducto(String nombreProducto) {
         this.nombreProducto = nombreProducto;
+    }
+
+    // =============================
+    // GETTERS & SETTERS NUEVOS
+    // =============================
+
+    public String getOrigen() {
+        return origen;
+    }
+
+    public void setOrigen(String origen) {
+        this.origen = origen;
+    }
+
+    public Integer getIdDocumento() {
+        return idDocumento;
+    }
+
+    public void setIdDocumento(Integer idDocumento) {
+        this.idDocumento = idDocumento;
+    }
+
+    public String getObservacion() {
+        return observacion;
+    }
+
+    public void setObservacion(String observacion) {
+        this.observacion = observacion;
+    }
+
+    public BigDecimal getStockAntes() {
+        return stockAntes;
+    }
+
+    public void setStockAntes(BigDecimal stockAntes) {
+        this.stockAntes = stockAntes;
+    }
+
+    public BigDecimal getStockDespues() {
+        return stockDespues;
+    }
+
+    public void setStockDespues(BigDecimal stockDespues) {
+        this.stockDespues = stockDespues;
     }
 }

@@ -46,4 +46,5 @@ public class RolService {
     public void cambiarEstadoActivo(int idRol, boolean activo) {
         rolDao.cambiarEstadoActivo(idRol, activo);
     }
+
 }

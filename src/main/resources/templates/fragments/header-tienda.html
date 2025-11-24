@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<body>
+
+<header th:fragment="headerTienda">
+
+    <!-- BARRA SUPERIOR -->
+    <div class="header-top d-flex align-items-center justify-content-between">
+
+        <!-- LOGO -->
+        <a th:href="@{/tienda}" class="logo d-flex align-items-center text-decoration-none">
+            <img th:src="@{/images/logovialsa.png}" alt="Logo VIALSA" class="logo-img">
+            <span class="logo-text">VIALSA</span>
+        </a>
+
+        <!-- BUSCADOR -->
+        <div class="search-bar flex-grow-1 mx-4">
+            <form onsubmit="buscarEnConstruccion(); return false;" class="d-flex">
+                <input type="text" name="q" class="form-control search-input"
+                       placeholder="Buscar vidrios, aluminios, accesorios...">
+                <button class="btn btn-search ms-2" type="submit">Buscar</button>
+            </form>
+        </div>
+
+        <!-- ICONOS DERECHA -->
+        <div class="header-icons d-flex align-items-center">
+
+            <!-- NO LOGUEADO → botón "Iniciar sesión" -->
+            <a sec:authorize="!isAuthenticated()"
+               href="#"
+               class="icon-link"
+               data-bs-toggle="modal"
+               data-bs-target="#loginModal"
+               onclick="mostrarLogin(); return false;">
+                Iniciar sesión
+            </a>
+
+            <!-- LOGUEADO → nombre y menú -->
+            <div class="dropdown" sec:authorize="isAuthenticated()">
+                <a class="icon-link dropdown-toggle"
+                   href="#"
+                   role="button"
+                   data-bs-toggle="dropdown"
+                   aria-expanded="false">
+                    👤 <span sec:authentication="name"></span>
+                </a>
+
+                <ul class="dropdown-menu dropdown-menu-end">
+
+                    <!-- ✔ PERFIL DEL CLIENTE -->
+                    <li>
+                        <a class="dropdown-item" th:href="@{/tienda/perfil}">
+                            Mi perfil
+                        </a>
+                    </li>
+
+                    <!-- ✔ MIS PEDIDOS (puedes implementar más adelante) -->
+                    <li>
+                        <a class="dropdown-item" th:href="@{/tienda/mis-pedidos}">
+                            Mis pedidos
+                        </a>
+                    </li>
+
+                    <li><hr class="dropdown-divider"></li>
+
+                    <!-- Cerrar sesión -->
+                    <li>
+                        <form th:action="@{/logout}" method="post" class="px-3">
+                            <button type="submit" class="btn btn-link text-danger p-0">
+                                Cerrar sesión
+                            </button>
+                        </form>
+                    </li>
+
+                </ul>
+            </div>
+
+            <!-- 🔙 VOLVER AL PANEL ADMIN -->
+            <a th:if="${#authorization.expression('hasRole(''ADMIN'') or hasRole(''SUPERADMIN'')')}"
+               th:href="@{/dashboard}"
+               class="btn btn-outline-primary ms-3">
+                ← Volver al Panel
+            </a>
+
+            <!-- 🛒 CARRITO (solo CLIENTE) -->
+            <a th:if="${#authorization.expression('hasRole(''CLIENTE'')')}"
+               th:href="@{/carrito}"
+               class="btn btn-success ms-3">
+                Carrito
+            </a>
+
+        </div>
+    </div>
+
+    <!-- CATEGORÍAS -->
+    <div class="categories-bar d-flex justify-content-center">
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Vidrios</a>
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Aluminios</a>
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Herrajes</a>
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Accesorios</a>
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Instalación</a>
+        <a href="#" onclick="categoriaEnConstruccion(); return false;">Ofertas</a>
+    </div>
+
+</header>
+
+<script>
+    function abrirRegistroDesdeTienda() {
+        setTimeout(() => {
+            if (typeof mostrarRegistro === "function") {
+                mostrarRegistro();
+            }
+        }, 250);
+    }
+</script>
+
+</body>
+</html>

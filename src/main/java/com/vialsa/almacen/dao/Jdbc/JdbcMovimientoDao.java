@@ -6,6 +6,8 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
+import java.math.BigDecimal;
+
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -20,7 +22,9 @@ public class JdbcMovimientoDao implements IMovimientoDao {
         this.jdbc = jdbc;
     }
 
-    // ✅ Mapper con JOIN para incluir el nombre del producto
+    // ============================================================
+    //  MAPPER actualizado con los nuevos campos
+    // ============================================================
     private static class MovimientoMapper implements RowMapper<Movimiento> {
         @Override
         public Movimiento mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -32,58 +36,153 @@ public class JdbcMovimientoDao implements IMovimientoDao {
             m.setIdProducto(rs.getInt("idProducto"));
             m.setIdUnidad(rs.getInt("idUnidad"));
             m.setIdUsuario(rs.getInt("idUsuario"));
-            m.setNombreProducto(rs.getString("NombreProducto")); // 🔹 Campo adicional del JOIN
+            m.setNombreProducto(rs.getString("NombreProducto"));
+
+            // 🆕 Campos nuevos de la tabla movimientosalmacen
+            m.setOrigen(rs.getString("origen"));
+            m.setIdDocumento(rs.getObject("idDocumento") != null ? rs.getInt("idDocumento") : null);
+            m.setObservacion(rs.getString("observacion"));
+            m.setStockAntes(rs.getBigDecimal("stockAntes"));
+            m.setStockDespues(rs.getBigDecimal("stockDespues"));
+
             return m;
         }
     }
 
-    // 📋 Listar todos los movimientos de inventario
+    // ============================================================
+    //     LISTAR (incluye los nuevos campos)
+    // ============================================================
     @Override
     public List<Movimiento> listar() {
         String sql = """
             SELECT m.idMovimientosAlmacen, m.TipoMovimiento, m.Cantidad, m.Fecha,
                    m.idProducto, m.idUnidad, m.idUsuario,
+                   m.origen, m.idDocumento, m.observacion,
+                   m.stockAntes, m.stockDespues,
                    p.NombreProducto
             FROM movimientosalmacen m
             INNER JOIN productos p ON m.idProducto = p.idProducto
             ORDER BY m.Fecha DESC
         """;
+
         return jdbc.query(sql, new MovimientoMapper());
     }
 
-    // 💾 Registrar un movimiento y actualizar stock
+    // ============================================================
+    //     REGISTRAR (ahora guarda stockAntes y stockDespues)
+    // ============================================================
     @Override
     public int registrar(Movimiento m) {
+
+        // 1️⃣ Obtener stock actual ANTES del movimiento
+        BigDecimal stockActual = jdbc.queryForObject(
+                "SELECT StockActual FROM productos WHERE idProducto = ?",
+                BigDecimal.class,
+                m.getIdProducto()
+        );
+
+        BigDecimal stockAntes = stockActual;
+        BigDecimal stockDespues;
+
+        if (m.getTipoMovimiento().equalsIgnoreCase("ENTRADA")) {
+            stockDespues = stockActual.add(m.getCantidad());
+            m.setOrigen("MANUAL");
+        } else {
+            stockDespues = stockActual.subtract(m.getCantidad());
+            m.setOrigen("MANUAL");
+        }
+
+        m.setStockAntes(stockAntes);
+        m.setStockDespues(stockDespues);
+
+        // 2️⃣ Registrar movimiento con todos los campos nuevos
         int result = jdbc.update("""
-            INSERT INTO movimientosalmacen (TipoMovimiento, Cantidad, Fecha, idProducto, idUnidad, idUsuario)
-            VALUES (?, ?, NOW(), ?, ?, ?)
-        """, m.getTipoMovimiento(), m.getCantidad(), m.getIdProducto(), m.getIdUnidad(), m.getIdUsuario());
+            INSERT INTO movimientosalmacen 
+            (TipoMovimiento, Cantidad, Fecha, idProducto, idUnidad, idUsuario,
+             origen, idDocumento, observacion, stockAntes, stockDespues)
+            VALUES (?, ?, NOW(), ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+                m.getTipoMovimiento(),
+                m.getCantidad(),
+                m.getIdProducto(),
+                m.getIdUnidad(),
+                m.getIdUsuario(),
+                m.getOrigen(),
+                m.getIdDocumento(),
+                m.getObservacion(),
+                m.getStockAntes(),
+                m.getStockDespues()
+        );
 
-        // ✅ Actualizar stock si el registro fue exitoso
+        // 3️⃣ Actualizar stock del producto
         if (result > 0) {
-            String sqlStock;
-            if ("ENTRADA".equalsIgnoreCase(m.getTipoMovimiento())) {
-                sqlStock = "UPDATE productos SET StockActual = StockActual + ? WHERE idProducto = ?";
-            } else if ("SALIDA".equalsIgnoreCase(m.getTipoMovimiento())) {
-                sqlStock = "UPDATE productos SET StockActual = StockActual - ? WHERE idProducto = ?";
-            } else {
-                throw new IllegalArgumentException("Tipo de movimiento inválido: " + m.getTipoMovimiento());
-            }
-
-            jdbc.update(sqlStock, m.getCantidad(), m.getIdProducto());
+            jdbc.update("UPDATE productos SET StockActual = ? WHERE idProducto = ?",
+                    stockDespues, m.getIdProducto());
         }
 
         return result;
     }
 
-    // 🔍 Buscar ID de usuario por su nombre (para el controlador)
+
+    // ============================================================
+    //  Obtener ID usuario por nombre
+    // ============================================================
     @Override
     public Integer obtenerIdUsuarioPorNombre(String nombreUsuario) {
-        String sql = "SELECT idUsuario FROM usuarios WHERE NombreUsuario = ?";
         try {
-            return jdbc.queryForObject(sql, Integer.class, nombreUsuario);
+            return jdbc.queryForObject(
+                    "SELECT idUsuario FROM usuarios WHERE NombreUsuario = ?",
+                    Integer.class,
+                    nombreUsuario
+            );
         } catch (EmptyResultDataAccessException e) {
             return null;
         }
     }
+
+
+    // ============================================================
+    //  NUEVO — Buscar movimiento por ID
+    // ============================================================
+    @Override
+    public Movimiento buscarPorId(Integer id) {
+        try {
+            return jdbc.queryForObject("""
+                SELECT m.*, p.NombreProducto
+                FROM movimientosalmacen m
+                INNER JOIN productos p ON m.idProducto = p.idProducto
+                WHERE m.idMovimientosAlmacen = ?
+            """, new MovimientoMapper(), id);
+
+        } catch (EmptyResultDataAccessException e) {
+            return null;
+        }
+    }
+
+    // ============================================================
+    //  NUEVO — Listar por producto
+    // ============================================================
+    @Override
+    public List<Movimiento> listarPorProducto(Integer idProducto) {
+        return jdbc.query("""
+                SELECT m.*, p.NombreProducto
+                FROM movimientosalmacen m
+                INNER JOIN productos p ON m.idProducto = p.idProducto
+                WHERE m.idProducto = ?
+                ORDER BY m.Fecha DESC
+        """, new MovimientoMapper(), idProducto);
+    }
+    @Override
+    public BigDecimal obtenerStockActual(Integer idProducto) {
+        try {
+            return jdbc.queryForObject(
+                    "SELECT StockActual FROM productos WHERE idProducto = ?",
+                    BigDecimal.class,
+                    idProducto
+            );
+        } catch (Exception e) {
+            return BigDecimal.ZERO;
+        }
+    }
+
 }

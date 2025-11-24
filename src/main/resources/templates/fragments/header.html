@@ -2,110 +2,166 @@
         xmlns:th="http://www.thymeleaf.org"
         xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-    <nav class="navbar navbar-expand-lg navbar-dark"
+    <nav class="navbar navbar-expand-lg navbar-dark shadow-sm"
          style="background: linear-gradient(90deg, #283E81, #A73C3C);">
+
         <div class="container-fluid">
 
-            <!-- 🔷 Logo -->
-            <a class="navbar-brand fw-bold text-white" th:href="@{/}">
-                <i class="bi bi-box"></i> VIALSA
+            <!-- LOGO -->
+            <a class="navbar-brand fw-bold text-white d-flex align-items-center" th:href="@{/}">
+                <i class="bi bi-box-seam fs-4 me-2"></i>
+                VIALSA
             </a>
 
-            <!-- 🔸 Botón colapsable -->
+            <!-- BOTÓN MOBILE -->
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarNav" aria-controls="navbarNav"
-                    aria-expanded="false" aria-label="Toggle navigation">
+                    data-bs-target="#menuPrincipal">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <!-- 🔹 Menú principal -->
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+            <!-- MENÚ -->
+            <div class="collapse navbar-collapse" id="menuPrincipal">
 
-                    <!-- 🌐 Productos -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'productos')}">
-                        <a class="nav-link text-light" th:href="@{/productos}">
-                            <i class="bi bi-bag"></i> Productos
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+
+                    <!-- ========================================================= -->
+                    <!-- GESTIÓN -->
+                    <!-- ========================================================= -->
+                    <li class="nav-item dropdown dropdown-hover"
+                        th:if="${permisosUsuario['productos']}
+                               or ${permisosUsuario['inventario']}
+                               or ${permisosUsuario['proveedores']}">
+
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Gestión
                         </a>
+
+                        <ul class="dropdown-menu shadow">
+
+                            <li th:if="${permisosUsuario['productos']}">
+                                <a class="dropdown-item" th:href="@{/productos}">
+                                    <i class="bi bi-bag"></i> Productos
+                                </a>
+                            </li>
+
+                            <li th:if="${permisosUsuario['inventario']}">
+                                <a class="dropdown-item" th:href="@{/inventario}">
+                                    <i class="bi bi-box-seam"></i> Inventario
+                                </a>
+                            </li>
+
+                            <li th:if="${permisosUsuario['proveedores']}">
+                                <a class="dropdown-item" th:href="@{/proveedores}">
+                                    <i class="bi bi-truck"></i> Proveedores
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
 
-                    <!-- 🧑‍🤝‍🧑 Usuarios -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'usuarios')}">
-                        <a class="nav-link text-light" th:href="@{/usuarios}">
+                    <!-- ========================================================= -->
+                    <!-- TRANSACCIONES -->
+                    <!-- ========================================================= -->
+                    <li class="nav-item dropdown dropdown-hover"
+                        th:if="${permisosUsuario['compras']}
+                               or ${permisosUsuario['ventas']}">
+
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button"
+                           data-bs-toggle="dropdown">
+                            <i class="bi bi-cash-stack"></i> Transacciones
+                        </a>
+
+                        <ul class="dropdown-menu shadow">
+
+                            <li th:if="${permisosUsuario['compras']}">
+                                <a class="dropdown-item" th:href="@{/compras}">
+                                    <i class="bi bi-cart"></i> Compras
+                                </a>
+                            </li>
+
+                            <li th:if="${permisosUsuario['ventas']}">
+                                <a class="dropdown-item" th:href="@{/ventas}">
+                                    <i class="bi bi-receipt"></i> Ventas
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+
+                    <!-- ========================================================= -->
+                    <!-- USUARIOS -->
+                    <!-- ========================================================= -->
+                    <li class="nav-item dropdown dropdown-hover"
+                        th:if="${permisosUsuario['usuarios']}
+                               or ${permisosUsuario['roles']}
+                               or ${permisosUsuario['clientes']}">
+
+                        <a class="nav-link dropdown-toggle text-white" href="#" role="button"
+                           data-bs-toggle="dropdown">
                             <i class="bi bi-people"></i> Usuarios
                         </a>
+
+                        <ul class="dropdown-menu shadow">
+
+                            <li th:if="${permisosUsuario['usuarios']}">
+                                <a class="dropdown-item" th:href="@{/usuarios}">
+                                    <i class="bi bi-person-badge"></i> Gestión de usuarios
+                                </a>
+                            </li>
+
+                            <li th:if="${permisosUsuario['roles']}">
+                                <a class="dropdown-item" th:href="@{/roles}">
+                                    <i class="bi bi-shield-lock"></i> Roles
+                                </a>
+                            </li>
+
+                            <li th:if="${permisosUsuario['clientes']}">
+                                <a class="dropdown-item" th:href="@{/clientes}">
+                                    <i class="bi bi-people-fill"></i> Clientes
+                                </a>
+                            </li>
+
+                        </ul>
                     </li>
 
-                    <!-- 🛒 Compras -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'compras')}">
-                        <a class="nav-link text-light" th:href="@{/compras}">
-                            <i class="bi bi-cart"></i> Compras
+                    <!-- ========================================================= -->
+                    <!-- ANÁLISIS -->
+                    <!-- ========================================================= -->
+                    <li class="nav-item" th:if="${permisosUsuario['dashboard']}">
+                        <a class="nav-link text-white" th:href="@{/dashboard}">
+                            <i class="bi bi-speedometer2"></i> Análisis
                         </a>
                     </li>
 
-                    <!-- 🧾 Ventas -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'ventas')}">
-                        <a class="nav-link text-light" th:href="@{/ventas}">
-                            <i class="bi bi-receipt"></i> Ventas
+                    <!-- TIENDA (pública) -->
+                    <li class="nav-item">
+                        <a class="nav-link text-white" th:href="@{/tienda}">
+                            <i class="bi bi-shop"></i> Tienda
                         </a>
                     </li>
 
-                    <!-- 📦 Inventario -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'inventario')}">
-                        <a class="nav-link text-light" th:href="@{/inventario}">
-                            <i class="bi bi-box-seam"></i> Inventario
-                        </a>
-                    </li>
-
-                    <!-- 📊 Dashboard -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'dashboard')}">
-                        <a class="nav-link text-light" th:href="@{/dashboard}">
-                            <i class="bi bi-speedometer2"></i> Dashboard
-                        </a>
-                    </li>
-
-                    <!-- 🛡 Roles -->
-                    <li class="nav-item"
-                        th:if="${@authService.tieneAcceso(#authentication, 'roles')}">
-                        <a class="nav-link text-light" th:href="@{/roles}">
-                            <i class="bi bi-shield-lock"></i> Roles
-                        </a>
-                    </li>
-
-                    <!-- 👤 Usuario (solo nombre) -->
-                    <li class="nav-item d-flex align-items-center"
-                        sec:authorize="isAuthenticated()">
-                        <span class="navbar-text text-white me-2">
-                            <i class="bi bi-person-circle"></i>
+                    <!-- USUARIO LOGUEADO -->
+                    <li class="nav-item ms-lg-3 d-flex align-items-center" sec:authorize="isAuthenticated()">
+                        <span class="text-white fw-semibold d-flex align-items-center">
+                            <i class="bi bi-person-circle fs-5 me-1"></i>
                             <span sec:authentication="name"></span>
                         </span>
                     </li>
 
-                    <!-- 🔴 Botón Cerrar sesión (ÚNICO logout) -->
+                    <!-- CERRAR SESIÓN -->
                     <li class="nav-item" sec:authorize="isAuthenticated()">
                         <form th:action="@{/logout}" method="post" class="d-inline">
-                            <button type="submit"
-                                    class="nav-link btn btn-link text-danger fw-semibold">
+                            <button class="btn btn-link nav-link text-danger fw-semibold">
                                 <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                             </button>
                         </form>
                     </li>
 
-                    <!-- 🔓 Login (solo si NO está autenticado) -->
-                    <li class="nav-item" sec:authorize="!isAuthenticated()">
-                        <a class="nav-link text-light" th:href="@{/login}">
-                            <i class="bi bi-box-arrow-in-right"></i> Iniciar sesión
-                        </a>
-                    </li>
-
                 </ul>
+
             </div>
         </div>
     </nav>
+
 </header>

@@ -68,4 +68,8 @@ public class ProductoService {
         }
         productoDao.aumentarStock(idProducto, cantidad);
     }
+    public List<Producto> listarActivos() {
+        return productoDao.listarActivos();
+    }
+
 }

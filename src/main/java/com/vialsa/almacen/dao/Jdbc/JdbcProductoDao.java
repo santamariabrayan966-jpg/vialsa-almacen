@@ -50,6 +50,19 @@ public class JdbcProductoDao implements IProductoDao {
         """;
         return jdbc.query(sql, new ProductoMapper());
     }
+    @Override
+    public List<Producto> listarActivos() {
+        String sql = """
+        SELECT idProducto, codigoInterno, nombreProducto, dimensiones,
+               precioUnitario, stockActual, stockMinimo, idUnidad, idTipoProducto, idEstadoProducto
+        FROM productos
+        WHERE idEstadoProducto = 1       -- 👈 asumimos 1 = ACTIVO
+          AND stockActual > 0            -- 👈 solo con stock
+        ORDER BY idProducto DESC
+    """;
+        return jdbc.query(sql, new ProductoMapper());
+    }
+
 
     @Override
     public Optional<Producto> buscarPorId(Integer id) {
@@ -107,5 +120,6 @@ public class JdbcProductoDao implements IProductoDao {
         String sql = "UPDATE productos SET StockActual = StockActual + ? WHERE idProducto = ?";
         jdbc.update(sql, cantidad, idProducto);
     }
+
 
 }

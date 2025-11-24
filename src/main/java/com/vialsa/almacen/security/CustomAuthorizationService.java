@@ -17,7 +17,10 @@ public class CustomAuthorizationService {
         this.permisoDao = permisoDao;
     }
 
-    // Verifica si el rol actual tiene permiso sobre un módulo
+    /**
+     * Verifica si el usuario tiene acceso a un módulo interno.
+     * Este método NO aplica para ROLE_CLIENTE.
+     */
     public boolean tieneAcceso(Authentication authentication, String modulo) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return false;
@@ -25,27 +28,30 @@ public class CustomAuthorizationService {
 
         Integer idRolEncontrado = null;
 
-        // Recorremos todas las authorities del usuario (ROLE_ADMIN, ROLE_SUPERVISOR, etc.)
         for (GrantedAuthority authority : authentication.getAuthorities()) {
-            String nombreRol = authority.getAuthority()
-                    .replace("ROLE_", "")
-                    .trim(); // por si acaso
+
+            String nombreRol = authority.getAuthority().trim();
+
+            // 🔹 Clientes NO usan esta lógica de permisos internos
+            if (nombreRol.equals("ROLE_CLIENTE")) {
+                return false; // No tiene acceso a módulos internos
+            }
+
+            nombreRol = nombreRol.replace("ROLE_", "");
 
             Integer idRol = permisoDao.obtenerIdRolPorNombre(nombreRol);
             if (idRol != null) {
                 idRolEncontrado = idRol;
-                break; // usamos el primer rol válido que exista en la tabla roles
+                break;
             }
         }
 
         if (idRolEncontrado == null) {
-            return false; // el rol del usuario no coincide con ningún registro de roles
+            return false;
         }
 
-        // Obtenemos los permisos de ese rol
         List<Permiso> permisos = permisoDao.obtenerPorRol(idRolEncontrado);
 
-        // Verificamos si el módulo tiene acceso
         return permisos.stream()
                 .anyMatch(p -> p.getModulo().equalsIgnoreCase(modulo) && p.isPuedeAcceder());
     }

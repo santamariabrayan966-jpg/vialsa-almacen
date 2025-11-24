@@ -79,4 +79,13 @@ public class JdbcRolDao {
             return false;
         }
     }
+    public String obtenerNombreRol(int idRol) {
+        String sql = "SELECT NombreRol FROM roles WHERE idRol = ?";
+        try {
+            return jdbc.queryForObject(sql, String.class, idRol);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 }

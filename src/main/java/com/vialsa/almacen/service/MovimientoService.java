@@ -4,6 +4,7 @@ import com.vialsa.almacen.dao.interfaces.IMovimientoDao;
 import com.vialsa.almacen.model.Movimiento;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,7 +26,39 @@ public class MovimientoService {
     // 💾 Registrar un movimiento (retorna true si se insertó correctamente)
     public boolean registrar(Movimiento movimiento) {
         try {
+
+            // =============== 🧠 NUEVA LÓGICA PROFESIONAL ====================
+            // Antes de registrar, debemos calcular stockAntes y stockDespues
+            BigDecimal stockActual = dao.obtenerStockActual(movimiento.getIdProducto());
+
+            if (stockActual == null) {
+                throw new IllegalStateException("No se pudo obtener el stock actual del producto " +
+                        movimiento.getIdProducto());
+            }
+
+            movimiento.setStockAntes(stockActual);
+
+            BigDecimal cantidad = movimiento.getCantidad();
+
+            BigDecimal stockDespues;
+
+            if ("ENTRADA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+                stockDespues = stockActual.add(cantidad);
+            } else if ("SALIDA".equalsIgnoreCase(movimiento.getTipoMovimiento())) {
+                stockDespues = stockActual.subtract(cantidad);
+
+                if (stockDespues.compareTo(BigDecimal.ZERO) < 0) {
+                    throw new IllegalStateException("El stock no puede quedar negativo.");
+                }
+            } else {
+                throw new IllegalArgumentException("Tipo de movimiento inválido: " + movimiento.getTipoMovimiento());
+            }
+
+            movimiento.setStockDespues(stockDespues);
+            // ===============================================================
+
             return dao.registrar(movimiento) > 0;
+
         } catch (Exception e) {
             System.err.println("❌ Error al registrar movimiento: " + e.getMessage());
             return false;

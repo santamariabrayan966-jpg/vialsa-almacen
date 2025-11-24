@@ -9,8 +9,8 @@ public class HomeController {
 
     @GetMapping("/")
     public String root() {
-        // Redirige a /dashboard cuando entran a la raíz
-        return "redirect:/dashboard";
+        // Ahora la página principal es la tienda pública
+        return "redirect:/tienda";
     }
 
     @GetMapping("/dashboard")
@@ -19,5 +19,7 @@ public class HomeController {
         return "dashboard"; // dashboard.html
     }
 
-    // 👇 IMPORTANTE: ya NO debe existir el @GetMapping("/login") aquí
+    // ❗ IMPORTANTE:
+    // NO definir @GetMapping("/login") aquí
+    // Spring Security se encarga de manejar /login automáticamente
 }

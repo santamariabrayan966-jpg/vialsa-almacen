@@ -1,8 +1,9 @@
-<footer xmlns:th="http://www.thymeleaf.org"
-        th:fragment="footer"
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<footer th:fragment="footer"
         class="bg-dark text-white text-center py-3 mt-4">
-    <div class="container">
-        © <span th:text="${#temporals.format(#temporals.createNow(),'yyyy')}"></span>
-        <strong>VIALSA</strong> — Sistema de Almacén.
-    </div>
+    <small>&copy; 2025 VIALSA - Todos los derechos reservados</small>
 </footer>
+</body>
+</html>

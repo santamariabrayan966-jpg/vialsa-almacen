@@ -1,0 +1,109 @@
+/* ===== HEADER ===== */
+
+.header-top {
+    background: #ffffff;
+    border-bottom: 1px solid #eaeaea;
+    padding: 10px 20px;
+}
+
+.logo-img {
+    height: 40px;
+    margin-right: 8px;
+}
+
+.logo-text {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #004aad; /* Azul corporativo */
+}
+
+.search-input {
+    border-radius: 20px;
+    padding-left: 15px;
+}
+
+.btn-search {
+    border-radius: 20px;
+    background-color: #004aad;
+    color: #ffffff;
+}
+
+.header-icons .icon-link {
+    margin-left: 20px;
+    color: #333333;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.header-icons .icon-link:hover {
+    color: #ff2e2e; /* Rojo acento */
+}
+
+/* Barra de categorías */
+.categories-bar {
+    background: #004aad;
+    padding: 10px 0;
+}
+
+.categories-bar a {
+    color: #ffffff;
+    margin: 0 15px;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.categories-bar a:hover {
+    color: #ff2e2e;
+}
+
+/* ===== LISTA DE PRODUCTOS ===== */
+
+.product-card {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.12);
+}
+
+.product-card img {
+    height: 180px;
+    object-fit: cover;
+}
+
+.product-price {
+    color: #c23223; /* rojo similar al botón de login */
+    font-weight: bold;
+}
+.login-modal-content {
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.btn-login {
+    background-color: #c23223;
+    color: #fff;
+}
+
+.btn-login:hover {
+    background-color: #a2271b;
+}
+.btn-login-google {
+    border-radius: 999px;
+    border: 1px solid #dadce0;
+    background-color: #ffffff;
+    font-weight: 500;
+}
+
+.btn-login-google:hover {
+    background-color: #f5f5f5;
+}
+
+.login-modal-content {
+    border-radius: 16px;
+    padding: 20px;
+}

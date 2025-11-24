@@ -11,28 +11,33 @@ document.addEventListener('DOMContentLoaded', function () {
     const modalEditarUsuario = modalEditarEl ? new bootstrap.Modal(modalEditarEl) : null;
 
     // ─────────────────────────────────────────────
-    // 1. BOTÓN "NUEVO USUARIO" → abre ventanita mini
+    // 1. BOTÓN "NUEVO USUARIO"
     // ─────────────────────────────────────────────
-    const btnNuevoUsuario = document.getElementById('btn-nuevo-usuario');
-    const formNuevoUsuario = document.getElementById('form-nuevo-usuario');
-    const nuevoFotoFile = document.getElementById('nuevo-fotoFile');
-    const nuevoFotoPreview = document.getElementById('nuevo-foto-preview');
+    const btnNuevoUsuario   = document.getElementById('btn-nuevo-usuario');
+    const formNuevoUsuario  = document.getElementById('form-nuevo-usuario');
+    const nuevoFotoFile     = document.getElementById('nuevo-fotoFile');
+    const nuevoFotoPreview  = document.getElementById('nuevo-foto-preview');
+    const nuevoSelectRol    = document.getElementById('nuevo-idRol');
 
     if (btnNuevoUsuario && modalNuevoUsuario && formNuevoUsuario) {
         btnNuevoUsuario.addEventListener('click', () => {
-            // Limpiar formulario
             formNuevoUsuario.reset();
 
-            // Restaurar preview
             if (nuevoFotoPreview) {
                 nuevoFotoPreview.src = '/images/default-user.png';
+            }
+
+            if (nuevoSelectRol) {
+                const placeholder = nuevoSelectRol.querySelector('option[value=""]');
+                if (placeholder) nuevoSelectRol.value = "";
+                else nuevoSelectRol.selectedIndex = 0;
             }
 
             modalNuevoUsuario.show();
         });
     }
 
-    // Vista previa foto en "Nuevo"
+    // Vista previa en "Nuevo"
     if (nuevoFotoFile && nuevoFotoPreview) {
         nuevoFotoFile.addEventListener('change', function () {
             const file = this.files && this.files[0];
@@ -62,13 +67,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!idUsuario) return;
 
                 fetch(`/usuarios/${idUsuario}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('No se pudo obtener el usuario');
-                        }
-                        return response.json();
-                    })
+                    .then(r => r.json())
                     .then(usuario => {
+
                         document.getElementById('edit-idUsuario').value      = usuario.idUsuario;
                         document.getElementById('edit-nombreUsuario').value  = usuario.nombreUsuario || '';
                         document.getElementById('edit-nroDocumento').value   = usuario.nroDocumento || '';
@@ -81,17 +82,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
                         const fotoPreviewEdit = document.getElementById('edit-foto-preview');
                         if (fotoPreviewEdit) {
-                            if (usuario.foto) {
-                                fotoPreviewEdit.src = `/uploads/usuarios/${usuario.foto}`;
-                            } else {
-                                fotoPreviewEdit.src = '/images/default-user.png';
-                            }
+                            fotoPreviewEdit.src = usuario.foto
+                                ? `/uploads/usuarios/${usuario.foto}`
+                                : '/images/default-user.png';
                         }
 
                         modalEditarUsuario.show();
                     })
-                    .catch(error => {
-                        console.error(error);
+                    .catch(() => {
                         Swal.fire('Error', 'No se pudieron cargar los datos del usuario', 'error');
                     });
             });
@@ -107,7 +105,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!file) return;
 
             if (!file.type.startsWith('image/')) {
-                Swal.fire('Archivo inválido', 'Selecciona una imagen válida (JPG, PNG, etc.)', 'warning');
+                Swal.fire('Archivo inválido', 'Selecciona una imagen válida', 'warning');
                 this.value = '';
                 return;
             }
@@ -119,173 +117,228 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ─────────────────────────────────────────────
-    // 3. FUNCIÓN GENÉRICA: API DNI/RUC
+    // 3. API DNI/RUC
     // ─────────────────────────────────────────────
-    async function buscarPersonaPorDocumentoGenerico(idInputDoc, idNombres, idApellidos) {
-        const inputDoc = document.getElementById(idInputDoc);
-        if (!inputDoc) return;
+ async function buscarPersonaPorDocumentoGenerico(idDoc, idNom, idApe) {
 
-        const numero = inputDoc.value.trim();
-        if (!numero) {
-            Swal.fire('Atención', 'Ingrese un número de DNI o RUC', 'warning');
-            return;
-        }
+     const dni = document.getElementById(idDoc).value.trim();
+     if (!dni) {
+         Swal.fire("Atención", "Ingrese un número de documento", "warning");
+         return;
+     }
 
-        try {
-            const tipo = numero.length === 8 ? 'dni' : 'ruc';
-            const resp = await fetch(`/api/externo/${tipo}/${numero}`);
+     try {
+         const resp = await fetch(`/api/usuario/${dni}`);
+         const data = await resp.json();
 
-            if (!resp.ok) {
-                throw new Error('Respuesta no OK de la API');
-            }
+         if (data.error) {
+             Swal.fire("No encontrado", data.error, "info");
+             return;
+         }
 
-            const data = await resp.json();
+         document.getElementById(idNom).value = data.nombres || "";
+         document.getElementById(idApe).value = data.apellidos || "";
 
-            const nombresInput   = document.getElementById(idNombres);
-            const apellidosInput = document.getElementById(idApellidos);
+     } catch (e) {
+         console.log(e);
+         Swal.fire("Error", "No se pudo consultar el DNI", "error");
+     }
+ }
 
-            if (data.data) {
-                const nombreCompleto = tipo === 'dni'
-                    ? (data.data.nombre_completo || data.data.nombre || '')
-                    : (data.data.nombre_o_razon_social || data.data.razon_social || '');
 
-                const nombreLimpio = (nombreCompleto || '').trim();
-
-                let nombres = nombreLimpio;
-                let apellidos = '';
-
-                const partes = nombreLimpio.split(/\s+/);
-                if (partes.length >= 3) {
-                    apellidos = partes[0] + ' ' + partes[1];
-                    nombres = partes.slice(2).join(' ');
-                }
-
-                if (nombresInput)   nombresInput.value   = nombres;
-                if (apellidosInput) apellidosInput.value = apellidos;
-            } else {
-                Swal.fire('Sin datos', 'No se encontraron datos para ese documento.', 'info');
-                if (nombresInput)   nombresInput.value   = '';
-                if (apellidosInput) apellidosInput.value = '';
-            }
-        } catch (err) {
-            console.error('❌ Error al consultar API externo:', err);
-            Swal.fire('Error', 'Error al buscar los datos del documento.', 'error');
-        }
+    // ─────────────────────────────────────────────
+    // BOTONES DNI — (Deben estar aquí ADENTRO)
+    // ─────────────────────────────────────────────
+    const btnBuscarNuevo = document.getElementById('btn-buscar-dni-nuevo');
+    if (btnBuscarNuevo) {
+        btnBuscarNuevo.addEventListener('click', () => {
+            buscarPersonaPorDocumentoGenerico(
+                'nuevo-nroDocumento',
+                'nuevo-nombres',
+                'nuevo-apellidos'
+            );
+        });
     }
 
-    // Botón DNI en EDITAR
-    const btnBuscarDniEdit = document.getElementById('btn-buscar-dni-edit');
-    if (btnBuscarDniEdit) {
-        btnBuscarDniEdit.addEventListener('click', () =>
-            buscarPersonaPorDocumentoGenerico('edit-nroDocumento', 'edit-nombres', 'edit-apellidos')
-        );
+    const btnBuscarEdit = document.getElementById('btn-buscar-dni-edit');
+    if (btnBuscarEdit) {
+        btnBuscarEdit.addEventListener('click', () => {
+            buscarPersonaPorDocumentoGenerico(
+                'edit-nroDocumento',
+                'edit-nombres',
+                'edit-apellidos'
+            );
+        });
     }
 
-    const inputDocEdit = document.getElementById('edit-nroDocumento');
-    if (inputDocEdit) {
-        inputDocEdit.addEventListener('keypress', e => {
-            if (e.key === 'Enter') {
+    // ─────────────────────────────────────────────
+    // 4. Confirmaciones SweetAlert2
+    // ─────────────────────────────────────────────
+    function confirmarAccion(btnSelector, opciones) {
+        document.querySelectorAll(btnSelector).forEach(btn => {
+            btn.addEventListener('click', function (e) {
                 e.preventDefault();
-                buscarPersonaPorDocumentoGenerico('edit-nroDocumento', 'edit-nombres', 'edit-apellidos');
-            }
+                const url = this.dataset.url;
+                const username = this.dataset.username || 'este usuario';
+
+                Swal.fire({
+                    title: opciones.title,
+                    text: (opciones.showUsername ? 'Usuario: ' + username : opciones.text) || '',
+                    icon: opciones.icon,
+                    showCancelButton: true,
+                    confirmButtonText: opciones.confirmText,
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: opciones.confirmColor,
+                    cancelButtonColor: '#6c757d',
+                }).then(result => {
+                    if (result.isConfirmed && url) {
+                        window.location.href = url;
+                    }
+                });
+            });
         });
     }
 
-    // Botón DNI en NUEVO
-    const btnBuscarDniNuevo = document.getElementById('btn-buscar-dni-nuevo');
-    if (btnBuscarDniNuevo) {
-        btnBuscarDniNuevo.addEventListener('click', () =>
-            buscarPersonaPorDocumentoGenerico('nuevo-nroDocumento', 'nuevo-nombres', 'nuevo-apellidos')
-        );
-    }
+    confirmarAccion('.btn-activar', {
+        title: '¿Deseas ACTIVAR este usuario?',
+        showUsername: true,
+        icon: 'question',
+        confirmText: 'Sí, activar',
+        confirmColor: '#198754'
+    });
 
-    const inputDocNuevo = document.getElementById('nuevo-nroDocumento');
-    if (inputDocNuevo) {
-        inputDocNuevo.addEventListener('keypress', e => {
-            if (e.key === 'Enter') {
+    confirmarAccion('.btn-desactivar', {
+        title: '¿Deseas DESACTIVAR este usuario?',
+        text: 'Ya no podrá iniciar sesión.',
+        icon: 'warning',
+        confirmText: 'Sí, desactivar',
+        confirmColor: '#dc3545'
+    });
+
+    confirmarAccion('.btn-eliminar', {
+        title: '¿Eliminar usuario?',
+        showUsername: true,
+        text: 'Esta acción no se puede deshacer.',
+        icon: 'error',
+        confirmText: 'Sí, eliminar',
+        confirmColor: '#dc3545'
+    });
+
+    // ─────────────────────────────────────────────
+    // 5. Validación de contraseña
+    // ─────────────────────────────────────────────
+    const formEditar = document.getElementById('form-editar-usuario');
+    const nuevaPassInput = document.getElementById('edit-nuevaContrasena');
+    const confirmarPassInput = document.getElementById('edit-confirmarContrasena');
+    const errorPassLabel = document.getElementById('edit-password-error');
+
+    if (formEditar) {
+        formEditar.addEventListener('submit', function (e) {
+            const nueva = nuevaPassInput.value.trim();
+            const conf = confirmarPassInput.value.trim();
+
+            if (nueva === '' && conf === '') {
+                errorPassLabel.classList.add('d-none');
+                return;
+            }
+
+            if (nueva !== conf) {
                 e.preventDefault();
-                buscarPersonaPorDocumentoGenerico('nuevo-nroDocumento', 'nuevo-nombres', 'nuevo-apellidos');
+                errorPassLabel.textContent = 'Las contraseñas no coinciden.';
+                errorPassLabel.classList.remove('d-none');
+                return;
             }
+
+            const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/;
+
+            if (!strongRegex.test(nueva)) {
+                e.preventDefault();
+                errorPassLabel.textContent = 'La contraseña es débil.';
+                errorPassLabel.classList.remove('d-none');
+                return;
+            }
+
+            errorPassLabel.classList.add('d-none');
         });
     }
 
     // ─────────────────────────────────────────────
-    // 4. SweetAlert: Activar / Desactivar / Eliminar
+    // 6. Mostrar / ocultar contraseña
     // ─────────────────────────────────────────────
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.toggle-password-btn');
+        if (!btn) return;
 
-    // ACTIVAR
-    document.querySelectorAll('.btn-activar').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const url = this.dataset.url;
-            const username = this.dataset.username || 'este usuario';
+        const group = btn.closest('.input-group');
+        const input = group.querySelector('.password-toggle-input');
+        const icon = btn.querySelector('i');
 
-            Swal.fire({
-                title: '¿Deseas ACTIVAR este usuario?',
-                text: 'Usuario: ' + username,
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, activar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#198754',
-                cancelButtonColor: '#6c757d',
-                backdrop: true
-            }).then(result => {
-                if (result.isConfirmed && url) {
-                    window.location.href = url;
-                }
-            });
-        });
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
     });
 
-    // DESACTIVAR
-    document.querySelectorAll('.btn-desactivar').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const url = this.dataset.url;
-            const username = this.dataset.username || 'este usuario';
+    // ─────────────────────────────────────────────
+    // 7. Enviar formulario NUEVO USUARIO por AJAX
+    // ─────────────────────────────────────────────
+    const formNuevo = document.getElementById("form-nuevo-usuario");
 
-            Swal.fire({
-                title: '¿Deseas DESACTIVAR este usuario?',
-                text: 'Ya no podrá iniciar sesión.',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, desactivar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                backdrop: true
-            }).then(result => {
-                if (result.isConfirmed && url) {
-                    window.location.href = url;
+    if (formNuevo) {
+        formNuevo.addEventListener("submit", async function (e) {
+            e.preventDefault(); // ⛔ No recargar la página
+
+            const url = formNuevo.getAttribute("action");
+            const formData = new FormData(formNuevo);
+
+            try {
+                const resp = await fetch(url, {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await resp.json();
+
+                // ❌ Si hubo errores del lado del backend (validación)
+                if (data.status === "error") {
+
+                    let mensaje = "<ul>";
+
+                    data.errors.forEach(err => {
+                        mensaje += `<li>${err.defaultMessage}</li>`;
+                    });
+
+                    mensaje += "</ul>";
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Errores en el formulario",
+                        html: mensaje
+                    });
+
+                    return;
                 }
-            });
+
+                // ✔ Usuario creado correctamente
+                Swal.fire({
+                    icon: "success",
+                    title: "Usuario registrado",
+                    text: "El usuario fue guardado correctamente.",
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload(); // refresca tabla
+                });
+
+            } catch (error) {
+                Swal.fire("Error", "No se pudo guardar el usuario", "error");
+            }
         });
-    });
+    }
 
-    // ELIMINAR
-    document.querySelectorAll('.btn-eliminar').forEach(btn => {
-        btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const url = this.dataset.url;
-            const username = this.dataset.username || 'este usuario';
 
-            Swal.fire({
-                title: '¿Eliminar usuario?',
-                text: 'Esta acción no se puede deshacer. Usuario: ' + username,
-                icon: 'error',
-                showCancelButton: true,
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#dc3545',
-                cancelButtonColor: '#6c757d',
-                backdrop: true
-            }).then(result => {
-                if (result.isConfirmed && url) {
-                    window.location.href = url;
-                }
-            });
-        });
-    });
 
-});
+}); // ← NADA DEBE IR DESPUÉS DE ESTO

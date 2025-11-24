@@ -2,8 +2,6 @@ package com.vialsa.almacen.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.vialsa.almacen.dao.interfaces.IClienteDao;
-import com.vialsa.almacen.model.Cliente;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Controller;
@@ -23,35 +21,25 @@ public class ApiDniController {
     private static final String BASE_URL = "https://miapi.cloud/v1/";
     private final RestTemplate restTemplate = new RestTemplate();
     private final ObjectMapper mapper = new ObjectMapper();
-    private final IClienteDao clienteDao;
 
-    public ApiDniController(IClienteDao clienteDao) {
-        this.clienteDao = clienteDao;
-    }
-
+    // =============================
+    // CONSULTA DNI / RUC
+    // =============================
     @GetMapping("/{tipo}/{numero}")
     @ResponseBody
-    public ResponseEntity<?> consultarApi(@PathVariable("tipo") String tipo,
-                                          @PathVariable("numero") String numero) {
+    public ResponseEntity<?> consultarApi(
+            @PathVariable("tipo") String tipo,
+            @PathVariable("numero") String numero) {
+
         try {
             if (!tipo.equalsIgnoreCase("dni") && !tipo.equalsIgnoreCase("ruc")) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Tipo inválido. Use 'dni' o 'ruc'."));
+                return ResponseEntity.badRequest()
+                        .body(Map.of("error", "Tipo inválido. Use 'dni' o 'ruc'."));
             }
 
-            // Verificar si el cliente ya existe en la base
-            Cliente existente = clienteDao.buscarPorDocumento(numero);
-            if (existente != null) {
-                System.out.println("✅ Cliente ya existe: " + existente.getNombres());
-                return ResponseEntity.ok(Map.of(
-                        "data", Map.of(
-                                "idCliente", existente.getIdClientes(),
-                                "nombre_completo", existente.getNombres() + " " + existente.getApellidos()
-                        )
-                ));
-            }
-
-            // Consultar la API externa
+            // Construcción del endpoint API externo
             String url = BASE_URL + tipo + "/" + numero;
+
             System.out.println("🌍 Consultando API externa: " + url);
 
             HttpHeaders headers = new HttpHeaders();
@@ -59,55 +47,77 @@ public class ApiDniController {
             headers.setAccept(List.of(MediaType.APPLICATION_JSON));
             HttpEntity<Void> entity = new HttpEntity<>(headers);
 
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
             System.out.println("📥 Respuesta de la API: " + response.getBody());
 
-            JsonNode json = mapper.readTree(response.getBody());
-            JsonNode data = json.has("data") ? json.get("data") :
-                    json.has("datos") ? json.get("datos") : json;
+            if (!response.getStatusCode().is2xxSuccessful()) {
+                return ResponseEntity.status(response.getStatusCode())
+                        .body(Map.of("error", "Error HTTP desde miapi: " + response.getStatusCode()));
+            }
 
-            // Crear el cliente según el tipo de documento
-            Cliente nuevo = new Cliente();
-            nuevo.setNro_documento(numero);
+            JsonNode json = mapper.readTree(response.getBody());
+
+            // miapi a veces devuelve "data" o "datos"
+            JsonNode data = json.has("data") ? json.get("data") :
+                    json.has("datos") ? json.get("datos") : null;
+
+            if (data == null || data.isMissingNode()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "No se encontraron datos del documento."));
+            }
+
+            // =============================
+            //   MAPEAR RESPUESTA API
+            // =============================
+            String nombres = "";
+            String apellidos = "";
+            String direccion = "";
 
             if (tipo.equalsIgnoreCase("dni")) {
-                String nombres = safeGet(data, "nombres");
-                String apPaterno = safeGet(data, "ape_paterno");
-                String apMaterno = safeGet(data, "ape_materno");
+                nombres = safeGet(data, "nombres");
+                apellidos = (safeGet(data, "ape_paterno") + " " +
+                        safeGet(data, "ape_materno")).trim();
 
-                nuevo.setNombres(nombres);
-                nuevo.setApellidos(apPaterno + " " + apMaterno);
-                nuevo.setDireccion(safeGet(data.path("domiciliado"), "direccion"));
-            } else { // Caso RUC
-                nuevo.setNombres(safeGet(data, "nombre_o_razon_social"));
-                nuevo.setApellidos("");
-                nuevo.setDireccion(safeGet(data, "direccion"));
+                direccion = safeGet(data.path("domiciliado"), "direccion");
+
+            } else { // RUC
+                nombres = safeGet(data, "razon_social");
+                if (nombres.isBlank()) {
+                    nombres = safeGet(data, "nombre_o_razon_social");
+                }
+
+                apellidos = ""; // empresas no tienen apellidos
+
+                direccion = safeGet(data.path("domiciliado"), "direccion");
+                if (direccion.isBlank()) {
+                    direccion = safeGet(data, "direccion");
+                }
             }
 
-            // Guardar el nuevo cliente
-            clienteDao.registrar(nuevo);
-
-            // Buscarlo nuevamente para obtener su ID
-            Cliente guardado = clienteDao.buscarPorDocumento(numero);
-            if (guardado == null) {
-                throw new IllegalStateException("No se pudo registrar el cliente en la base de datos.");
-            }
-
+            // =============================
+            // DEVOLVER SOLO DATOS (NO GUARDAR)
+            // =============================
             return ResponseEntity.ok(Map.of(
                     "data", Map.of(
-                            "idCliente", guardado.getIdClientes(),
-                            "nombre_completo", guardado.getNombres() + " " + guardado.getApellidos()
+                            "nombre_completo", (nombres + " " + apellidos).trim(),
+                            "nombres", nombres,
+                            "apellidos", apellidos,
+                            "direccion", direccion
                     )
             ));
 
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "Error al consultar o registrar el cliente: " + e.getMessage()));
+                    .body(Map.of("error", "Error al consultar API: " + e.getMessage()));
         }
     }
 
     private String safeGet(JsonNode node, String key) {
-        return (node != null && node.has(key) && !node.get(key).isNull()) ? node.get(key).asText() : "";
+        return (node != null && node.has(key) && !node.get(key).isNull())
+                ? node.get(key).asText()
+                : "";
     }
 }

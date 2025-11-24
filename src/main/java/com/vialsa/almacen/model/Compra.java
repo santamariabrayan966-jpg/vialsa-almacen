@@ -3,10 +3,6 @@ package com.vialsa.almacen.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/**
- * Modelo que representa una Compra en el sistema de almacén VIALSA.
- * Incluye información de cabecera de la compra y referencias a proveedor, usuario y totales.
- */
 public class Compra {
 
     private Integer idCompra;
@@ -15,28 +11,36 @@ public class Compra {
     private Integer idProveedor;
     private Integer idUsuario;
     private BigDecimal totalCompra;
+
     private String nombreProveedor;
     private String nombreUsuario;
 
-    // 🔹 Constructor vacío
-    public Compra() {
-    }
+    // -------- campos "empresa top" --------
+    private String tipoComprobante;
+    private String serie;
+    private String numero;
+    private LocalDateTime fechaEmision;
+    private LocalDateTime fechaVencimiento;
 
-    // 🔹 Constructor con parámetros (opcional, útil si lo usas en pruebas o seeds)
-    public Compra(Integer idCompra, LocalDateTime fechaCompra, String nroComprobante,
-                  Integer idProveedor, Integer idUsuario, BigDecimal totalCompra,
-                  String nombreProveedor, String nombreUsuario) {
-        this.idCompra = idCompra;
-        this.fechaCompra = fechaCompra;
-        this.nroComprobante = nroComprobante;
-        this.idProveedor = idProveedor;
-        this.idUsuario = idUsuario;
-        this.totalCompra = totalCompra;
-        this.nombreProveedor = nombreProveedor;
-        this.nombreUsuario = nombreUsuario;
-    }
+    private String moneda;
+    private BigDecimal tipoCambio;
+    private Boolean incluyeIgv;        // <-- Boolean
+    private BigDecimal porcentajeIgv;
+    private BigDecimal subtotal;
+    private BigDecimal montoIgv;
 
-    // ✅ Getters y Setters
+    private String formaPago;
+    private Integer plazoDias;
+    private Integer numeroCuotas;
+
+    private String nroOrdenCompra;
+    private String nroGuiaRemision;
+
+    private String estado;
+    private String observaciones;
+
+    // ======= getters & setters =======
+
     public Integer getIdCompra() {
         return idCompra;
     }
@@ -99,5 +103,154 @@ public class Compra {
 
     public void setNombreUsuario(String nombreUsuario) {
         this.nombreUsuario = nombreUsuario;
+    }
+
+    public String getTipoComprobante() {
+        return tipoComprobante;
+    }
+
+    public void setTipoComprobante(String tipoComprobante) {
+        this.tipoComprobante = tipoComprobante;
+    }
+
+    public String getSerie() {
+        return serie;
+    }
+
+    public void setSerie(String serie) {
+        this.serie = serie;
+    }
+
+    public String getNumero() {
+        return numero;
+    }
+
+    public void setNumero(String numero) {
+        this.numero = numero;
+    }
+
+    public LocalDateTime getFechaEmision() {
+        return fechaEmision;
+    }
+
+    public void setFechaEmision(LocalDateTime fechaEmision) {
+        this.fechaEmision = fechaEmision;
+    }
+
+    public LocalDateTime getFechaVencimiento() {
+        return fechaVencimiento;
+    }
+
+    public void setFechaVencimiento(LocalDateTime fechaVencimiento) {
+        this.fechaVencimiento = fechaVencimiento;
+    }
+
+    public String getMoneda() {
+        return moneda;
+    }
+
+    public void setMoneda(String moneda) {
+        this.moneda = moneda;
+    }
+
+    public BigDecimal getTipoCambio() {
+        return tipoCambio;
+    }
+
+    public void setTipoCambio(BigDecimal tipoCambio) {
+        this.tipoCambio = tipoCambio;
+    }
+
+    // Ambos getters para evitar errores en diferentes partes del código
+    public Boolean getIncluyeIgv() {
+        return incluyeIgv;
+    }
+
+    public Boolean isIncluyeIgv() {
+        return incluyeIgv;
+    }
+
+    public void setIncluyeIgv(Boolean incluyeIgv) {
+        this.incluyeIgv = incluyeIgv;
+    }
+
+    public BigDecimal getPorcentajeIgv() {
+        return porcentajeIgv;
+    }
+
+    public void setPorcentajeIgv(BigDecimal porcentajeIgv) {
+        this.porcentajeIgv = porcentajeIgv;
+    }
+
+    public BigDecimal getSubtotal() {
+        return subtotal;
+    }
+
+    public void setSubtotal(BigDecimal subtotal) {
+        this.subtotal = subtotal;
+    }
+
+    public BigDecimal getMontoIgv() {
+        return montoIgv;
+    }
+
+    public void setMontoIgv(BigDecimal montoIgv) {
+        this.montoIgv = montoIgv;
+    }
+
+    public String getFormaPago() {
+        return formaPago;
+    }
+
+    public void setFormaPago(String formaPago) {
+        this.formaPago = formaPago;
+    }
+
+    public Integer getPlazoDias() {
+        return plazoDias;
+    }
+
+    public void setPlazoDias(Integer plazoDias) {
+        this.plazoDias = plazoDias;
+    }
+
+    public Integer getNumeroCuotas() {
+        return numeroCuotas;
+    }
+
+    public void setNumeroCuotas(Integer numeroCuotas) {
+        this.numeroCuotas = numeroCuotas;
+    }
+
+    public String getNroOrdenCompra() {
+        return nroOrdenCompra;
+    }
+
+    public void setNroOrdenCompra(String nroOrdenCompra) {
+        this.nroOrdenCompra = nroOrdenCompra;
+    }
+
+    public String getNroGuiaRemision() {
+        return nroGuiaRemision;
+    }
+
+    public void setNroGuiaRemision(String nroGuiaRemision) {
+        this.nroGuiaRemision = nroGuiaRemision;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public String getObservaciones() {
+        return observaciones;
+    }
+
+    public void setObservaciones(String observaciones) {
+        this.observaciones = observaciones;
     }
 }

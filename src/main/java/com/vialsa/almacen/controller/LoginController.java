@@ -11,16 +11,16 @@ public class LoginController {
     @GetMapping("/login")
     public String login(Authentication authentication) {
 
-        // ✅ Si YA está autenticado, no mostramos el login otra vez
         if (authentication != null
                 && authentication.isAuthenticated()
                 && !(authentication instanceof AnonymousAuthenticationToken)) {
 
-            return "redirect:/dashboard";
+            boolean esCliente = authentication.getAuthorities().stream()
+                    .anyMatch(a -> a.getAuthority().equals("ROLE_CLIENTE"));
+
+            return esCliente ? "redirect:/tienda" : "redirect:/dashboard";
         }
 
-        // ✅ Si NO está autenticado, mostramos la vista de login
-        // (templates/login.html)
-        return "login";
+        return "login"; // muestra login normal
     }
 }

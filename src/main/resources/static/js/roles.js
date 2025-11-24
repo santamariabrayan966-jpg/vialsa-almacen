@@ -110,3 +110,89 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 });
+// =============================
+// ABRIR MODAL DE PERMISOS
+// =============================
+document.addEventListener("click", async (e) => {
+    if (e.target.closest(".btn-permisos")) {
+
+        const idRol = e.target.closest(".btn-permisos").dataset.id;
+        const nombreRol = e.target.closest(".btn-permisos").dataset.nombre;
+
+        document.querySelector("#permiso-idRol").value = idRol;
+
+        // Cambiar título
+        document.querySelector("#modalPermisos .modal-title").innerHTML =
+            `<i class="bi bi-key"></i> Permisos de ${nombreRol}`;
+
+        // Llamada AJAX para obtener permisos
+        const response = await fetch(`/roles/permisos/ajax/${idRol}`);
+        const permisos = await response.json();
+
+        let html = `
+            <table class="table table-bordered text-center align-middle">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Módulo</th>
+                        <th>Acceso</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        permisos.forEach(p => {
+            html += `
+                <tr>
+                    <td class="text-start">${p.modulo.toUpperCase()}</td>
+                    <td>
+                        <input type="checkbox" class="form-check-input permiso-check"
+                            value="${p.modulo}" ${p.puedeAcceder ? "checked" : ""}>
+                    </td>
+                </tr>
+            `;
+        });
+
+        html += "</tbody></table>";
+
+        document.querySelector("#contenedor-permisos").innerHTML = html;
+
+        // Mostrar modal
+        const modal = new bootstrap.Modal(document.querySelector("#modalPermisos"));
+        modal.show();
+    }
+});
+
+// =============================
+// GUARDAR PERMISOS (AJAX)
+// =============================
+document.querySelector("#form-permisos").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const idRol = document.querySelector("#permiso-idRol").value;
+
+    const accesos = [...document.querySelectorAll(".permiso-check:checked")]
+        .map(chk => chk.value);
+
+    // 🔥 CSRF CORRECTO
+    const csrfHeader = document.querySelector("#csrf").name;
+    const csrfToken = document.querySelector("#csrf").value;
+
+    await fetch(`/roles/permisos/guardar/${idRol}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            [csrfHeader]: csrfToken   // <<--- AHORA SI ENVÍA EL TOKEN
+        },
+        body: JSON.stringify(accesos)
+    });
+
+    Swal.fire({
+        title: "Guardado",
+        text: "Los permisos se actualizaron correctamente.",
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false
+    });
+
+    bootstrap.Modal.getInstance(document.querySelector("#modalPermisos")).hide();
+});

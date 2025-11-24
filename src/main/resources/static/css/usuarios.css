@@ -1,6 +1,6 @@
-/* usuarios.css */
-
-/* Avatar pequeño en la tabla */
+/* ============================
+   AVATAR EN TABLA
+   ============================ */
 .avatar-usuario {
     width: 45px;
     height: 45px;
@@ -11,48 +11,55 @@
     justify-content: center;
 }
 
-/* Placeholder cuando no hay foto */
 .avatar-placeholder {
     background-color: #6c757d;
     color: #ffffff;
     font-size: 1.3rem;
 }
 
-/* Tabla de usuarios: cabecera un poco más pequeña */
+/* ============================
+   TABLA DE USUARIOS
+   ============================ */
+
+/* Cabecera compacta */
 .tabla-usuarios thead th {
     font-size: 0.9rem;
     text-transform: uppercase;
 }
 
-/* Preview de foto en modal (nuevo / editar) */
-.foto-preview {
-    width: 140px;
-    height: 140px;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 2px solid #dee2e6; /* borde suave */
-}
-
-/* Que todas las celdas de la tabla vayan en una sola línea */
+/* Evitar saltos y deformaciones */
 .tabla-usuarios thead th,
 .tabla-usuarios tbody td {
-    white-space: nowrap; /* no permitir saltos de línea */
+    white-space: nowrap;
 }
 
-/* Mantener la tabla a ancho completo */
+/* Scroll horizontal en móvil */
+.tabla-usuarios-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
 .tabla-usuarios {
     width: 100%;
     table-layout: auto;
 }
 
-/* ──────────────────────────────
-   Modal NUEVO USUARIO (ancho, 2 columnas)
-   ────────────────────────────── */
+/* ============================
+   FOTO PREVIEW EN MODALES
+   ============================ */
+.foto-preview {
+    width: 140px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #dee2e6;
+}
 
-/* Aplica al dialog que tiene la clase modal-nuevo-usuario
-   <div class="modal-dialog modal-dialog-centered modal-lg modal-nuevo-usuario"> */
+/* ============================
+   MODAL NUEVO USUARIO
+   ============================ */
 .modal-dialog.modal-nuevo-usuario {
-    max-width: 720px;  /* ajusta si quieres más o menos ancho */
+    max-width: 720px;
     width: 100%;
 }
 
@@ -60,9 +67,34 @@
     padding: 1.25rem 1.5rem;
 }
 
-/* En pantallas pequeñas (celular) ocupa todo el ancho */
+/* ============================
+   MODALES RESPONSIVE (celular)
+   ============================ */
 @media (max-width: 576px) {
-    .modal-dialog.modal-nuevo-usuario {
+
+    /* Modal ocupa toda la pantalla */
+    .modal-dialog.modal-nuevo-usuario,
+    .modal-dialog.modal-fullscreen-sm-down {
+        margin: 0;
         max-width: 100%;
+        width: 100%;
+    }
+
+    /* Foto preview más pequeña */
+    .foto-preview {
+        width: 110px;
+        height: 110px;
+    }
+
+    /* Inputs más grandes para el dedo */
+    .form-control,
+    .form-select {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+
+    /* Texto más visible */
+    .form-text {
+        font-size: 0.85rem;
     }
 }

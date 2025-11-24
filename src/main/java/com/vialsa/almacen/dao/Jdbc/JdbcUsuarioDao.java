@@ -5,7 +5,6 @@ import com.vialsa.almacen.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -15,15 +14,15 @@ import java.util.Optional;
 public class JdbcUsuarioDao implements UsuarioDao {
 
     private final JdbcTemplate jdbc;
-    private final PasswordEncoder encoder;
 
     @Autowired
-    public JdbcUsuarioDao(JdbcTemplate jdbc, PasswordEncoder encoder) {
+    public JdbcUsuarioDao(JdbcTemplate jdbc) {
         this.jdbc = jdbc;
-        this.encoder = encoder;
     }
 
-    // 🔹 Buscar usuario por nombre (para LOGIN)
+    // ============================================================
+    // BUSCAR POR USERNAME
+    // ============================================================
     @Override
     public Optional<Usuario> findByNombreUsuario(String username) {
         String sql = """
@@ -43,24 +42,49 @@ public class JdbcUsuarioDao implements UsuarioDao {
             WHERE u.NombreUsuario = ?
             """;
 
-        List<Usuario> list = jdbc.query(
-                sql,
-                new BeanPropertyRowMapper<>(Usuario.class),
-                username
-        );
-        return list.stream().findFirst();
+        return jdbc.query(sql, new BeanPropertyRowMapper<>(Usuario.class), username)
+                .stream().findFirst();
     }
 
-    // 🔹 Crear el usuario admin por defecto si no existe
+    // ============================================================
+    // BUSCAR POR CORREO
+    // ============================================================
     @Override
-    public void ensureAdminUserExists(String username, String rawPassword) {
+    public Optional<Usuario> findByCorreo(String correo) {
+        String sql = """
+            SELECT
+                u.idUsuario,
+                u.NombreUsuario,
+                u.Nombres,
+                u.Apellidos,
+                u.NroDocumento,
+                u.Correo,
+                u.Telefono,
+                u.Contrasena,
+                u.idRol,
+                u.activo,
+                u.foto
+            FROM usuarios u
+            WHERE u.Correo = ?
+            """;
+
+        return jdbc.query(sql, new BeanPropertyRowMapper<>(Usuario.class), correo)
+                .stream().findFirst();
+    }
+
+    // ============================================================
+    // CREAR ADMIN SI NO EXISTE
+    // ============================================================
+    @Override
+    public void ensureAdminUserExists(String username, String rawPasswordHasheada) {
+
         Integer c = jdbc.queryForObject(
                 "SELECT COUNT(*) FROM usuarios WHERE NombreUsuario=?",
                 Integer.class,
                 username
         );
+
         if (c != null && c == 0) {
-            String hash = encoder.encode(rawPassword);
 
             jdbc.update("""
                 INSERT IGNORE INTO roles (idRol, NombreRol, descripcion, activo)
@@ -74,13 +98,22 @@ public class JdbcUsuarioDao implements UsuarioDao {
 
             jdbc.update("""
                 INSERT INTO usuarios (
-                    NombreUsuario, Contrasena, idRol, idEstadoUsuario, activo
+                    NombreUsuario,
+                    Contrasena,
+                    idRol,
+                    idEstadoUsuario,
+                    activo
                 ) VALUES (?, ?, 1, 1, 1)
-                """, username, hash);
+                """,
+                    username,
+                    rawPasswordHasheada
+            );
         }
     }
 
-    // 🔹 Listar todos los usuarios (para la tabla de administración)
+    // ============================================================
+    // LISTAR TODOS
+    // ============================================================
     @Override
     public List<Usuario> listarTodos() {
         String sql = """
@@ -99,10 +132,13 @@ public class JdbcUsuarioDao implements UsuarioDao {
             FROM usuarios u
             INNER JOIN roles r ON u.idRol = r.idRol
             """;
+
         return jdbc.query(sql, new BeanPropertyRowMapper<>(Usuario.class));
     }
 
-    // 🔹 Obtener usuario por ID
+    // ============================================================
+    // OBTENER POR ID
+    // ============================================================
     @Override
     public Usuario obtenerPorId(int idUsuario) {
         String sql = """
@@ -123,36 +159,33 @@ public class JdbcUsuarioDao implements UsuarioDao {
             INNER JOIN roles r ON u.idRol = r.idRol
             WHERE u.idUsuario = ?
             """;
-        return jdbc.queryForObject(
-                sql,
-                new BeanPropertyRowMapper<>(Usuario.class),
-                idUsuario
-        );
+
+        return jdbc.queryForObject(sql, new BeanPropertyRowMapper<>(Usuario.class), idUsuario);
     }
 
-    // 🔹 Crear nuevo usuario (desde formulario de "Nuevo usuario")
+    // ============================================================
+    // CREAR USUARIO — CORREGIDO TOTALMENTE
+    // ============================================================
     @Override
     public void crear(Usuario usuario) {
-        String sql = """
-            INSERT INTO usuarios (
-                NombreUsuario,
-                Nombres,
-                Apellidos,
-                NroDocumento,
-                Correo,
-                Telefono,
-                Contrasena,
-                idRol,
-                idEstadoUsuario,
-                activo,
-                foto
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-            """;
 
-        String hash = null;
-        if (usuario.getContrasena() != null && !usuario.getContrasena().isEmpty()) {
-            hash = encoder.encode(usuario.getContrasena());
-        }
+        String sql = """
+    INSERT INTO usuarios (
+        NombreUsuario,
+        Nombres,
+        Apellidos,
+        NroDocumento,
+        Correo,
+        Telefono,
+        Contrasena,
+        FechaCreacion,
+        idTipoDocumento,
+        idRol,
+        idEstadoUsuario,
+        activo,
+        foto
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?, ?, ?)
+    """;
 
         jdbc.update(sql,
                 usuario.getNombreUsuario(),
@@ -161,25 +194,29 @@ public class JdbcUsuarioDao implements UsuarioDao {
                 usuario.getNroDocumento(),
                 usuario.getCorreo(),
                 usuario.getTelefono(),
-                hash,
+                usuario.getContrasena(),
+                usuario.getIdTipoDocumento(),  // ⭐ NECESARIO
                 usuario.getIdRol(),
+                1, // estado activo
                 usuario.getActivo() != null && usuario.getActivo() ? 1 : 0,
                 usuario.getFoto()
         );
     }
 
-    // 🔹 Actualizar TODOS los datos del usuario (para el modal de edición)
+    // ============================================================
+    // ACTUALIZAR
+    // ============================================================
     @Override
     public void actualizar(Usuario usuario) {
         String sql = """
-            UPDATE usuarios
-            SET
+            UPDATE usuarios SET
                 NombreUsuario = ?,
                 Nombres       = ?,
                 Apellidos     = ?,
                 NroDocumento  = ?,
                 Correo        = ?,
                 Telefono      = ?,
+                Contrasena    = ?,
                 idRol         = ?,
                 activo        = ?,
                 foto          = ?
@@ -193,6 +230,7 @@ public class JdbcUsuarioDao implements UsuarioDao {
                 usuario.getNroDocumento(),
                 usuario.getCorreo(),
                 usuario.getTelefono(),
+                usuario.getContrasena(),
                 usuario.getIdRol(),
                 usuario.getActivo() != null && usuario.getActivo() ? 1 : 0,
                 usuario.getFoto(),
@@ -200,17 +238,19 @@ public class JdbcUsuarioDao implements UsuarioDao {
         );
     }
 
-    // 🔹 Actualizar solo el rol (uso puntual)
+    // ============================================================
+    // ACTUALIZAR ROL
+    // ============================================================
     @Override
     public void actualizarRol(int idUsuario, int idRol) {
-        String sql = "UPDATE usuarios SET idRol = ? WHERE idUsuario = ?";
-        jdbc.update(sql, idRol, idUsuario);
+        jdbc.update("UPDATE usuarios SET idRol=? WHERE idUsuario=?", idRol, idUsuario);
     }
 
-    // 🔹 Crear usuario rápido (bootstrap admin, etc.)
+    // ============================================================
+    // CREAR USUARIO RÁPIDO
+    // ============================================================
     @Override
-    public void crearUsuario(String nombreUsuario, String passwordPlano, int idRol) {
-        String hashed = encoder.encode(passwordPlano);
+    public void crearUsuario(String nombreUsuario, String passwordHasheada, int idRol) {
         String sql = """
             INSERT INTO usuarios (
                 NombreUsuario,
@@ -220,17 +260,21 @@ public class JdbcUsuarioDao implements UsuarioDao {
                 activo
             ) VALUES (?, ?, ?, 1, 1)
             """;
-        jdbc.update(sql, nombreUsuario, hashed, idRol);
+
+        jdbc.update(sql, nombreUsuario, passwordHasheada, idRol);
     }
 
-    // 🔹 Eliminar usuario
+    // ============================================================
+    // ELIMINAR
+    // ============================================================
     @Override
     public void eliminarUsuario(int idUsuario) {
-        String sql = "DELETE FROM usuarios WHERE idUsuario = ?";
-        jdbc.update(sql, idUsuario);
+        jdbc.update("DELETE FROM usuarios WHERE idUsuario=?", idUsuario);
     }
 
-    // 🔹 Obtener usuario por nombre (para PERFIL u otros usos)
+    // ============================================================
+    // OBTENER POR NOMBRE
+    // ============================================================
     @Override
     public Optional<Usuario> obtenerPorNombre(String nombreUsuario) {
         String sql = """
@@ -252,31 +296,31 @@ public class JdbcUsuarioDao implements UsuarioDao {
             WHERE u.NombreUsuario = ?
             """;
 
-        List<Usuario> usuarios = jdbc.query(
-                sql,
-                new BeanPropertyRowMapper<>(Usuario.class),
-                nombreUsuario
-        );
-        return usuarios.stream().findFirst();
+        return jdbc.query(sql, new BeanPropertyRowMapper<>(Usuario.class), nombreUsuario)
+                .stream().findFirst();
     }
 
-    // 🔹 Actualizar perfil (con o sin contraseña)
+    // ============================================================
+    // ACTUALIZAR PERFIL
+    // ============================================================
     @Override
     public void actualizarPerfil(Usuario usuario) {
-        if (usuario.getContrasena() != null && !usuario.getContrasena().isEmpty()) {
-            String hash = encoder.encode(usuario.getContrasena());
+
+        if (usuario.getContrasena() != null && !usuario.getContrasena().isBlank()) {
+
             String sql = """
-                UPDATE usuarios
-                SET NombreUsuario = ?,
-                    Nombres        = ?,
-                    Apellidos      = ?,
-                    NroDocumento   = ?,
-                    Correo         = ?,
-                    Telefono       = ?,
-                    Contrasena     = ?,
-                    foto           = ?
+                UPDATE usuarios SET
+                    NombreUsuario = ?,
+                    Nombres       = ?,
+                    Apellidos     = ?,
+                    NroDocumento  = ?,
+                    Correo        = ?,
+                    Telefono      = ?,
+                    Contrasena    = ?,
+                    foto          = ?
                 WHERE idUsuario  = ?
                 """;
+
             jdbc.update(sql,
                     usuario.getNombreUsuario(),
                     usuario.getNombres(),
@@ -284,22 +328,25 @@ public class JdbcUsuarioDao implements UsuarioDao {
                     usuario.getNroDocumento(),
                     usuario.getCorreo(),
                     usuario.getTelefono(),
-                    hash,
+                    usuario.getContrasena(),
                     usuario.getFoto(),
                     usuario.getIdUsuario()
             );
+
         } else {
+
             String sql = """
-                UPDATE usuarios
-                SET NombreUsuario = ?,
-                    Nombres        = ?,
-                    Apellidos      = ?,
-                    NroDocumento   = ?,
-                    Correo         = ?,
-                    Telefono       = ?,
-                    foto           = ?
+                UPDATE usuarios SET
+                    NombreUsuario = ?,
+                    Nombres       = ?,
+                    Apellidos     = ?,
+                    NroDocumento  = ?,
+                    Correo        = ?,
+                    Telefono      = ?,
+                    foto          = ?
                 WHERE idUsuario  = ?
                 """;
+
             jdbc.update(sql,
                     usuario.getNombreUsuario(),
                     usuario.getNombres(),
@@ -313,17 +360,96 @@ public class JdbcUsuarioDao implements UsuarioDao {
         }
     }
 
-    // 🔹 Activar / Desactivar UN usuario
+    // ============================================================
+    // CLIENTE GOOGLE
+    // ============================================================
     @Override
-    public void cambiarEstadoActivo(int idUsuario, boolean activo) {
-        String sql = "UPDATE usuarios SET activo = ? WHERE idUsuario = ?";
-        jdbc.update(sql, activo ? 1 : 0, idUsuario);
+    public void crearClienteDesdeGoogle(Usuario usuario) {
+
+        String sql = """
+        INSERT INTO usuarios (
+            NombreUsuario,
+            Nombres,
+            Apellidos,
+            NroDocumento,
+            Correo,
+            Telefono,
+            Contrasena,
+            idRol,
+            idTipoDocumento,
+            idEstadoUsuario,
+            activo,
+            foto,
+            FechaCreacion
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 1, ?, NOW())
+        """;
+
+        jdbc.update(sql,
+                usuario.getNombreUsuario(),
+                usuario.getNombres(),
+                usuario.getApellidos(),
+                usuario.getNroDocumento(),
+                usuario.getCorreo(),
+                usuario.getTelefono(),
+                usuario.getContrasena(),
+                usuario.getIdRol(),
+                1,                // idTipoDocumento = 1 (DNI)
+                usuario.getFoto()
+        );
     }
 
-    // 🔹 Activar / Desactivar TODOS los usuarios de un rol
+
+    // ============================================================
+    // ACTIVAR / DESACTIVAR
+    // ============================================================
+    @Override
+    public void cambiarEstadoActivo(int idUsuario, boolean activo) {
+        jdbc.update("UPDATE usuarios SET activo=? WHERE idUsuario=?", activo ? 1 : 0, idUsuario);
+    }
+
     @Override
     public void cambiarEstadoActivoPorRol(int idRol, boolean activo) {
-        String sql = "UPDATE usuarios SET activo = ? WHERE idRol = ?";
-        jdbc.update(sql, activo ? 1 : 0, idRol);
+        jdbc.update("UPDATE usuarios SET activo=? WHERE idRol=?", activo ? 1 : 0, idRol);
+    }
+
+    // ============================================================
+    // VALIDACIONES
+    // ============================================================
+    @Override
+    public boolean existeCorreo(String correo) {
+        Integer c = jdbc.queryForObject("SELECT COUNT(*) FROM usuarios WHERE Correo=?", Integer.class, correo);
+        return c != null && c > 0;
+    }
+
+    @Override
+    public boolean existeDocumento(String documento) {
+        Integer c = jdbc.queryForObject("SELECT COUNT(*) FROM usuarios WHERE NroDocumento=?", Integer.class, documento);
+        return c != null && c > 0;
+    }
+
+    // ============================================================
+    // LISTAR SOLO USUARIOS INTERNOS
+    // ============================================================
+    @Override
+    public List<Usuario> listarUsuariosInternos() {
+        String sql = """
+            SELECT
+                u.idUsuario,
+                u.NombreUsuario,
+                u.Nombres,
+                u.Apellidos,
+                u.NroDocumento,
+                u.Correo,
+                u.Telefono,
+                u.idRol,
+                r.NombreRol,
+                u.activo,
+                u.foto
+            FROM usuarios u
+            INNER JOIN roles r ON u.idRol = r.idRol
+            WHERE u.idRol != 8
+            """;
+
+        return jdbc.query(sql, new BeanPropertyRowMapper<>(Usuario.class));
     }
 }

@@ -98,10 +98,13 @@
                             </button>
 
                             <!-- Permisos (otra página) -->
-                            <a class="btn btn-sm btn-info"
-                               th:href="@{'/roles/permisos/' + ${rol.idRol}}">
+                            <button type="button"
+                                    class="btn btn-sm btn-info btn-permisos"
+                                    th:data-id="${rol.idRol}"
+                                    th:data-nombre="${rol.nombreRol}">
                                 <i class="bi bi-key"></i> Permisos
-                            </a>
+                            </button>
+
                         </td>
                     </tr>
 
@@ -134,7 +137,8 @@
                 <div class="modal-body">
 
                     <!-- CSRF -->
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <input type="hidden" id="csrf" th:name="${_csrf.headerName}" th:value="${_csrf.token}">
+
 
                     <!-- ID oculto (0 = nuevo, >0 = editar) -->
                     <input type="hidden" id="rol-id" name="idRol"/>
@@ -163,6 +167,47 @@
         </div>
     </div>
 </div>
+<!-- MODAL PERMISOS -->
+<div class="modal fade" id="modalPermisos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="bi bi-key"></i> Permisos de Rol
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <form id="form-permisos">
+
+                <div class="modal-body">
+
+                    <!-- CSRF -->
+                    <input type="hidden" id="csrf-name" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" id="permiso-idRol">
+
+                    <div id="contenedor-permisos">
+                        <!-- Aquí se insertan los permisos dinámicos por AJAX -->
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle"></i> Guardar
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
 
 <!-- ✅ Footer -->
 <div th:replace="~{fragments/footer :: footer}"></div>
@@ -173,6 +218,8 @@
 
 <!-- JS específico de Roles -->
 <script th:src="@{/js/roles.js}"></script>
+<script th:src="@{/js/navbar.js}"></script>
+
 
 </body>
 </html>

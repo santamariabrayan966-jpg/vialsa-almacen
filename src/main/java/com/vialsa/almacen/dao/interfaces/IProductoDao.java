@@ -4,9 +4,9 @@ import com.vialsa.almacen.model.Producto;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-
 public interface IProductoDao {
     List<Producto> listar();
+    List<Producto> listarActivos(); // 👈 AGREGAR ESTO
     Optional<Producto> buscarPorId(Integer idProducto);
     int crear(Producto p);
     int actualizar(Producto p);
@@ -14,3 +14,4 @@ public interface IProductoDao {
     void descontarStock(int idProducto, BigDecimal cantidad);
     void aumentarStock(int idProducto, BigDecimal cantidad);
 }
+
