@@ -1,0 +1,18 @@
+/* roles.css */
+
+/* Ajustes de tabla */
+.tabla-roles thead th {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+/* En pantallas pequeñas, no dejar que las celdas se partan raro */
+.tabla-roles thead th,
+.tabla-roles tbody td {
+    white-space: nowrap;
+}
+
+/* Que el título tenga un poquito más de aire */
+.roles-page h2 {
+    margin-bottom: 0;
+}
