@@ -1,256 +1,157 @@
 package com.vialsa.almacen.model;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class Compra {
 
     private Integer idCompra;
     private LocalDateTime fechaCompra;
+
     private String nroComprobante;
     private Integer idProveedor;
     private Integer idUsuario;
+
     private BigDecimal totalCompra;
+    private BigDecimal subtotal;
+    private BigDecimal montoIgv;
 
     private String nombreProveedor;
     private String nombreUsuario;
 
-    // -------- campos "empresa top" --------
+    // -------- Datos del comprobante --------
     private String tipoComprobante;
     private String serie;
     private String numero;
-    private LocalDateTime fechaEmision;
-    private LocalDateTime fechaVencimiento;
+    private LocalDate fechaEmision;
+    private LocalDate fechaVencimiento;
 
+
+    // -------- Moneda / IGV --------
     private String moneda;
     private BigDecimal tipoCambio;
-    private Boolean incluyeIgv;        // <-- Boolean
-    private BigDecimal porcentajeIgv;
-    private BigDecimal subtotal;
-    private BigDecimal montoIgv;
 
+    private Boolean incluyeIgv;
+    private BigDecimal porcentajeIgv;
+
+    // -------- Pago / Crédito --------
     private String formaPago;
     private Integer plazoDias;
     private Integer numeroCuotas;
 
+    // -------- Deuda --------
+    private BigDecimal deuda;
+    private BigDecimal totalPagado;
+
+    // Calculado automáticamente
+    public BigDecimal getDeudaPendiente() {
+        if (deuda == null) return BigDecimal.ZERO;
+        if (totalPagado == null) return deuda;
+        return deuda.subtract(totalPagado);
+    }
+
+    // -------- Otros --------
     private String nroOrdenCompra;
     private String nroGuiaRemision;
 
     private String estado;
     private String observaciones;
 
-    // ======= getters & setters =======
 
-    public Integer getIdCompra() {
-        return idCompra;
-    }
+    // =============================
+    //          GETTERS
+    // =============================
 
-    public void setIdCompra(Integer idCompra) {
-        this.idCompra = idCompra;
-    }
+    public Integer getIdCompra() { return idCompra; }
+    public LocalDateTime getFechaCompra() { return fechaCompra; }
+    public String getNroComprobante() { return nroComprobante; }
+    public Integer getIdProveedor() { return idProveedor; }
+    public Integer getIdUsuario() { return idUsuario; }
+    public BigDecimal getTotalCompra() { return totalCompra; }
+    public BigDecimal getSubtotal() { return subtotal; }
+    public BigDecimal getMontoIgv() { return montoIgv; }
 
-    public LocalDateTime getFechaCompra() {
-        return fechaCompra;
-    }
+    public String getNombreProveedor() { return nombreProveedor; }
+    public String getNombreUsuario() { return nombreUsuario; }
 
-    public void setFechaCompra(LocalDateTime fechaCompra) {
-        this.fechaCompra = fechaCompra;
-    }
+    public String getTipoComprobante() { return tipoComprobante; }
+    public String getSerie() { return serie; }
+    public String getNumero() { return numero; }
 
-    public String getNroComprobante() {
-        return nroComprobante;
-    }
+    public LocalDate getFechaEmision() { return fechaEmision; }
+    public LocalDate getFechaVencimiento() { return fechaVencimiento; }
 
-    public void setNroComprobante(String nroComprobante) {
-        this.nroComprobante = nroComprobante;
-    }
+    public String getMoneda() { return moneda; }
+    public BigDecimal getTipoCambio() { return tipoCambio; }
 
-    public Integer getIdProveedor() {
-        return idProveedor;
-    }
+    public Boolean getIncluyeIgv() { return incluyeIgv; }
+    public Boolean isIncluyeIgv() { return incluyeIgv; }
 
-    public void setIdProveedor(Integer idProveedor) {
-        this.idProveedor = idProveedor;
-    }
+    public BigDecimal getPorcentajeIgv() { return porcentajeIgv; }
 
-    public Integer getIdUsuario() {
-        return idUsuario;
-    }
+    public String getFormaPago() { return formaPago; }
+    public Integer getPlazoDias() { return plazoDias; }
+    public Integer getNumeroCuotas() { return numeroCuotas; }
 
-    public void setIdUsuario(Integer idUsuario) {
-        this.idUsuario = idUsuario;
-    }
+    public BigDecimal getDeuda() { return deuda; }
+    public BigDecimal getTotalPagado() { return totalPagado; }
 
-    public BigDecimal getTotalCompra() {
-        return totalCompra;
-    }
+    public String getNroOrdenCompra() { return nroOrdenCompra; }
+    public String getNroGuiaRemision() { return nroGuiaRemision; }
 
-    public void setTotalCompra(BigDecimal totalCompra) {
-        this.totalCompra = totalCompra;
-    }
+    public String getEstado() { return estado; }
+    public String getObservaciones() { return observaciones; }
 
-    public String getNombreProveedor() {
-        return nombreProveedor;
-    }
 
-    public void setNombreProveedor(String nombreProveedor) {
-        this.nombreProveedor = nombreProveedor;
-    }
+    // =============================
+    //          SETTERS
+    // =============================
 
-    public String getNombreUsuario() {
-        return nombreUsuario;
-    }
+    public void setIdCompra(Integer idCompra) { this.idCompra = idCompra; }
+    public void setFechaCompra(LocalDateTime fechaCompra) { this.fechaCompra = fechaCompra; }
+    public void setNroComprobante(String nroComprobante) { this.nroComprobante = nroComprobante; }
+    public void setIdProveedor(Integer idProveedor) { this.idProveedor = idProveedor; }
+    public void setIdUsuario(Integer idUsuario) { this.idUsuario = idUsuario; }
 
-    public void setNombreUsuario(String nombreUsuario) {
-        this.nombreUsuario = nombreUsuario;
-    }
+    public void setTotalCompra(BigDecimal totalCompra) { this.totalCompra = totalCompra; }
+    public void setSubtotal(BigDecimal subtotal) { this.subtotal = subtotal; }
+    public void setMontoIgv(BigDecimal montoIgv) { this.montoIgv = montoIgv; }
 
-    public String getTipoComprobante() {
-        return tipoComprobante;
-    }
+    public void setNombreProveedor(String nombreProveedor) { this.nombreProveedor = nombreProveedor; }
+    public void setNombreUsuario(String nombreUsuario) { this.nombreUsuario = nombreUsuario; }
 
-    public void setTipoComprobante(String tipoComprobante) {
-        this.tipoComprobante = tipoComprobante;
-    }
+    public void setTipoComprobante(String tipoComprobante) { this.tipoComprobante = tipoComprobante; }
+    public void setSerie(String serie) { this.serie = serie; }
+    public void setNumero(String numero) { this.numero = numero; }
 
-    public String getSerie() {
-        return serie;
-    }
 
-    public void setSerie(String serie) {
-        this.serie = serie;
-    }
-
-    public String getNumero() {
-        return numero;
-    }
-
-    public void setNumero(String numero) {
-        this.numero = numero;
-    }
-
-    public LocalDateTime getFechaEmision() {
-        return fechaEmision;
-    }
-
-    public void setFechaEmision(LocalDateTime fechaEmision) {
+    public void setFechaEmision(LocalDate fechaEmision) {
         this.fechaEmision = fechaEmision;
     }
 
-    public LocalDateTime getFechaVencimiento() {
-        return fechaVencimiento;
-    }
-
-    public void setFechaVencimiento(LocalDateTime fechaVencimiento) {
+    public void setFechaVencimiento(LocalDate fechaVencimiento) {
         this.fechaVencimiento = fechaVencimiento;
     }
 
-    public String getMoneda() {
-        return moneda;
-    }
+    public void setMoneda(String moneda) { this.moneda = moneda; }
+    public void setTipoCambio(BigDecimal tipoCambio) { this.tipoCambio = tipoCambio; }
 
-    public void setMoneda(String moneda) {
-        this.moneda = moneda;
-    }
+    public void setIncluyeIgv(Boolean incluyeIgv) { this.incluyeIgv = incluyeIgv; }
+    public void setPorcentajeIgv(BigDecimal porcentajeIgv) { this.porcentajeIgv = porcentajeIgv; }
 
-    public BigDecimal getTipoCambio() {
-        return tipoCambio;
-    }
+    public void setFormaPago(String formaPago) { this.formaPago = formaPago; }
+    public void setPlazoDias(Integer plazoDias) { this.plazoDias = plazoDias; }
+    public void setNumeroCuotas(Integer numeroCuotas) { this.numeroCuotas = numeroCuotas; }
 
-    public void setTipoCambio(BigDecimal tipoCambio) {
-        this.tipoCambio = tipoCambio;
-    }
+    public void setDeuda(BigDecimal deuda) { this.deuda = deuda; }
+    public void setTotalPagado(BigDecimal totalPagado) { this.totalPagado = totalPagado; }
 
-    // Ambos getters para evitar errores en diferentes partes del código
-    public Boolean getIncluyeIgv() {
-        return incluyeIgv;
-    }
+    public void setNroOrdenCompra(String nroOrdenCompra) { this.nroOrdenCompra = nroOrdenCompra; }
+    public void setNroGuiaRemision(String nroGuiaRemision) { this.nroGuiaRemision = nroGuiaRemision; }
 
-    public Boolean isIncluyeIgv() {
-        return incluyeIgv;
-    }
-
-    public void setIncluyeIgv(Boolean incluyeIgv) {
-        this.incluyeIgv = incluyeIgv;
-    }
-
-    public BigDecimal getPorcentajeIgv() {
-        return porcentajeIgv;
-    }
-
-    public void setPorcentajeIgv(BigDecimal porcentajeIgv) {
-        this.porcentajeIgv = porcentajeIgv;
-    }
-
-    public BigDecimal getSubtotal() {
-        return subtotal;
-    }
-
-    public void setSubtotal(BigDecimal subtotal) {
-        this.subtotal = subtotal;
-    }
-
-    public BigDecimal getMontoIgv() {
-        return montoIgv;
-    }
-
-    public void setMontoIgv(BigDecimal montoIgv) {
-        this.montoIgv = montoIgv;
-    }
-
-    public String getFormaPago() {
-        return formaPago;
-    }
-
-    public void setFormaPago(String formaPago) {
-        this.formaPago = formaPago;
-    }
-
-    public Integer getPlazoDias() {
-        return plazoDias;
-    }
-
-    public void setPlazoDias(Integer plazoDias) {
-        this.plazoDias = plazoDias;
-    }
-
-    public Integer getNumeroCuotas() {
-        return numeroCuotas;
-    }
-
-    public void setNumeroCuotas(Integer numeroCuotas) {
-        this.numeroCuotas = numeroCuotas;
-    }
-
-    public String getNroOrdenCompra() {
-        return nroOrdenCompra;
-    }
-
-    public void setNroOrdenCompra(String nroOrdenCompra) {
-        this.nroOrdenCompra = nroOrdenCompra;
-    }
-
-    public String getNroGuiaRemision() {
-        return nroGuiaRemision;
-    }
-
-    public void setNroGuiaRemision(String nroGuiaRemision) {
-        this.nroGuiaRemision = nroGuiaRemision;
-    }
-
-    public String getEstado() {
-        return estado;
-    }
-
-    public void setEstado(String estado) {
-        this.estado = estado;
-    }
-
-    public String getObservaciones() {
-        return observaciones;
-    }
-
-    public void setObservaciones(String observaciones) {
-        this.observaciones = observaciones;
-    }
+    public void setEstado(String estado) { this.estado = estado; }
+    public void setObservaciones(String observaciones) { this.observaciones = observaciones; }
 }

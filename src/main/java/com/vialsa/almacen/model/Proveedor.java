@@ -1,5 +1,7 @@
 package com.vialsa.almacen.model;
 
+import java.time.LocalDateTime;
+
 public class Proveedor {
 
     private Integer idProveedor;
@@ -9,8 +11,11 @@ public class Proveedor {
     private String telefono;
     private String correo;
 
-    // 👇 NUEVO CAMPO para el soft delete
-    private boolean activo;   // mapea a la columna TINYINT(1) 'activo' en la BD
+    // Soft delete
+    private boolean activo;
+
+    // Fecha de registro (opcional, por si luego la muestras)
+    private LocalDateTime fechaRegistro;
 
     // Getters y setters
 
@@ -62,13 +67,19 @@ public class Proveedor {
         this.correo = correo;
     }
 
-    // 👇 Getters / setters de 'activo'
-
     public boolean isActivo() {
         return activo;
     }
 
     public void setActivo(boolean activo) {
         this.activo = activo;
+    }
+
+    public LocalDateTime getFechaRegistro() {
+        return fechaRegistro;
+    }
+
+    public void setFechaRegistro(LocalDateTime fechaRegistro) {
+        this.fechaRegistro = fechaRegistro;
     }
 }

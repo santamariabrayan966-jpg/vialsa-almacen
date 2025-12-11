@@ -3,7 +3,10 @@ package com.vialsa.almacen.dao.interfaces;
 import com.vialsa.almacen.model.Compra;
 import com.vialsa.almacen.model.DetalleCompra;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
+
 
 public interface ICompraDao {
 
@@ -17,12 +20,17 @@ public interface ICompraDao {
 
     Integer obtenerIdUsuarioPorNombre(String nombreUsuario);
 
-    // cambiar estado de la compra (REGISTRADA, ANULADA, PAGADA, etc.)
     int actualizarEstado(int idCompra, String estado);
 
-    // actualizar SOLO cabecera, sin tocar detalle
     int actualizarCabecera(Compra c);
 
-    // eliminar solo si está en BORRADOR
     int eliminarSiBorrador(int idCompra);
+
+    String obtenerUltimoNumeroOrden();
+
+    int actualizarDeuda(int idCompra, BigDecimal nuevaDeuda);
+
+    // ✔ SÍ DEBEN ESTAR ESTOS DOS
+    String obtenerUltimaSeriePorTipo(String tipo);
+    String obtenerUltimoNumeroPorTipo(String tipo);
 }

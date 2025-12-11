@@ -84,3 +84,9 @@
         font-size: 1.1rem;
     }
 }
+.fix-select-height {
+    height: 38px !important;
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+    line-height: 28px !important;
+}

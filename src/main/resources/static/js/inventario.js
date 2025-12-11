@@ -1,3 +1,7 @@
+/* ==========================================================
+   MODAL DE MOVIMIENTO DE INVENTARIO – VERSIÓN PRO (VIALSA)
+   ========================================================== */
+
 // -------------------------------------------
 // ABRIR MODAL Y CARGAR EL FORMULARIO
 // -------------------------------------------
@@ -6,8 +10,18 @@ async function abrirModal(url) {
     const cont = document.getElementById("modalContenido");
     const titulo = document.getElementById("modalTitulo");
 
+    // Indicador de carga mientras trae el HTML
+    cont.innerHTML = `
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    `;
+
     try {
         const resp = await fetch(url);
+        if (!resp.ok) throw new Error("Error cargando formulario");
+
         const html = await resp.text();
 
         cont.innerHTML = html;
@@ -19,10 +33,16 @@ async function abrirModal(url) {
         inicializarEnvioFormulario();
 
     } catch (e) {
-        alert("Error cargando formulario.");
         console.error(e);
+        Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "No se pudo cargar el formulario.",
+            confirmButtonColor: "#dc3545"
+        });
     }
 }
+
 
 // -------------------------------------------
 // ENVÍO AJAX DEL FORMULARIO
@@ -36,19 +56,44 @@ function inicializarEnvioFormulario() {
 
         const data = new FormData(form);
 
-        const resp = await fetch(form.action, {
-            method: "POST",
-            body: data
+        Swal.fire({
+            title: "Procesando...",
+            text: "Guardando movimiento",
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
         });
 
-        if (resp.redirected) {
-            location.reload();
+        try {
+            const resp = await fetch(form.action, {
+                method: "POST",
+                body: data
+            });
+
+            if (resp.redirected) {
+                Swal.close();
+                window.location.reload();
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error",
+                    text: "No se pudo guardar el movimiento."
+                });
+            }
+
+        } catch (e) {
+            console.error(e);
+            Swal.fire({
+                icon: "error",
+                title: "Error inesperado",
+                text: "Intente nuevamente."
+            });
         }
     });
 }
 
+
 // -------------------------------------------
-// BÚSQUEDA DE CLIENTE
+// BÚSQUEDA DE CLIENTE (API DNI / RUC)
 // -------------------------------------------
 function inicializarBuscadorCliente() {
 
@@ -59,9 +104,17 @@ function inicializarBuscadorCliente() {
     if (!btn || !inputNumero || !inputNombre) return;
 
     btn.addEventListener("click", async () => {
+
         const numero = inputNumero.value.trim();
 
-        if (!numero) return alert("Ingrese DNI o RUC");
+        if (!numero) {
+            Swal.fire({
+                icon: "warning",
+                title: "Atención",
+                text: "Ingrese un número de documento"
+            });
+            return;
+        }
 
         const tipo = numero.length === 8 ? "dni" : "ruc";
 
@@ -69,21 +122,34 @@ function inicializarBuscadorCliente() {
 
         try {
             const resp = await fetch(`/api/externo/${tipo}/${numero}`);
+            if (!resp.ok) throw new Error("Error en API");
+
             const data = await resp.json();
 
             if (!data.data) {
                 inputNombre.value = "";
-                return alert("No encontrado.");
+                Swal.fire({
+                    icon: "info",
+                    title: "No encontrado",
+                    text: "No se encontraron datos para este documento."
+                });
+                return;
             }
 
-            inputNombre.value = (data.data.nombre_completo ||
-                                 data.data.nombre ||
-                                 data.data.nombre_o_razon_social ||
-                                 "").trim();
+            inputNombre.value =
+                (data.data.nombre_completo ||
+                 data.data.nombre ||
+                 data.data.nombre_o_razon_social ||
+                 "").trim();
 
         } catch (e) {
             console.error(e);
-            alert("Error consultando.");
+            inputNombre.value = "";
+            Swal.fire({
+                icon: "error",
+                title: "Error",
+                text: "No se pudo consultar el documento."
+            });
         }
     });
 }

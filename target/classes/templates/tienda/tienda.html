@@ -36,7 +36,12 @@
 
             <div class="card product-card h-100">
 
-                <img th:src="@{/images/no-image.png}" class="card-img-top">
+                <img class="card-img-top"
+                     th:src="${p.foto != null} ?
+        @{/img/productos/{f}(f=${p.foto})} :
+        @{/img/productos/default.png}">
+
+
 
                 <div class="card-body">
 

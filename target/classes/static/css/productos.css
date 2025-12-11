@@ -1,0 +1,51 @@
+/* === Productos: estilos específicos === */
+
+.search-input {
+    max-width: 360px;
+}
+
+.producto-thumb {
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+#previewImg {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Tabla más compacta en escritorio, legible en móvil */
+#tablaProductos {
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    #tablaProductos {
+        font-size: 0.8rem;
+    }
+
+    .search-input {
+        max-width: 100%;
+    }
+}
+
+/* Badges de estado */
+.estado-badge {
+    min-width: 70px;
+}
+
+/* Botones agrupados en acciones */
+.btn-group .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modales pequeños: textos centrados en confirmaciones */
+#modalEstadoProducto .modal-body,
+#modalConfirmEliminar .modal-body {
+    font-size: 0.9rem;
+}

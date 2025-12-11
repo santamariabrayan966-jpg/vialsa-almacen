@@ -149,4 +149,25 @@ public class ClienteService {
     public List<Cliente> filtrar(String tipoFiltro) {
         return dao.filtrarClientes(tipoFiltro);
     }
+
+
+    // ======================================================
+    //     CREAR CLIENTE AUTOMÁTICO (VENTAS)
+    // ======================================================
+    public Cliente crearAutomatico(Cliente c) {
+
+        Cliente nuevo = new Cliente();
+        nuevo.setNro_documento(c.getNro_documento());
+        nuevo.setNombres(c.getNombres());
+        nuevo.setApellidos(c.getApellidos());
+        nuevo.setTelefono(c.getTelefono());
+        nuevo.setDireccion(c.getDireccion());
+        nuevo.setActivo(true);
+
+        // Registrar en BD
+        dao.registrar(nuevo);
+
+        // Obtener el cliente recién guardado
+        return dao.buscarPorDocumento(nuevo.getNro_documento());
+    }
 }

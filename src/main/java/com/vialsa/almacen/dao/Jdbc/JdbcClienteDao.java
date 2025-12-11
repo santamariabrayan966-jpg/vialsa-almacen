@@ -350,4 +350,40 @@ public class JdbcClienteDao implements IClienteDao {
         return jdbc.query(sql, new ClienteMapper());
     }
 
+    @Override
+    public Cliente crearAutomatico(Cliente c) {
+
+        String sql = """
+        INSERT INTO clientes (nombres, apellidos, nro_documento, direccion, telefono, activo, fecha_registro)
+        VALUES (?, ?, ?, ?, ?, 1, NOW())
+    """;
+
+        jdbc.update(sql,
+                c.getNombres(),
+                c.getApellidos(),
+                c.getNro_documento(),
+                c.getDireccion(),
+                c.getTelefono()
+        );
+
+        // Obtener ID generado
+        Integer id = jdbc.queryForObject(
+                "SELECT LAST_INSERT_ID()",
+                Integer.class
+        );
+
+        // Retornar el cliente ya insertado
+        return buscarPorId(id);
+    }
+    public Integer registrarRapido(String documento, String nombre, String telefono) {
+
+        String sql = "INSERT INTO clientes (nro_documento, nombres, telefono) VALUES (?, ?, ?)";
+        jdbc.update(sql, documento, nombre, telefono);
+
+        return jdbc.queryForObject(
+                "SELECT LAST_INSERT_ID()",
+                Integer.class
+        );
+    }
+
 }

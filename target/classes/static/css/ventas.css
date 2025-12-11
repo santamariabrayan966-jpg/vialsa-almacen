@@ -1,0 +1,213 @@
+/* ============================================================
+   ESTILOS GENERALES DEL MÓDULO DE VENTAS
+============================================================ */
+
+body {
+    background-color: #f8f9fa;
+}
+
+/* ------------------------------------------------------------
+   TABLA DE PRODUCTOS
+------------------------------------------------------------ */
+
+#tablaProductos .form-control,
+#tablaProductos .form-select {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+}
+
+#tablaProductos td input {
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+.subtotal-cell {
+    font-weight: bold;
+}
+
+#tablaProductos .btn-sm i {
+    font-size: 0.95rem;
+}
+
+/* RESPONSIVE: tabla scroll en pantallas pequeñas */
+@media (max-width: 768px) {
+    #tablaProductos {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   TARJETA DE TOTALES
+------------------------------------------------------------ */
+.card-totales-venta {
+    border-left: 4px solid #0d6efd;
+}
+
+.card-totales-venta span {
+    font-size: 0.95rem;
+}
+
+/* ERRORES */
+.campo-error {
+    font-size: 0.75rem;
+    margin-top: 2px;
+    color: #dc3545;
+}
+
+
+/* ------------------------------------------------------------
+   IFAME DEL MODAL
+------------------------------------------------------------ */
+#ventaModalIframe {
+    width: 100%;
+    height: 75vh;
+    border: none;
+}
+
+@media (max-width: 576px) {
+    #ventaModalIframe {
+        height: 60vh;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   BOTONES DE LISTA
+------------------------------------------------------------ */
+.acciones-venta .btn {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.82rem;
+}
+
+.acciones-venta i {
+    font-size: 0.9rem;
+}
+
+
+/* ------------------------------------------------------------
+   TÍTULOS Y BLOQUES
+------------------------------------------------------------ */
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.credit-box {
+    padding: 15px;
+    border: 2px dashed #0d6efd50;
+    border-radius: 8px;
+    background: #f8faff;
+}
+
+/* ------------------------------------------------------------
+   SELECT2 — Apariencia como input normal (muy limpio)
+------------------------------------------------------------ */
+
+#tablaProductos .select2-container {
+    width: 100% !important;
+}
+
+#tablaProductos .select2-selection--single {
+    height: 32px !important;
+    padding-left: 6px !important;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem !important;
+}
+
+.select2-container .select2-selection__arrow {
+    height: 30px !important;
+}
+
+/* ------------------------------------------------------------
+   MINI VISTA DE PRODUCTOS
+------------------------------------------------------------ */
+.prod-item-mini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+}
+
+.prod-img-mini {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    object-fit: cover;
+}
+
+.prod-item-mini small {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* RESPONSIVE mini vista */
+@media (max-width: 768px) {
+    .prod-img-mini {
+        width: 40px;
+        height: 40px;
+    }
+    .prod-item-mini strong {
+        font-size: 0.83rem;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   DROPDOWN SELECT2 PEQUEÑO Y ELEGANTE
+------------------------------------------------------------ */
+
+.mini-dropdown {
+    max-height: 240px !important;
+    overflow-y: auto !important;
+    border-radius: 8px !important;
+    border: 1px solid #d0d0d0 !important;
+    box-shadow: 0px 4px 12px #0002;
+}
+
+.mini-results .select2-results__option {
+    padding: 6px 8px !important;
+    font-size: 0.82rem !important;
+}
+
+.mini-results .select2-results__option--highlighted {
+    background: #e9f3ff !important;
+}
+
+
+/* ------------------------------------------------------------
+   SELECT2 — RESPONSIVE COMPLETO
+------------------------------------------------------------ */
+
+/* En móvil, el dropdown debe ocupar casi toda la pantalla */
+@media (max-width: 576px) {
+    .mini-dropdown {
+        width: 95vw !important;
+        left: 5px !important;
+    }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+    #tablaProductos .select2-selection--single {
+        font-size: 0.83rem !important;
+    }
+}
+
+/* ------------------------------------------------------------
+   MEJORAS DE INTERACCIÓN
+------------------------------------------------------------ */
+
+.select2-results__option {
+    cursor: pointer;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    border-radius: 6px !important;
+}
+

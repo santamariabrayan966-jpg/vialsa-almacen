@@ -11,7 +11,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 
 @Controller
-@RequestMapping("/proveedores")   // maneja /proveedores
+@RequestMapping("/proveedores")
 public class ProveedorController {
 
     private final ProveedorService proveedorService;
@@ -41,8 +41,8 @@ public class ProveedorController {
         return "proveedores/list";
     }
 
-    // 🔹 ENDPOINT JSON para el modal de EDITAR
-    //    URL: GET /proveedores/api/{id}
+    // ENDPOINT JSON para el modal de EDITAR
+    // GET /proveedores/api/{id}
     @GetMapping("/api/{id}")
     @ResponseBody
     public ResponseEntity<Proveedor> obtenerProveedorApi(@PathVariable Integer id) {
@@ -53,9 +53,7 @@ public class ProveedorController {
         return ResponseEntity.ok(proveedor);
     }
 
-    // OPCIONAL: vistas separadas (si algún día las usas)
-
-    // GET /proveedores/nuevo
+    // Vista separada (por si usas la pantalla fuera del modal)
     @GetMapping("/nuevo")
     public String nuevo(Model model) {
         model.addAttribute("titulo", "Nuevo Proveedor | VIALSA");
@@ -63,13 +61,12 @@ public class ProveedorController {
         return "proveedores/form";
     }
 
-    // GET /proveedores/editar/{id}
     @GetMapping("/editar/{id}")
     public String editar(@PathVariable Integer id,
                          Model model,
                          RedirectAttributes redirectAttributes) {
 
-        Proveedor proveedor = proveedorService.buscarPorId(id); // 👈 corregido
+        Proveedor proveedor = proveedorService.buscarPorId(id);
         if (proveedor == null) {
             redirectAttributes.addFlashAttribute("error", "El proveedor no existe.");
             return "redirect:/proveedores";
@@ -80,7 +77,7 @@ public class ProveedorController {
         return "proveedores/form";
     }
 
-    // POST /proveedores/guardar  (nuevo o editar desde el modal)
+    // POST /proveedores/guardar  (nuevo o editar desde modal o formulario)
     @PostMapping("/guardar")
     public String guardar(@ModelAttribute("proveedor") Proveedor proveedor,
                           RedirectAttributes redirectAttributes) {
@@ -108,7 +105,6 @@ public class ProveedorController {
         return "redirect:/proveedores";
     }
 
-
     // GET /proveedores/eliminar/{id}
     @GetMapping("/eliminar/{id}")
     public String eliminar(@PathVariable Integer id,
@@ -126,5 +122,28 @@ public class ProveedorController {
 
         return "redirect:/proveedores";
     }
+    // Cambiar estado ACTIVO / INACTIVO (para el switch del panel lateral)
+    @PostMapping("/cambiar-estado/{id}")
+    @ResponseBody
+    public ResponseEntity<?> cambiarEstado(
+            @PathVariable Integer id,
+            @RequestParam("activo") boolean activo) {
+
+        Proveedor p = proveedorService.buscarPorId(id);
+        if (p == null) {
+            return ResponseEntity.badRequest().body("Proveedor no encontrado");
+        }
+
+        p.setActivo(activo);
+
+        boolean ok = proveedorService.actualizarEstado(p);
+
+        if (!ok) {
+            return ResponseEntity.badRequest().body("No se pudo actualizar el estado");
+        }
+
+        return ResponseEntity.ok("OK");
+    }
+
 
 }

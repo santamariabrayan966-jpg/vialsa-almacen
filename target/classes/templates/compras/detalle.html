@@ -8,55 +8,80 @@
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/compras.css}">
 </head>
+
 <body class="bg-light">
 
-<main class="container-fluid py-3">
+<main class="container-fluid py-3"
+      th:with="simbolo=${compra.moneda == 'USD' ? '$' : 'S/'}">
+
     <h5 class="text-primary mb-3">
         <i class="bi bi-receipt"></i> Detalle de Compra
     </h5>
 
-    <!-- Información principal -->
+    <!-- ===================== INFORMACIÓN PRINCIPAL ===================== -->
     <div class="card shadow-sm mb-3">
         <div class="card-body py-2">
             <div class="row">
+
+                <!-- Columna 1 -->
                 <div class="col-md-4">
                     <p class="mb-1"><strong>ID:</strong> <span th:text="${compra.idCompra}"></span></p>
+
                     <p class="mb-1">
                         <strong>Fecha:</strong>
-                        <span th:text="${#temporals.format(compra.fechaEmision != null ? compra.fechaEmision : compra.fechaCompra, 'dd/MM/yyyy HH:mm')}"></span>
+                        <span th:text="${#temporals.format(
+                                compra.fechaEmision != null ? compra.fechaEmision : compra.fechaCompra,
+                                'dd/MM/yyyy HH:mm'
+                        )}"></span>
                     </p>
+
                     <p class="mb-1">
                         <strong>Estado:</strong>
                         <span class="badge"
                               th:classappend="${' badge-estado-' + compra.estado}"
                               th:text="${compra.estado}">
-                            REGISTRADA
                         </span>
                     </p>
                 </div>
+
+                <!-- Columna 2 -->
                 <div class="col-md-4">
+
                     <p class="mb-1">
                         <strong>Comprobante:</strong>
                         <span th:text="${compra.tipoComprobante}"></span>
                     </p>
+
                     <p class="mb-1">
                         <strong>Serie - Número:</strong>
                         <span th:text="${compra.serie + '-' + compra.numero}"></span>
                     </p>
+
                     <p class="mb-1">
                         <strong>Proveedor:</strong>
                         <span th:text="${compra.nombreProveedor}"></span>
                     </p>
                 </div>
+
+                <!-- Columna 3 -->
                 <div class="col-md-4">
+
                     <p class="mb-1">
                         <strong>Usuario:</strong>
                         <span th:text="${compra.nombreUsuario}"></span>
                     </p>
+
                     <p class="mb-1">
                         <strong>Moneda:</strong>
                         <span th:text="${compra.moneda}"></span>
                     </p>
+
+                    <!-- SOLO SI ES USD → Mostrar tipo de cambio -->
+                    <p class="mb-1" th:if="${compra.moneda == 'USD'}">
+                        <strong>Tipo de Cambio (SUNAT):</strong>
+                        <span th:text="${#numbers.formatDecimal(compra.tipoCambio, 1, 3)}"></span>
+                    </p>
+
                     <p class="mb-1">
                         <strong>Forma pago:</strong>
                         <span th:text="${compra.formaPago}"></span>
@@ -64,6 +89,7 @@
                 </div>
             </div>
 
+            <!-- OBSERVACIONES -->
             <div th:if="${compra.observaciones != null && !#strings.isEmpty(compra.observaciones)}"
                  class="mt-2">
                 <strong>Observaciones:</strong>
@@ -72,7 +98,7 @@
         </div>
     </div>
 
-    <!-- Detalle productos -->
+    <!-- ===================== PRODUCTOS COMPRADOS ===================== -->
     <h6 class="text-secondary mb-2">
         <i class="bi bi-box-seam"></i> Productos Comprados
     </h6>
@@ -90,29 +116,61 @@
                 <th>Subtotal</th>
             </tr>
             </thead>
+
             <tbody>
             <tr th:each="detalle, stat : ${detalles}">
                 <td th:text="${stat.index + 1}"></td>
                 <td th:text="${detalle.nombreProducto}"></td>
                 <td th:text="${detalle.nombreUnidad}"></td>
                 <td th:text="${detalle.cantidad}"></td>
-                <td th:text="${#numbers.formatDecimal(detalle.precioUnitario, 1, 2)}"></td>
-                <td th:text="${#numbers.formatDecimal(detalle.descuento, 1, 2)}"></td>
-                <!-- subtotal = cantidad * precio - descuento -->
-                <td th:text="${#numbers.formatDecimal(detalle.cantidad * detalle.precioUnitario - detalle.descuento, 1, 2)}"></td>
+
+                <!-- PRECIO UNITARIO con símbolo -->
+                <td th:text="${simbolo + ' ' + #numbers.formatDecimal(detalle.precioUnitario, 1, 2)}"></td>
+
+                <!-- DESCUENTO con símbolo -->
+                <td th:text="${simbolo + ' ' + #numbers.formatDecimal(detalle.descuento, 1, 2)}"></td>
+
+                <!-- SUBTOTAL con símbolo -->
+                <td th:text="${simbolo + ' ' + #numbers.formatDecimal(detalle.cantidad * detalle.precioUnitario - detalle.descuento, 1, 2)}"></td>
             </tr>
             </tbody>
+
             <tfoot class="fw-bold text-end">
             <tr>
                 <td colspan="6">TOTAL:</td>
-                <td th:text="${#numbers.formatDecimal(compra.totalCompra, 1, 2)}"></td>
+                <td th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.totalCompra, 1, 2)}"></td>
             </tr>
             </tfoot>
         </table>
     </div>
+
+    <!-- ===================== EQUIVALENTE EN SOLES (solo USD) ===================== -->
+    <div class="card shadow-sm mt-3" th:if="${compra.moneda == 'USD'}">
+        <div class="card-body">
+
+            <h6 class="text-primary fw-bold mb-2">Equivalente en Soles (PEN)</h6>
+
+            <p class="mb-1">
+                <strong>Subtotal PEN:</strong>
+                <span th:text="${'S/ ' + #numbers.formatDecimal(compra.subtotal * compra.tipoCambio, 1, 2)}"></span>
+            </p>
+
+            <p class="mb-1">
+                <strong>IGV PEN:</strong>
+                <span th:text="${'S/ ' + #numbers.formatDecimal(compra.montoIgv * compra.tipoCambio, 1, 2)}"></span>
+            </p>
+
+            <p class="fw-bold">
+                <strong>Total PEN:</strong>
+                <span th:text="${'S/ ' + #numbers.formatDecimal(compra.totalCompra * compra.tipoCambio, 1, 2)}"></span>
+            </p>
+        </div>
+    </div>
+
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/compras.js}"></script>
+
 </body>
 </html>

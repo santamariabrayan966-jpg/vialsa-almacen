@@ -18,7 +18,7 @@ public class JdbcProveedorDao implements IProveedorDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // Mapea una fila de la tabla a un objeto Proveedor
+    // ==== MAPEADOR SIN FechaRegistro (CORREGIDO) ====
     private final RowMapper<Proveedor> mapRow = (rs, rowNum) -> {
         Proveedor p = new Proveedor();
         p.setIdProveedor(rs.getInt("idProveedor"));
@@ -34,13 +34,15 @@ public class JdbcProveedorDao implements IProveedorDao {
     @Override
     public List<Proveedor> listar() {
         String sql = """
-            SELECT idProveedor, NombreProveedor, NroDocumento,
-                   Direccion, Telefono, Correo, activo
-            FROM proveedores
-            WHERE activo = 1
-        """;
+        SELECT idProveedor, NombreProveedor, NroDocumento,
+               Direccion, Telefono, Correo, activo
+        FROM proveedores
+        WHERE activo <> 2     -- ocultar eliminados
+        ORDER BY activo DESC, NombreProveedor ASC
+    """;
         return jdbcTemplate.query(sql, mapRow);
     }
+
 
     @Override
     public Optional<Proveedor> buscarPorId(Integer id) {
@@ -111,8 +113,33 @@ public class JdbcProveedorDao implements IProveedorDao {
 
     @Override
     public int eliminar(Integer id) {
-        // Soft delete: solo marcamos activo = 0
-        String sql = "UPDATE proveedores SET activo = 0 WHERE idProveedor = ?";
+        // Estado 2 = eliminado (no visible)
+        String sql = "UPDATE proveedores SET activo = 2 WHERE idProveedor = ?";
         return jdbcTemplate.update(sql, id);
     }
+
+
+    @Override
+    public int cambiarEstado(Integer id, boolean activo) {
+        String sql = "UPDATE proveedores SET activo = ? WHERE idProveedor = ?";
+        return jdbcTemplate.update(sql, activo, id);
+    }
+
+    @Override
+    public int actualizarEstado(Integer id, boolean activo) {
+        String sql = "UPDATE proveedores SET activo = ? WHERE idProveedor = ?";
+        return jdbcTemplate.update(sql, activo, id);
+    }
+    @Override
+    public List<Proveedor> listarActivos() {
+        String sql = """
+        SELECT idProveedor, NombreProveedor, NroDocumento,
+               Direccion, Telefono, Correo, activo
+        FROM proveedores
+        WHERE activo = 1
+        ORDER BY NombreProveedor ASC
+    """;
+        return jdbcTemplate.query(sql, mapRow);
+    }
+
 }

@@ -13,7 +13,7 @@ public interface IProveedorDao {
     List<Proveedor> listar();
 
     /**
-     * Busca un proveedor por su ID.
+     * Busca un proveedor por su ID (activo o inactivo).
      */
     Optional<Proveedor> buscarPorId(Integer id);
 
@@ -36,4 +36,11 @@ public interface IProveedorDao {
      * "Elimina" un proveedor (soft delete): pone activo = 0.
      */
     int eliminar(Integer id);
+    /**
+     * Cambia el estado 'activo' de un proveedor.
+     */
+    int cambiarEstado(Integer id, boolean activo);
+    int actualizarEstado(Integer id, boolean activo);
+    List<Proveedor> listarActivos();
+
 }

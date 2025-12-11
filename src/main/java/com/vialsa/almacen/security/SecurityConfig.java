@@ -153,12 +153,21 @@ public class SecurityConfig {
                 // CSRF
                 // ============================
 
+                // ============================
+// CSRF
+// ============================
                 .csrf(csrf -> csrf.ignoringRequestMatchers(
                         "/api/**",
-                        "/clientes/**",          // ⬅️ AGREGA ESTO
-                        "/clientes/importar",    // (ya estaba)
-                        "/clientes/exportar/**"  // (ya estaba)
+                        "/clientes/**",
+                        "/clientes/importar",
+                        "/clientes/exportar/**",
+                        "/proveedores/cambiar-estado/**",
+
+                        // ⬇️ NECESARIO PARA PAGAR CUOTAS
+                        "/compras/cuotas/pagar/**"
                 ))
+
+
         ;
         http.headers(headers -> headers
                 .frameOptions(frame -> frame.sameOrigin())

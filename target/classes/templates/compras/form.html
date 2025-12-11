@@ -4,314 +4,535 @@
     <meta charset="UTF-8">
     <title th:text="${titulo}">Registrar Compra | VIALSA</title>
 
+    <!-- CSRF (para fetch / cuotas / etc) -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/theme.css}">
     <link rel="stylesheet" th:href="@{/css/compras.css}">
 </head>
 
-<body class="bg-dark bg-opacity-25 d-flex align-items-center justify-content-center min-vh-100">
+<body class="bg-light">
 
-<div class="card shadow-lg w-100" style="max-width: 1200px;">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">
-            <i class="bi bi-file-earmark-plus"></i>
-            <span th:text="${compraForm.idCompra} != null ? 'Editar compra' : 'Registrar nueva compra'"></span>
-        </h5>
-        <a th:href="@{/compras}" class="btn btn-sm btn-light">
-            <i class="bi bi-x-lg"></i>
-        </a>
-    </div>
+<div class="container-fluid py-3">
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-    <div class="card-body">
-        <form th:action="${compraForm.idCompra} != null ?
-                         @{/compras/editar/{id}(id=${compraForm.idCompra})} :
-                         @{/compras/guardar}"
-              th:object="${compraForm}"
-              method="post"
-              id="compraForm">
+            <!-- ================== PANEL ERRORES GLOBAL ================== -->
+            <div id="panelErrores"
+                 class="alert alert-danger d-none"
+                 th:classappend="${erroresGlobales != null} ? '' : ' d-none'">
+                <strong>Se encontraron errores en el formulario:</strong>
+                <ul id="listaErrores" class="mt-2 mb-0">
+                    <li th:each="err : ${erroresGlobales}" th:text="${err}"></li>
+                </ul>
+            </div>
+
+            <!-- FORMULARIO -->
+            <form th:action="${compraForm.idCompra} != null ?
+                  @{/compras/editar/{id}(id=${compraForm.idCompra})} :
+                  @{/compras/guardar}"
+                  th:object="${compraForm}"
+                  method="post"
+                  id="compraForm"
+                  target="_parent">
+
 
             <input type="hidden" th:field="*{idCompra}"/>
 
-            <!-- CABECERA -->
-            <div class="row g-3 mb-3">
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Proveedor</label>
-                    <select th:field="*{idProveedor}" class="form-select" required>
-                        <option value="">Seleccione...</option>
-                        <option th:each="prov : ${proveedores}"
-                                th:value="${prov.idProveedor}"
-                                th:text="${prov.nombreProveedor}">
-                        </option>
-                    </select>
-                </div>
+                <!-- ====================== CABECERA ======================= -->
+                <div class="row g-3 mb-3">
 
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Tipo Comprobante</label>
-                    <select th:field="*{tipoComprobante}" class="form-select" id="tipoComprobante">
-                        <option value="FACTURA">FACTURA</option>
-                        <option value="BOLETA">BOLETA</option>
-                        <option value="N.CREDITO">N.CREDITO</option>
-                        <option value="N.DEBITO">N.DEBITO</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Serie</label>
-                    <input type="text" th:field="*{serie}" class="form-control"
-                           placeholder="F001" maxlength="10" required>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Número</label>
-                    <input type="text" th:field="*{numero}" class="form-control"
-                           placeholder="000123" maxlength="15" required>
-                </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Moneda</label>
-                    <select th:field="*{moneda}" class="form-select" id="moneda">
-                        <option value="PEN">PEN - Soles</option>
-                        <option value="USD">USD - Dólares</option>
-                    </select>
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Tipo cambio</label>
-                    <input type="number" step="0.0001" min="0"
-                           th:field="*{tipoCambio}" id="tipoCambio"
-                           class="form-control" placeholder="3.8000">
-                </div>
-
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">IGV</label>
-                    <div class="form-check mt-2">
-                        <input class="form-check-input" type="checkbox"
-                               th:field="*{incluyeIgv}" id="incluyeIgv">
-                        <label class="form-check-label" for="incluyeIgv">
-                            Incluye IGV
-                        </label>
+                    <!-- PROVEEDOR -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Proveedor</label>
+                        <select th:field="*{idProveedor}" class="form-select" required>
+                            <option value="">Seleccione...</option>
+                            <option th:each="prov : ${proveedores}"
+                                    th:value="${prov.idProveedor}"
+                                    th:text="${prov.nombreProveedor}"></option>
+                        </select>
+                        <div class="text-danger small campo-error"
+                             data-error-for="idProveedor"
+                             th:text="${erroresCampos != null ? erroresCampos['idProveedor'] : ''}">
+                        </div>
                     </div>
+
+                    <!-- TIPO COMPROBANTE -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Tipo Comprobante</label>
+                        <select th:field="*{tipoComprobante}" class="form-select" id="tipoComprobante">
+                            <option value="">Seleccione...</option>
+                            <option value="FACTURA">FACTURA</option>
+                            <option value="BOLETA">BOLETA</option>
+                            <option value="N.CREDITO">N.CREDITO</option>
+                            <option value="N.DEBITO">N.DEBITO</option>
+                        </select>
+                        <div class="text-danger small campo-error"
+                             data-error-for="tipoComprobante"
+                             th:text="${erroresCampos != null ? erroresCampos['tipoComprobante'] : ''}">
+                        </div>
+                    </div>
+
+                    <!-- SERIE -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Serie</label>
+                        <input type="text"
+                               th:field="*{serie}"
+                               id="inputSerie"
+                               class="form-control"
+                               placeholder="F001"
+                               autocomplete="off">
+                    </div>
+
+                    <!-- NÚMERO -->
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Número</label>
+                        <input type="text"
+                               th:field="*{numero}"
+                               id="inputNumero"
+                               class="form-control"
+                               placeholder="000001"
+                               autocomplete="off">
+                    </div>
+
+
+
                 </div>
 
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">% IGV</label>
-                    <input type="number" step="0.01" min="0"
-                           th:field="*{porcentajeIgv}" id="porcentajeIgv"
-                           class="form-control" placeholder="18.00">
-                </div>
+                <!-- GUIA + FECHA -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Guía de Remisión</label>
+                        <input type="text" th:field="*{nroGuiaRemision}" class="form-control" placeholder="T001-000123">
+                        <div class="text-danger small campo-error"
+                             data-error-for="nroGuiaRemision"
+                             th:text="${erroresCampos != null ? erroresCampos['nroGuiaRemision'] : ''}">
+                        </div>
+                    </div>
 
-                <div class="col-md-2">
-                    <label class="form-label fw-semibold">Forma de pago</label>
-                    <select th:field="*{formaPago}" class="form-select" id="formaPago">
-                        <option value="CONTADO">CONTADO</option>
-                        <option value="CREDITO">CRÉDITO</option>
-                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                    </select>
-                </div>
-
-                <div class="col-md-1">
-                    <label class="form-label fw-semibold">Plazo (días)</label>
-                    <input type="number" min="0" th:field="*{plazoDias}"
-                           id="plazoDias" class="form-control" placeholder="30">
-                </div>
-
-                <div class="col-md-1">
-                    <label class="form-label fw-semibold">N° Cuotas</label>
-                    <input type="number" min="1" th:field="*{numeroCuotas}"
-                           id="numeroCuotas" class="form-control" placeholder="1">
-                </div>
-            </div>
-
-            <div class="row g-3 mb-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">N° Orden de compra</label>
-                    <input type="text" th:field="*{nroOrdenCompra}" class="form-control"
-                           placeholder="OC-0001">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">N° Guía de remisión</label>
-                    <input type="text" th:field="*{nroGuiaRemision}" class="form-control"
-                           placeholder="T001-000123">
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Observaciones</label>
-                    <textarea th:field="*{observaciones}" class="form-control" rows="2"
-                              placeholder="Notas adicionales, condiciones especiales, etc."></textarea>
-                </div>
-            </div>
-
-            <hr>
-
-            <!-- DETALLE PRODUCTOS -->
-            <h6 class="text-primary mb-2">
-                <i class="bi bi-box-seam"></i> Productos Comprados
-            </h6>
-
-            <div class="table-responsive shadow-sm rounded mb-2">
-                <table class="table table-bordered align-middle mb-0" id="tablaProductos">
-                    <thead class="table-light text-center">
-                    <tr>
-                        <th>Producto</th>
-                        <th>Unidad</th>
-                        <th>Cantidad</th>
-                        <th>Precio Unitario (S/)</th>
-                        <th>Descuento (S/)</th>
-                        <th>Subtotal (S/)</th>
-                        <th>Acción</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- filas existentes al editar -->
-                    <tr class="producto-item" th:each="d : ${detallesCompra}">
-                        <td>
-                            <select name="idProducto" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option th:each="p : ${productos}"
-                                        th:value="${p.idProducto}"
-                                        th:text="${p.nombreProducto}"
-                                        th:selected="${p.idProducto} == ${d.idProducto}">
-                                </option>
-                            </select>
-                        </td>
-                        <td>
-                            <select name="idUnidad" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option th:each="u : ${unidades}"
-                                        th:value="${u.idUnidad}"
-                                        th:text="${u.nombreUnidad}"
-                                        th:selected="${u.idUnidad} == ${d.idUnidad}">
-                                </option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="cantidad"
-                                   class="form-control cantidad" min="0.01"
-                                   step="0.01" th:value="${d.cantidad}">
-                        </td>
-                        <td>
-                            <input type="number" name="precioUnitario"
-                                   class="form-control precio" step="0.01"
-                                   th:value="${d.precioUnitario}">
-                        </td>
-                        <td>
-                            <input type="number" name="descuento"
-                                   class="form-control descuento" step="0.01"
-                                   th:value="${d.descuento}">
-                        </td>
-                        <td class="subtotal text-end">0.00</td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-danger btn-sm eliminar">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-
-                    <!-- fila vacía si no hay detalles (nueva compra) -->
-                    <tr class="producto-item" th:if="${detallesCompra == null or #lists.isEmpty(detallesCompra)}">
-                        <td>
-                            <select name="idProducto" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option th:each="p : ${productos}"
-                                        th:value="${p.idProducto}"
-                                        th:text="${p.nombreProducto}">
-                                </option>
-                            </select>
-                        </td>
-                        <td>
-                            <select name="idUnidad" class="form-select" required>
-                                <option value="">Seleccione...</option>
-                                <option th:each="u : ${unidades}"
-                                        th:value="${u.idUnidad}"
-                                        th:text="${u.nombreUnidad}">
-                                </option>
-                            </select>
-                        </td>
-                        <td>
-                            <input type="number" name="cantidad"
-                                   class="form-control cantidad" min="0.01"
-                                   step="0.01" value="1">
-                        </td>
-                        <td>
-                            <input type="number" name="precioUnitario"
-                                   class="form-control precio" step="0.01"
-                                   value="0.00">
-                        </td>
-                        <td>
-                            <input type="number" name="descuento"
-                                   class="form-control descuento" step="0.01"
-                                   value="0.00">
-                        </td>
-                        <td class="subtotal text-end">0.00</td>
-                        <td class="text-center">
-                            <button type="button" class="btn btn-danger btn-sm eliminar">
-                                <i class="bi bi-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="my-2">
-                <button type="button" class="btn btn-success btn-sm" id="agregarProducto">
-                    <i class="bi bi-plus-circle"></i> Agregar Producto
-                </button>
-            </div>
-
-            <!-- Totales -->
-            <div class="row mt-3">
-                <div class="col-md-5 ms-auto">
-                    <div class="card shadow-sm card-totales-compra">
-                        <div class="card-body py-2">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span>Subtotal:</span>
-                                <span id="lblSubtotal">S/ 0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between mb-1">
-                                <span>IGV:</span>
-                                <span id="lblIgv">S/ 0.00</span>
-                            </div>
-                            <hr class="my-2">
-                            <div class="d-flex justify-content-between fw-bold">
-                                <span>Total Compra:</span>
-                                <span id="lblTotal" class="text-success">S/ 0.00</span>
-                            </div>
-
-                            <input type="hidden" th:field="*{subtotal}"    id="subtotalInput">
-                            <input type="hidden" th:field="*{montoIgv}"    id="montoIgvInput">
-                            <input type="hidden" th:field="*{totalCompra}" id="totalInput">
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">Fecha Emisión</label>
+                        <input type="date" th:field="*{fechaEmision}" id="fechaEmision" class="form-control">
+                        <div class="text-danger small campo-error"
+                             data-error-for="fechaEmision"
+                             th:text="${erroresCampos != null ? erroresCampos['fechaEmision'] : ''}">
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- BOTONES -->
-            <div class="text-end mt-3 d-flex justify-content-end gap-2">
-                <button type="submit"
-                        name="accion"
-                        value="REGISTRAR"
-                        class="btn btn-primary btn-sm">
-                    <i class="bi bi-save"></i>
-                    <span th:text="${compraForm.idCompra} != null ? 'Guardar y registrar' : 'Registrar compra'"></span>
+                <!-- ===================== MONEDA, IGV, PAGO ===================== -->
+                <div class="row g-3 mb-3">
+
+                    <!-- MONEDA -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Moneda</label>
+                        <select th:field="*{moneda}" id="moneda" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="PEN">PEN - Soles</option>
+                            <option value="USD">USD - Dólares</option>
+                        </select>
+                        <div class="text-danger small campo-error"
+                             data-error-for="moneda"
+                             th:text="${erroresCampos != null ? erroresCampos['moneda'] : ''}">
+                        </div>
+                    </div>
+
+                    <!-- TIPO CAMBIO -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Tipo Cambio</label>
+                        <input type="number" step="0.0001" th:field="*{tipoCambio}"
+                               id="tipoCambio" class="form-control" placeholder="Auto SUNAT">
+                        <div class="text-danger small campo-error"
+                             data-error-for="tipoCambio"
+                             th:text="${erroresCampos != null ? erroresCampos['tipoCambio'] : ''}">
+                        </div>
+                    </div>
+
+                    <!-- INCLUYE IGV -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">IGV</label>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" th:field="*{incluyeIgv}" id="incluyeIgv">
+                            <label class="form-check-label">Incluye IGV</label>
+                        </div>
+                        <div class="text-danger small campo-error"
+                             data-error-for="incluyeIgv"
+                             th:text="${erroresCampos != null ? erroresCampos['incluyeIgv'] : ''}">
+                        </div>
+                    </div>
+
+                    <!-- % IGV -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">% IGV</label>
+                        <input type="number" step="0.01" th:field="*{porcentajeIgv}" id="porcentajeIgv"
+                               class="form-control" placeholder="18.00">
+                        <div class="text-danger small campo-error"
+                             data-error-for="porcentajeIgv"
+                             th:text="${erroresCampos != null ? erroresCampos['porcentajeIgv'] : ''}">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ===================== CREDITO ===================== -->
+                <div class="row g-3 mb-3">
+
+                    <!-- FORMA PAGO -->
+                    <div class="col-md-2">
+                        <label class="form-label fw-semibold">Forma de Pago</label>
+                        <select th:field="*{formaPago}" id="formaPago" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="CONTADO">CONTADO</option>
+                            <option value="CREDITO">CRÉDITO</option>
+                            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                        </select>
+                        <div class="text-danger small campo-error"
+                             data-error-for="formaPago"
+                             th:text="${erroresCampos != null ? erroresCampos['formaPago'] : ''}">
+                        </div>
+                    </div>
+
+                    <!-- SECCIÓN CRÉDITO -->
+                    <div id="seccionCredito" class="mt-3 d-none">
+
+                        <div class="border rounded p-3">
+
+                            <h6 class="fw-bold text-primary">
+                                <i class="bi bi-journal-bookmark"></i> Compra a Crédito
+                            </h6>
+
+                            <div class="row g-3">
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Pago Inicial (S/)</label>
+                                    <input type="number" min="0" step="0.01" id="pagoInicial" class="form-control">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="pagoInicial">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-2">
+                                    <label class="form-label fw-semibold">N° Cuotas</label>
+                                    <input type="number" min="1" max="36" id="numeroCuotasCredito" class="form-control">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="numeroCuotasCredito">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label class="form-label fw-semibold">Intervalo</label>
+                                    <select id="intervaloPago" class="form-select">
+                                        <option value="30">Mensual (30 días)</option>
+                                        <option value="15">Quincenal (15 días)</option>
+                                    </select>
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="intervaloPago">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold">Deuda Restante</label>
+                                    <input type="text" readonly id="deudaRestante" class="form-control bg-light">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="deudaRestante">
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <hr>
+
+                            <h6 class="fw-semibold">Cuotas generadas</h6>
+
+                            <h6 class="fw-semibold text-primary mt-3">Fechas de Pago Programadas</h6>
+
+                            <div id="contenedorCuotas" class="row g-3"></div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ORDEN + OBSERVACIONES -->
+                <div class="row g-3 mb-3">
+
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">N° Orden Compra</label>
+                        <input type="text" th:field="*{nroOrdenCompra}" class="form-control" readonly>
+                        <div class="text-danger small campo-error"
+                             data-error-for="nroOrdenCompra"
+                             th:text="${erroresCampos != null ? erroresCampos['nroOrdenCompra'] : ''}">
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Observaciones</label>
+                        <textarea th:field="*{observaciones}" class="form-control" rows="2"></textarea>
+                        <div class="text-danger small campo-error"
+                             data-error-for="observaciones"
+                             th:text="${erroresCampos != null ? erroresCampos['observaciones'] : ''}">
+                        </div>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <!-- ===================== TABLA DE PRODUCTOS ===================== -->
+                <h6 class="text-primary mb-2">
+                    <i class="bi bi-box-seam"></i> Productos Comprados
+                </h6>
+
+                <div class="table-responsive shadow-sm rounded mb-2">
+                    <table class="table table-bordered align-middle" id="tablaProductos">
+                        <thead class="table-light text-center">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th>Cant.</th>
+                            <th>Precio (S/)</th>
+                            <th>Desc. (S/)</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+
+                        <!-- EDICIÓN -->
+                        <tr class="producto-item" th:each="d : ${detallesCompra}">
+                            <td>
+                                <select name="idProducto" class="form-select seleccionar-producto" required>
+                                    <option value="">Seleccione...</option>
+                                    <option th:each="p : ${productos}"
+                                            th:value="${p.idProducto}"
+                                            th:text="${p.codigoInterno + ' - ' + p.nombreProducto}"
+                                            th:selected="${p.idProducto} == ${d.idProducto}"
+                                            th:attr="data-unidad-id=${p.idUnidad},data-tipo=${p.idTipoProducto}">
+                                    </option>
+
+                                </select>
+                                <div class="text-danger small campo-error"
+                                     data-error-for="idProducto">
+                                </div>
+                            </td>
+
+                            <td>
+                                <select name="idUnidad" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option th:each="u : ${unidades}"
+                                            th:value="${u.idUnidad}"
+                                            th:selected="${u.idUnidad} == ${d.idUnidad}"
+                                            th:text="${u.nombreUnidad}"></option>
+                                </select>
+                                <div class="text-danger small campo-error"
+                                     data-error-for="idUnidad">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="cantidad" step="0.01" class="form-control cantidad"
+                                       th:value="${d.cantidad}">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="cantidad">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="precioUnitario" step="0.01" class="form-control precio"
+                                       th:value="${d.precioUnitario}">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="precioUnitario">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="descuento" step="0.01" class="form-control descuento"
+                                       th:value="${d.descuento}">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="descuento">
+                                </div>
+                            </td>
+
+                            <td class="subtotal text-end">0.00</td>
+
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-sm eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- NUEVA COMPRA -->
+                        <tr class="producto-item"
+                            th:if="${detallesCompra == null or #lists.isEmpty(detallesCompra)}">
+                            <td>
+
+                                <!-- 🔍 BUSCADOR DE PRODUCTOS (por fila) -->
+                                <input type="text"
+                                       class="form-control form-control-sm mb-1 filtro-producto"
+                                       placeholder="Buscar producto...">
+
+                                <select name="idProducto"
+                                        class="form-select seleccionar-producto"
+                                        required>
+                                    <option value="">Seleccione...</option>
+                                    <option th:each="p : ${productos}"
+                                            th:value="${p.idProducto}"
+                                            th:text="${p.codigoInterno + ' - ' + p.nombreProducto}"
+                                            th:attr="data-unidad-id=${p.idUnidad},data-tipo=${p.idTipoProducto}">
+                                    </option>
+                                </select>
+
+                                <div class="text-danger small campo-error"
+                                     data-error-for="idProducto"></div>
+                            </td>
+                            </td>
+
+
+                            <td>
+                                <select name="idUnidad" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option th:each="u : ${unidades}"
+                                            th:value="${u.idUnidad}"
+                                            th:text="${u.nombreUnidad}"></option>
+                                </select>
+                                <div class="text-danger small campo-error"
+                                     data-error-for="idUnidad">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="cantidad" step="0.01" class="form-control cantidad" value="1">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="cantidad">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="precioUnitario" step="0.01" class="form-control precio"
+                                       value="0.00">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="precioUnitario">
+                                </div>
+                            </td>
+
+                            <td>
+                                <input type="number" name="descuento" step="0.01" class="form-control descuento"
+                                       value="0.00">
+                                <div class="text-danger small campo-error"
+                                     data-error-for="descuento">
+                                </div>
+                            </td>
+
+                            <td class="subtotal text-end">0.00</td>
+
+                            <td class="text-center">
+                                <button type="button" class="btn btn-danger btn-sm eliminar">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+                        </tbody>
+                    </table>
+                </div>
+
+                <button type="button" id="agregarProducto" class="btn btn-success btn-sm mb-3">
+                    <i class="bi bi-plus-circle"></i> Agregar Producto
                 </button>
 
-                <button type="submit"
-                        name="accion"
-                        value="BORRADOR"
-                        class="btn btn-outline-secondary btn-sm">
-                    <i class="bi bi-file-earmark"></i>
-                    Guardar como borrador
-                </button>
-            </div>
+                <!-- ====================== TOTALES ======================= -->
+                <div class="row mt-3">
+                    <div class="col-md-5 ms-auto">
 
-        </form>
+                        <!-- CARD DE TOTALES -->
+                        <div class="card shadow-sm card-totales-compra">
+                            <div class="card-body py-3">
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Subtotal:</span>
+                                    <span id="lblSubtotal">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>IGV:</span>
+                                    <span id="lblIgv">S/ 0.00</span>
+                                </div>
+
+                                <hr class="my-2">
+
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total:</span>
+                                    <span id="lblTotal" class="text-success">S/ 0.00</span>
+                                </div>
+
+                                <input type="hidden" th:field="*{subtotal}" id="subtotalInput">
+                                <input type="hidden" th:field="*{montoIgv}" id="montoIgvInput">
+                                <input type="hidden" th:field="*{totalCompra}" id="totalInput">
+
+                                <div class="text-danger small campo-error mt-1"
+                                     data-error-for="totales"></div>
+
+                            </div>
+                        </div>
+
+                        <!-- 🟦 EQUIVALENTE EN SOLES (UBICACIÓN CORRECTA) -->
+                        <div id="equivalenteSoles" class="card shadow-sm mt-2 d-none">
+                            <div class="card-body py-2">
+                                <h6 class="text-primary fw-bold mb-2">Equivalente en Soles (PEN)</h6>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Subtotal PEN:</span>
+                                    <span id="lblSubtotalPen">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>IGV PEN:</span>
+                                    <span id="lblIgvPen">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total PEN:</span>
+                                    <span id="lblTotalPen" class="text-success">S/ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div> <!-- ⬅️ CIERRE REAL DE col-md-5 -->
+                </div> <!-- row -->
+
+
+                <!-- BOTONES -->
+                <div class="text-end mt-4 d-flex justify-content-end gap-2">
+
+                    <button type="submit" name="accion" value="REGISTRAR" class="btn btn-primary btn-sm">
+                        <i class="bi bi-save"></i>
+                        <span th:text="${compraForm.idCompra != null ? 'Guardar cambios' : 'Registrar compra'}"></span>
+                    </button>
+
+                    <button type="submit" name="accion" value="BORRADOR" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-file-earmark"></i>
+                        Guardar como borrador
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
     </div>
 </div>
 
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script th:src="@{/js/compras.js}"></script>
+
 </body>
 </html>

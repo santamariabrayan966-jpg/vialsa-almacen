@@ -35,7 +35,7 @@ public class ProveedorService {
         return proveedorDao.buscarPorId(id).orElse(null);
     }
 
-    // Alias que ya usas en el Controller
+    // Alias opcional
     public Proveedor obtenerPorId(Integer id) {
         return buscarPorId(id);
     }
@@ -44,13 +44,37 @@ public class ProveedorService {
     public ResultadoGuardarProveedor guardar(Proveedor proveedor) {
 
         try {
-            // Normalizar número de documento
+            // Normalizar campos de texto
             if (proveedor.getNroDocumento() != null) {
                 proveedor.setNroDocumento(proveedor.getNroDocumento().trim());
             }
+            if (proveedor.getNombreProveedor() != null) {
+                proveedor.setNombreProveedor(proveedor.getNombreProveedor().trim());
+            }
+            if (proveedor.getDireccion() != null) {
+                proveedor.setDireccion(proveedor.getDireccion().trim());
+            }
+            if (proveedor.getCorreo() != null) {
+                proveedor.setCorreo(proveedor.getCorreo().trim());
+            }
+            if (proveedor.getTelefono() != null) {
+                proveedor.setTelefono(proveedor.getTelefono().trim());
+            }
 
-            // 1️⃣ Si viene con id → ACTUALIZAR
-            if (proveedor.getIdProveedor() != null && proveedor.getIdProveedor() > 0) {
+            Integer id = proveedor.getIdProveedor();
+
+            // 1️⃣ Si viene con id → ACTUALIZAR (manteniendo activo y fechaRegistro)
+            if (id != null && id > 0) {
+                Optional<Proveedor> optExistente = proveedorDao.buscarPorId(id);
+                if (optExistente.isEmpty()) {
+                    return ResultadoGuardarProveedor.ERROR;
+                }
+
+                Proveedor existente = optExistente.get();
+                // Preservamos flags y fecha para no desactivar por error
+                proveedor.setActivo(existente.isActivo());
+                proveedor.setFechaRegistro(existente.getFechaRegistro());
+
                 int filas = proveedorDao.actualizar(proveedor);
                 return (filas > 0) ? ResultadoGuardarProveedor.ACTUALIZADO : ResultadoGuardarProveedor.ERROR;
             }
@@ -67,9 +91,10 @@ public class ProveedorService {
                         // Ya hay uno ACTIVO con ese RUC/DNI → DUPLICADO
                         return ResultadoGuardarProveedor.DUPLICADO;
                     } else {
-                        // Estaba inactivo → REACTIVAR
+                        // Estaba inactivo → REACTIVAR (usando los nuevos datos, pero activo = true)
                         proveedor.setIdProveedor(existente.getIdProveedor());
-                        proveedor.setActivo(true); // lo levantamos
+                        proveedor.setActivo(true);
+                        proveedor.setFechaRegistro(existente.getFechaRegistro());
 
                         int filas = proveedorDao.actualizar(proveedor);
                         return (filas > 0) ? ResultadoGuardarProveedor.REACTIVADO : ResultadoGuardarProveedor.ERROR;
@@ -93,4 +118,21 @@ public class ProveedorService {
         if (id == null) return false;
         return proveedorDao.eliminar(id) > 0;
     }
+    public boolean cambiarEstado(Integer id, boolean activo) {
+        if (id == null) return false;
+        return proveedorDao.cambiarEstado(id, activo) > 0;
+    }
+    public boolean actualizarEstado(Proveedor proveedor) {
+        try {
+            return proveedorDao.actualizarEstado(proveedor.getIdProveedor(), proveedor.isActivo()) > 0;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public List<Proveedor> listarActivos() {
+        return proveedorDao.listarActivos();
+    }
+
+
 }

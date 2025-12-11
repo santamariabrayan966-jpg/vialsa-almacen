@@ -2,6 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="${titulo}">Compras | VIALSA</title>
 
     <!-- Bootstrap -->
@@ -10,35 +11,37 @@
     <link rel="stylesheet" th:href="@{/css/theme.css}">
 
     <style>
-        body { background-color: #f8f9fa; }
+        body {
+            background-color: #f8f9fa;
+        }
+
+        /* Contenedor de acciones: que se adapte y haga wrap en pantallas pequeñas */
+        .acciones-compra {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.25rem;
+        }
+
         .acciones-compra .btn {
             padding: 0.25rem 0.4rem;
             font-size: 0.8rem;
-        }
-        .acciones-compra i {
-            font-size: 0.9rem;
+            cursor: pointer;
         }
 
-        /* === Tamaño y estilo del modal flotante === */
-        #compraModal .modal-dialog {
-            max-width: 1000px;          /* aquí haces la mini-ventana más grande o más pequeña */
-        }
-        #compraModal .modal-content {
-            border-radius: 0.75rem;
-        }
         #compraModalIframe {
             width: 100%;
             border: none;
-            min-height: 75vh;          /* altura de la mini-ventana */
+            min-height: 75vh;
         }
 
-        @media (max-width: 768px) {
-            #compraModal .modal-dialog {
-                max-width: 100%;
-                margin: 0.5rem;
+        @media (max-width: 576px) {
+            h2 i {
+                margin-right: 0.25rem;
             }
+
             #compraModalIframe {
-                min-height: 80vh;
+                min-height: 65vh;
             }
         }
     </style>
@@ -46,16 +49,17 @@
 
 <body class="d-flex flex-column min-vh-100 bg-light">
 
+<!-- HEADER -->
 <div th:replace="~{fragments/header :: header}"></div>
 
 <main class="container mt-4 flex-grow-1">
 
+    <!-- TÍTULO + BOTÓN NUEVA COMPRA -->
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <h2 class="mb-0">
             <i class="bi bi-card-checklist"></i> Compras
         </h2>
 
-        <!-- Nueva compra EN MINI-VENTANA -->
         <button type="button"
                 class="btn btn-primary btn-sm"
                 th:onclick="|openCompraModal('@{/compras/nueva}', 'Registrar nueva compra')|">
@@ -63,69 +67,51 @@
         </button>
     </div>
 
-    <!-- Mensajes -->
-    <div th:if="${param.borrador}" class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="bi bi-file-earmark"></i> Compra guardada como borrador.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- BUSCADOR -->
+    <div class="input-group mb-3">
+        <span class="input-group-text"><i class="bi bi-search"></i></span>
+        <input id="buscadorCompras"
+               type="text"
+               class="form-control"
+               placeholder="Buscar compra, proveedor, usuario, estado...">
     </div>
 
-    <div th:if="${param.confirmada}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill"></i> Compra borrador confirmada como REGISTRADA.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <!-- MENSAJES -->
+    <div class="mb-3">
+        <div th:if="${param.borrador}" class="alert alert-info py-2 mb-2">
+            Compra guardada como borrador.
+        </div>
+        <div th:if="${param.borradorEditado}" class="alert alert-info py-2 mb-2">
+            Borrador actualizado correctamente.
+        </div>
+        <div th:if="${param.confirmada}" class="alert alert-success py-2 mb-2">
+            Compra confirmada.
+        </div>
+        <div th:if="${param.success}" class="alert alert-success py-2 mb-2">
+            Compra registrada exitosamente.
+        </div>
+        <div th:if="${param.error}" class="alert alert-danger py-2 mb-2">
+            Error al registrar compra.
+        </div>
+        <div th:if="${param.anulada}" class="alert alert-warning py-2 mb-2">
+            Compra anulada.
+        </div>
+        <div th:if="${param.eliminada}" class="alert alert-info py-2 mb-0">
+            Compra eliminada.
+        </div>
     </div>
 
-    <div th:if="${param.errorConfirmar}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> No se pudo confirmar la compra.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill"></i> ¡Compra registrada exitosamente!
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill"></i> Ocurrió un error al procesar la compra.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.anulada}" class="alert alert-warning alert-dismissible fade show" role="alert">
-        <i class="bi bi-slash-circle"></i> Compra anulada correctamente.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.errorAnular}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> No se pudo anular la compra.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.eliminada}" class="alert alert-info alert-dismissible fade show" role="alert">
-        <i class="bi bi-trash"></i> Compra en estado BORRADOR eliminada.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${param.errorEliminar}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i> No se pudo eliminar la compra.
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${msgCabeceraOk}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill"></i>
-        <span th:text="${msgCabeceraOk}">Cabecera actualizada correctamente.</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <div th:if="${msgCabeceraError}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-x-circle"></i>
-        <span th:text="${msgCabeceraError}">Error al actualizar cabecera.</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-
-    <!-- Tabla -->
+    <!-- ================================================
+      TABLA DE COMPRAS
+      ================================================ -->
     <div class="card shadow-sm">
         <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-bordered table-hover align-middle text-center mb-0">
+
+                <table id="tablaCompras"
+                       class="table table-bordered table-hover text-center align-middle mb-0">
+
+                    <!-- ======================= CABECERA ======================= -->
                     <thead class="table-light">
                     <tr>
                         <th>ID</th>
@@ -134,153 +120,268 @@
                         <th>Proveedor</th>
                         <th>Usuario</th>
                         <th>Moneda</th>
+                        <th>Forma de Pago</th>
                         <th>Total</th>
+                        <th>Deuda</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
                     </thead>
+
+                    <!-- ======================= CUERPO ======================= -->
                     <tbody>
+
+                    <!-- === FILA DINÁMICA POR CADA COMPRA === -->
                     <tr th:each="c : ${compras}">
-                        <td th:text="${c.idCompra}">1</td>
 
-                        <td th:text="${#temporals.format(c.fechaEmision != null ? c.fechaEmision : c.fechaCompra, 'dd/MM/yyyy HH:mm')}">
-                            11/11/2025 13:10
-                        </td>
+                        <!-- ID -->
+                        <td th:text="${c.idCompra}"></td>
 
+                        <!-- Fecha de emisión o fecha de compra -->
+                        <td th:text="${#temporals.format(c.fechaCompra, 'dd/MM/yyyy HH:mm')}"></td>
+
+
+                        <!-- Tipo comprobante + serie y número -->
                         <td>
-                            <span th:text="${c.tipoComprobante}">FACTURA</span><br>
-                            <small th:text="${c.serie + '-' + c.numero}">F001-000123</small>
+                            <span th:text="${c.tipoComprobante}"></span><br>
+                            <small class="text-muted" th:text="${c.serie + '-' + c.numero}"></small>
                         </td>
 
-                        <td th:text="${c.nombreProveedor}">Proveedor</td>
-                        <td th:text="${c.nombreUsuario}">Usuario</td>
-                        <td th:text="${c.moneda}">PEN</td>
-                        <td th:text="${#numbers.formatDecimal(c.totalCompra, 1, 2)}">0.00</td>
+                        <!-- Proveedor -->
+                        <td th:text="${c.nombreProveedor}"></td>
 
+                        <!-- Usuario -->
+                        <td th:text="${c.nombreUsuario}"></td>
+
+                        <!-- Moneda -->
+                        <td th:text="${c.moneda}"></td>
+
+                        <!-- ===== FORMATO VISUAL DE LA FORMA DE PAGO ===== -->
                         <td>
-                            <span class="badge"
-                                  th:classappend="${c.estado == 'ANULADA'} ? ' bg-danger' :
-                                                  (${c.estado == 'PAGADA'} ? ' bg-success' :
-                                                  (${c.estado == 'BORRADOR'} ? ' bg-info text-dark' : ' bg-secondary'))"
-                                  th:text="${c.estado}">
-                                REGISTRADA
-                            </span>
+                        <span class="badge"
+                              th:classappend="
+                                ${c.formaPago == 'CREDITO'} ? 'bg-warning text-dark' :
+                                (${c.formaPago == 'CONTADO'} ? 'bg-info text-dark' :
+                                'bg-secondary')
+                              "
+                              th:text="${c.formaPago}">
+                        </span>
                         </td>
 
-                        <!-- Acciones -->
-                        <td class="acciones-compra text-nowrap">
+                        <!-- Total compra -->
+                        <td th:text="${#numbers.formatDecimal(c.totalCompra,1,2)}"></td>
 
-                            <!-- Ver DETALLE en mini-ventana -->
-                            <button type="button"
-                                    class="btn btn-outline-info btn-sm me-1"
-                                    th:title="'Ver detalle'"
-                                    th:onclick="|openCompraModal('@{/compras/detalle/{id}(id=${c.idCompra})}', 'Detalle de compra')|">
+                        <!-- ===== DEUDA ===== -->
+                        <td>
+    <span th:if="${c.formaPago == 'CREDITO'}"
+          class="fw-bold"
+          th:classappend="${c.deuda > 0} ? 'text-danger' : 'text-success'"
+          th:text="${(c.moneda == 'USD' ? '$ ' : 'S/ ') + #numbers.formatDecimal(c.deuda,1,2)}">
+</span>
+
+
+                            <span th:if="${c.formaPago != 'CREDITO'}" class="text-muted">—</span>
+                        </td>
+
+
+                        <!-- ===== ESTADO ===== -->
+                        <td>
+                        <span class="badge"
+                              th:classappend="
+                                ${c.estado == 'PAGADA'} ? 'bg-success' :
+                                (${c.estado == 'REGISTRADA'} ? 'bg-primary' :
+                                (${c.estado == 'BORRADOR'} ? 'bg-secondary' :
+                                (${c.estado == 'ANULADA'} ? 'bg-danger' : 'bg-dark')))
+                              "
+                              th:text="${c.estado}">
+                        </span>
+                        </td>
+
+                        <!-- ===== ACCIONES ===== -->
+                        <td class="acciones-compra">
+
+                            <!-- Ver detalle -->
+                            <button class="btn btn-outline-info btn-sm"
+                                    th:onclick="|openCompraModal('@{/compras/detalle/{id}(id=${c.idCompra})}','Detalle de compra')|"
+                                    title="Ver detalle">
                                 <i class="bi bi-eye"></i>
                             </button>
 
-                            <!-- Editar compra COMPLETA solo BORRADOR en mini-ventana -->
-                            <button type="button"
-                                    class="btn btn-outline-warning btn-sm me-1"
-                                    th:title="'Editar compra (BORRADOR)'"
-                                    th:if="${c.estado == 'BORRADOR'}"
-                                    th:onclick="|openCompraModal('@{/compras/editar/{id}(id=${c.idCompra})}', 'Editar compra')|">
+                            <!-- Editar si está en borrador -->
+                            <button class="btn btn-outline-warning btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|openCompraModal('@{/compras/editar/{id}(id=${c.idCompra})}','Editar compra')|"
+                                    title="Editar compra">
                                 <i class="bi bi-pencil-square"></i>
                             </button>
 
-                            <!-- Anular (no si ANULADA) -->
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm me-1"
-                                    th:title="'Anular compra'"
-                                    th:if="${c.estado != 'ANULADA'}"
-                                    th:onclick="|if(confirm('¿Seguro que deseas ANULAR esta compra?')) window.location.href='@{/compras/anular/{id}(id=${c.idCompra})}';|">
+                            <!-- Anular -->
+                            <button class="btn btn-outline-danger btn-sm"
+                                    th:if="${c.estado!='ANULADA'}"
+                                    th:onclick="|if(confirm('¿Anular compra?')) window.location.href='@{/compras/anular/{id}(id=${c.idCompra})}'|"
+                                    title="Anular compra">
                                 <i class="bi bi-slash-circle"></i>
                             </button>
 
-                            <!-- Eliminar solo BORRADOR -->
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm me-1"
-                                    th:title="'Eliminar (solo borrador)'"
-                                    th:if="${c.estado == 'BORRADOR'}"
-                                    th:onclick="|if(confirm('¿Seguro que deseas ELIMINAR esta compra en estado BORRADOR?')) window.location.href='@{/compras/eliminar/{id}(id=${c.idCompra})}';|">
+                            <!-- Eliminar si está en borrador -->
+                            <button class="btn btn-outline-danger btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|if(confirm('¿Eliminar compra?')) window.location.href='@{/compras/eliminar/{id}(id=${c.idCompra})}'|"
+                                    title="Eliminar compra">
                                 <i class="bi bi-trash"></i>
                             </button>
 
-                            <!-- Confirmar BORRADOR -> REGISTRADA -->
-                            <button type="button"
-                                    class="btn btn-outline-success btn-sm me-1"
-                                    th:title="'Confirmar compra (afectar stock)'"
-                                    th:if="${c.estado == 'BORRADOR'}"
-                                    th:onclick="|if(confirm('¿Deseas CONFIRMAR esta compra y afectar el stock?')) window.location.href='@{/compras/confirmar/{id}(id=${c.idCompra})}';|">
+                            <!-- Confirmar si está en borrador -->
+                            <button class="btn btn-outline-success btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|if(confirm('¿Confirmar compra?')) window.location.href='@{/compras/confirmar/{id}(id=${c.idCompra})}'|"
+                                    title="Confirmar compra">
                                 <i class="bi bi-check2-circle"></i>
                             </button>
 
-                            <!-- Exportar Excel -->
-                            <a class="btn btn-outline-success btn-sm me-1"
-                               th:title="'Exportar a Excel'"
-                               th:href="@{/compras/excel/{id}(id=${c.idCompra})}">
-                                <i class="bi bi-file-earmark-spreadsheet"></i>
-                            </a>
+                            <!-- Ver cuotas -->
+                            <button class="btn btn-warning btn-sm"
+                                    th:if="${c.numeroCuotas != null and c.numeroCuotas > 0}"
+                                    th:attr="data-idcompra=${c.idCompra}, data-moneda=${c.moneda}"
+                                    onclick="abrirModalCuotas(this.dataset.idcompra, this.dataset.moneda)"
+                                    title="Ver cuotas">
+                                <i class="bi bi-cash-stack"></i>
+                            </button>
 
-                            <!-- Imprimir (nueva pestaña) -->
-                            <a class="btn btn-outline-secondary btn-sm"
-                               th:title="'Vista para imprimir'"
-                               th:href="@{/compras/detalle/{id}(id=${c.idCompra})}"
-                               target="_blank">
+
+
+                            <!-- Recargar -->
+                            <button class="btn btn-primary btn-sm"
+                                    th:onclick="|window.location.reload()|"
+                                    title="Recargar listado">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+
+                            <!-- Imprimir -->
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    th:onclick="|abrirModalImprimir(${c.idCompra})|"
+                                    title="Imprimir compra">
                                 <i class="bi bi-printer"></i>
-                            </a>
+                            </button>
 
                         </td>
-                    </tr>
 
+                    </tr> <!-- FIN DEL EACH -->
+
+                    <!-- === MENSAJE SI NO HAY COMPRAS === -->
                     <tr th:if="${#lists.isEmpty(compras)}">
-                        <td colspan="9" class="text-center text-muted">
+                        <td colspan="11" class="text-center text-muted py-4">
                             <i class="bi bi-inbox"></i> No hay compras registradas.
                         </td>
                     </tr>
+
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
+
+
 </main>
 
-<!-- Modal reutilizable con IFRAME -->
+<!-- MODAL IFRAME: NUEVA / EDITAR / DETALLE -->
 <div class="modal fade" id="compraModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-header bg-primary text-white py-2">
-                <h5 class="modal-title" id="compraModalTitle">Compras</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Cerrar"></button>
+
+            <div class="modal-header bg-primary text-white">
+                <h5 id="compraModalTitle" class="modal-title">Compras</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
+
             <div class="modal-body p-0">
-                <iframe id="compraModalIframe" title="Ventana compras"></iframe>
+                <iframe id="compraModalIframe"></iframe>
             </div>
+
         </div>
     </div>
 </div>
 
-<div th:replace="~{fragments/footer :: footer}"></div>
+<!-- MODAL CUOTAS -->
+<div class="modal fade" id="modalCuotas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
 
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Cuotas de la Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="infoCuotas"></div>
+
+                <div class="table-responsive mt-3">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-dark text-center">
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Vence</th>
+                            <th scope="col">Monto</th>
+                            <th scope="col">Estado</th>
+                            <th scope="col">Pago</th>
+                        </tr>
+                        </thead>
+                        <tbody id="tablaCuotas"></tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMPRIMIR -->
+<div class="modal fade" id="modalImprimir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Imprimir Compra</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <p class="mb-3">Seleccione el formato:</p>
+
+                <button id="btnPdf" type="button" class="btn btn-danger w-100 mb-3">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </button>
+
+                <button id="btnExcel" type="button" class="btn btn-success w-100">
+                    <i class="bi bi-file-earmark-excel"></i> Descargar Excel
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/compras.js}"></script>
+
+<!-- JS imprimir -->
 <script>
-    // Abre una URL dentro del iframe del modal
-    function openCompraModal(url, titulo) {
-        const iframe  = document.getElementById('compraModalIframe');
-        const titleEl = document.getElementById('compraModalTitle');
-        const modalEl = document.getElementById('compraModal');
+    function abrirModalImprimir(id) {
+        window.compraActual = id;
+        const modalImprimir = new bootstrap.Modal(document.getElementById("modalImprimir"));
+        modalImprimir.show();
 
-        titleEl.textContent = titulo || 'Compras';
-        iframe.src = url;
-
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
+        document.getElementById("btnPdf").onclick = () => {
+            window.location.href = `/compras/pdf/` + id;
+        };
+        document.getElementById("btnExcel").onclick = () => {
+            window.location.href = `/compras/excel/` + id;
+        };
     }
-
 </script>
-
-
-<script th:src="@{/js/navbar.js}"></script>
 
 </body>
 </html>

@@ -68,5 +68,8 @@ public interface IClienteDao {
 
     // 🔎 Filtros avanzados (VIP, moroso, inactivo, nuevos, etc.)
     List<Cliente> filtrarClientes(String tipoFiltro);
+    // Registrar cliente automáticamente (ventas)
+    Cliente crearAutomatico(Cliente cliente);
+
 
 }

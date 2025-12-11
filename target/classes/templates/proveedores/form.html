@@ -10,8 +10,12 @@
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Tema general -->
+    <!-- Tema VIALSA (CLARO) -->
     <link th:href="@{/css/theme.css}" rel="stylesheet">
+
+    <!-- Tema exclusivo proveedores -->
+    <link th:href="@{/css/proveedores.css}" rel="stylesheet">
+
 </head>
 
 <body class="bg-light d-flex flex-column min-vh-100">
@@ -23,10 +27,10 @@
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8">
 
-            <div class="card shadow-sm border-0">
-                <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card shadow-sm border-0 card-proveedor-form">
+                <div class="card-header d-flex justify-content-between align-items-center card-header-vialsa">
                     <h5 class="mb-0" th:text="${titulo}">Proveedor</h5>
-                    <a th:href="@{/proveedores}" class="btn btn-sm btn-outline-secondary">
+                    <a th:href="@{/proveedores}" class="btn btn-sm btn-vialsa-outline">
                         <i class="bi bi-arrow-left"></i> Volver
                     </a>
                 </div>
@@ -42,13 +46,13 @@
                                 <input type="text" th:field="*{nroDocumento}"
                                        class="form-control"
                                        id="prov-nroDocumento"
-                                       placeholder="Ej: 20123456789" maxlength="20">
+                                       placeholder="Ej: 20123456789" maxlength="20" required>
                                 <button class="btn btn-outline-secondary"
                                         type="button" id="btn-buscar-doc-proveedor">
                                     <i class="bi bi-search"></i>
                                 </button>
                             </div>
-                            <div class="form-text">
+                            <div class="form-text text-muted">
                                 Usa la API para completar razón social / dirección.
                             </div>
                         </div>
@@ -83,7 +87,7 @@
                             <a th:href="@{/proveedores}" class="btn btn-outline-secondary me-2">
                                 Cancelar
                             </a>
-                            <button type="submit" class="btn btn-success">
+                            <button type="submit" class="btn btn-vialsa-primary">
                                 <i class="bi bi-save"></i> Guardar
                             </button>
                         </div>

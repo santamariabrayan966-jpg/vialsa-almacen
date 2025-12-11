@@ -13,175 +13,297 @@
     <!-- Tema general -->
     <link th:href="@{/css/theme.css}" rel="stylesheet">
 
-    <style>
-        /* Modal pequeño y centrado */
-        .modal-proveedor-pequeno .modal-dialog {
-            max-width: 520px;
-        }
-    </style>
+    <!-- Tema exclusivo proveedores -->
+    <link th:href="@{/css/proveedores.css}" rel="stylesheet">
+
+    <!-- Bootstrap Table core -->
+    <link rel="stylesheet"
+          href="https://unpkg.com/bootstrap-table@1.22.2/dist/bootstrap-table.min.css">
 </head>
 
-<body class="bg-light d-flex flex-column min-vh-100">
+<body>
 
-<!-- Encabezado -->
+<!-- HEADER -->
 <div th:replace="~{fragments/header :: header}"></div>
 
-<!-- Contenido principal -->
-<main class="container-fluid mt-5 px-4 flex-grow-1">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-danger m-0">
-            <i class="bi bi-truck"></i> Proveedores
-        </h2>
+<main class="container mt-5">
 
-        <!-- AHORA: botón que abre modal, NO navega -->
-        <button type="button" class="btn btn-success shadow-sm" id="btn-nuevo-proveedor">
+    <!-- Título -->
+    <h2 class="page-title-vialsa">
+        <i class="bi bi-truck"></i> Proveedores
+    </h2>
+    <p class="page-subtitle">Gestión de proveedores de vidrios, aluminios y accesorios</p>
+
+    <!-- Botón Nuevo -->
+    <div class="d-flex justify-content-end mb-3">
+        <button id="btn-nuevo-proveedor" class="btn-vialsa-nuevo">
             <i class="bi bi-plus-lg"></i> Nuevo proveedor
         </button>
     </div>
 
-    <!-- Mensajes -->
-    <div th:if="${success != null and !#strings.isEmpty(success)}"
-         class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle-fill me-2"></i>
-        <span th:text="${success}">Operación exitosa.</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
-    <div th:if="${error != null and !#strings.isEmpty(error)}"
-         class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        <span th:text="${error}">Ocurrió un error.</span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
-    </div>
+    <!-- Tarjeta -->
+    <div class="card card-proveedores">
 
-    <!-- Tabla de proveedores -->
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <table class="table table-hover align-middle mb-0 text-center">
-                <thead class="table-primary">
-                <tr>
-                    <th style="width: 60px;">#</th>
-                    <th>Nombre</th>
-                    <th>Documento</th>
-                    <th>Teléfono</th>
-                    <th>Correo</th>
-                    <th>Dirección</th>
-                    <th style="width: 150px;">Acciones</th>
-                </tr>
-                </thead>
+        <div class="card-proveedores-header d-flex justify-content-between align-items-center">
+            <span class="badge-soft">
+                <i class="bi bi-people-fill me-1"></i>
+                <span th:text="${#lists.size(proveedores)} + ' proveedor(es) activos'"></span>
+            </span>
 
-                <!-- Si hay proveedores -->
-                <tbody th:if="${proveedores != null and !#lists.isEmpty(proveedores)}">
-                <tr th:each="prov : ${proveedores}">
-                    <td th:text="${prov.idProveedor}">1</td>
-                    <td th:text="${prov.nombreProveedor}">Proveedor X</td>
-                    <td th:text="${prov.nroDocumento}">123456789</td>
-                    <td th:text="${prov.telefono}">987654321</td>
-                    <td th:text="${prov.correo}">correo@proveedor.com</td>
-                    <td th:text="${prov.direccion}">Av. Principal 123</td>
-                    <td>
-                        <!-- EDITAR: abre modal pequeño -->
-                        <button type="button"
-                                class="btn btn-warning btn-sm me-1 btn-editar-proveedor"
-                                th:data-id="${prov.idProveedor}">
-                            <i class="bi bi-pencil-square"></i>
-                        </button>
-
-                        <!-- ELIMINAR: SweetAlert -->
-                        <a class="btn btn-danger btn-sm btn-eliminar-proveedor"
-                           th:href="@{'/proveedores/eliminar/' + ${prov.idProveedor}}"
-                           th:data-nombre="${prov.nombreProveedor}">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </td>
-                </tr>
-                </tbody>
-
-                <!-- Si NO hay proveedores -->
-                <tbody th:if="${proveedores == null or #lists.isEmpty(proveedores)}">
-                <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
-                        <i class="bi bi-exclamation-triangle"></i>
-                        No hay proveedores registrados.
-                    </td>
-                </tr>
-                </tbody>
-            </table>
+            <small class="text-light-50">
+                <i class="bi bi-search"></i> Usa el buscador para filtrar proveedores
+            </small>
         </div>
+
+        <!-- TABLA -->
+        <table
+                id="tablaProveedores"
+                class="table table-proveedores"
+                data-toggle="table"
+                data-search="true"
+                data-search-highlight="true"
+                data-pagination="true"
+                data-page-size="8"
+                data-page-list="[5,8,10,20]"
+                data-locale="es-ES">
+
+            <thead>
+            <tr>
+                <th data-field="id" data-sortable="true">#</th>
+                <th data-field="nombre" data-sortable="true">Nombre</th>
+                <th data-field="documento">Documento</th>
+                <th data-field="telefono" data-sortable="true">Teléfono</th>
+                <th data-field="correo">Correo</th>
+                <th data-field="direccion">Dirección</th>
+                <th data-field="estado">Estado</th>
+                <th data-field="acciones">Acciones</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="prov, iter : ${proveedores}">
+
+                <!-- N° correlativo -->
+                <td th:text="${iter.index + 1}"></td>
+
+                <!-- Nombre -->
+                <td class="fw-semibold" th:text="${prov.nombreProveedor}">Proveedor</td>
+
+                <!-- Documento -->
+                <td>
+                    <span class="badge-doc" th:text="${prov.nroDocumento}">00000000</span>
+                </td>
+
+                <!-- Teléfono -->
+                <td th:text="${prov.telefono}">---</td>
+
+                <!-- Correo -->
+                <td th:text="${prov.correo}">---</td>
+
+                <!-- Dirección -->
+                <td th:text="${prov.direccion}">---</td>
+
+                <!-- Estado -->
+                <td>
+        <span th:if="${prov.activo}"
+              class="badge-estado badge-estado-activo">ACTIVO</span>
+                    <span th:if="${!prov.activo}"
+                          class="badge-estado badge-estado-inactivo">INACTIVO</span>
+                </td>
+
+                <!-- Acciones -->
+                <td class="text-nowrap">
+
+                    <!-- Ver detalle -->
+                    <button class="btn-icon-circle btn-ver-proveedor me-1"
+                            th:data-id="${prov.idProveedor}"
+                            data-bs-toggle="tooltip"
+                            title="Ver proveedor">
+                        <i class="bi bi-eye-fill"></i>
+                    </button>
+
+                    <!-- Activar / Desactivar -->
+                    <button class="btn-icon-circle btn-estado-proveedor me-1"
+                            th:data-id="${prov.idProveedor}"
+                            th:data-activo="${prov.activo}"
+                            data-bs-toggle="tooltip"
+                            th:title="${prov.activo} ? 'Desactivar proveedor' : 'Activar proveedor'">
+
+                        <i class="bi"
+                           th:classappend="${prov.activo}
+                   ? ' bi-toggle-on text-success'
+                   : ' bi-toggle-off text-secondary'">
+                        </i>
+                    </button>
+
+                    <!-- Editar -->
+                    <button class="btn-icon-circle btn-editar-proveedor me-1"
+                            th:data-id="${prov.idProveedor}"
+                            data-bs-toggle="tooltip"
+                            title="Editar proveedor">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+
+                    <!-- Eliminar -->
+                    <button class="btn-icon-circle btn-eliminar-proveedor"
+                            th:data-nombre="${prov.nombreProveedor}"
+                            th:data-url="@{'/proveedores/eliminar/' + ${prov.idProveedor}}"
+                            data-bs-toggle="tooltip"
+                            title="Eliminar proveedor">
+                        <i class="bi bi-trash"></i>
+                    </button>
+
+
+                </td>
+
+            </tr>
+            </tbody>
+
+
+        </table>
+
     </div>
 </main>
 
-<!-- MODAL PEQUEÑO NUEVO / EDITAR PROVEEDOR -->
-<div class="modal fade modal-proveedor-pequeno" id="modalProveedor" tabindex="-1" aria-hidden="true">
+<!-- PANEL LATERAL / DRAWER DETALLE PROVEEDOR -->
+<div class="offcanvas offcanvas-end offcanvas-proveedor" tabindex="-1" id="offcanvasProveedor">
+    <div class="offcanvas-header">
+        <div>
+            <h5 class="offcanvas-title mb-0">
+                <i class="bi bi-truck-front-fill me-1"></i>
+                <span id="det-nombre">Proveedor</span>
+            </h5>
+            <small class="text-light" id="det-documento"></small>
+        </div>
+        <button type="button" class="btn-close btn-close-white text-reset" data-bs-dismiss="offcanvas"
+                aria-label="Cerrar"></button>
+    </div>
+    <div class="offcanvas-body">
+
+        <!-- Estado toggle dentro del panel -->
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <span class="fw-semibold">Estado</span>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox"
+                       id="det-activo-toggle">
+                <label class="form-check-label" for="det-activo-toggle"
+                       id="det-activo-label">Activo</label>
+            </div>
+        </div>
+
+        <hr>
+
+        <dl class="row small mb-3">
+            <dt class="col-4 text-muted">Teléfono</dt>
+            <dd class="col-8" id="det-telefono">-</dd>
+
+            <dt class="col-4 text-muted">Correo</dt>
+            <dd class="col-8" id="det-correo">-</dd>
+
+            <dt class="col-4 text-muted">Dirección</dt>
+            <dd class="col-8" id="det-direccion">-</dd>
+        </dl>
+
+        <div class="alert alert-info py-2 small mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            Más adelante aquí puedes mostrar el <strong>historial de compras</strong> de este proveedor.
+        </div>
+
+        <button type="button"
+                class="btn btn-outline-primary w-100 mb-2"
+                id="btn-ver-compras-proveedor">
+            <i class="bi bi-receipt-cutoff me-1"></i>
+            Ver historial de compras
+        </button>
+
+        <small class="text-muted d-block">
+            * En desarrollo: conecta este botón a tu módulo de compras / órdenes de compra.
+        </small>
+
+    </div>
+</div>
+
+<!-- MODAL NUEVO / EDITAR PROVEEDOR -->
+<div class="modal fade modal-proveedor" id="modalProveedor">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
 
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="titulo-modal-proveedor">
-                    <i class="bi bi-truck me-2"></i> Nuevo proveedor
-                </h5>
-                <button type="button" class="btn-close btn-close-white"
-                        data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            <div class="modal-header">
+                <h5 class="modal-title" id="titulo-modal-proveedor">Nuevo proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
             <form th:action="@{/proveedores/guardar}" method="post" id="form-proveedor">
+
                 <div class="modal-body">
 
-                    <!-- id oculto (para editar) -->
-                    <input type="hidden" name="idProveedor" id="prov-idProveedor"/>
+                    <input type="hidden" name="idProveedor" id="prov-idProveedor">
 
-                    <!-- Documento + botón API -->
+                    <!-- Documento -->
                     <div class="mb-3">
-                        <label class="form-label">N° Documento (RUC / DNI)</label>
-                        <div class="input-group input-group-sm">
-                            <input type="text" class="form-control"
-                                   name="nroDocumento" id="prov-nroDocumento"
-                                   placeholder="Ej: 20123456789" maxlength="20">
-                            <button class="btn btn-outline-secondary"
-                                    type="button" id="btn-buscar-doc-proveedor">
+                        <label class="form-label">N° Documento (DNI o RUC)</label>
+
+                        <div class="input-group">
+                            <input class="form-control"
+                                   id="prov-nroDocumento"
+                                   name="nroDocumento"
+                                   maxlength="20"
+                                   placeholder="DNI: 8 dígitos | RUC: 11 dígitos"
+                                   required>
+
+                            <button class="btn btn-outline-primary" type="button" id="btn-buscar-doc"
+                                    title="Consultar datos automáticamente">
                                 <i class="bi bi-search"></i>
                             </button>
                         </div>
-                        <div class="form-text">
-                            Usa la API para completar razón social / dirección.
-                        </div>
                     </div>
 
+                    <!-- Nombre / Razón social -->
                     <div class="mb-3">
-                        <label class="form-label">Nombre / Razón social</label>
-                        <input type="text" class="form-control"
-                               name="nombreProveedor" id="prov-nombreProveedor"
-                               placeholder="Ej: Vidrios S.A.C." required maxlength="100">
+                        <label class="form-label">Nombre / Razón Social</label>
+                        <input class="form-control"
+                               id="prov-nombreProveedor"
+                               name="nombreProveedor"
+                               required
+                               maxlength="100">
                     </div>
 
+                    <!-- Teléfono -->
                     <div class="mb-3">
                         <label class="form-label">Teléfono</label>
-                        <input type="text" class="form-control"
-                               name="telefono" id="prov-telefono"
-                               placeholder="Ej: 987654321" maxlength="20">
+                        <input class="form-control"
+                               id="prov-telefono"
+                               name="telefono"
+                               maxlength="20">
                     </div>
 
+                    <!-- Correo -->
                     <div class="mb-3">
-                        <label class="form-label">Correo electrónico</label>
-                        <input type="email" class="form-control"
-                               name="correo" id="prov-correo"
-                               placeholder="Ej: contacto@empresa.com" maxlength="100">
+                        <label class="form-label">Correo</label>
+                        <input class="form-control"
+                               id="prov-correo"
+                               name="correo"
+                               type="email"
+                               maxlength="100">
                     </div>
 
-                    <div class="mb-3">
+                    <!-- Dirección -->
+                    <div class="mb-1">
                         <label class="form-label">Dirección</label>
-                        <input type="text" class="form-control"
-                               name="direccion" id="prov-direccion"
-                               placeholder="Ej: Jr. Los Vidrios 123 - Lima" maxlength="150">
+                        <input class="form-control"
+                               id="prov-direccion"
+                               name="direccion"
+                               maxlength="150">
                     </div>
 
                 </div>
 
+
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary"
-                            data-bs-dismiss="modal">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="btn btn-success">
+                    <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+
+                    <button class="btn btn-vialsa-nuevo" type="submit">
                         <i class="bi bi-save"></i> Guardar
                     </button>
                 </div>
@@ -191,17 +313,24 @@
     </div>
 </div>
 
-<!-- Pie de página -->
+<!-- FOOTER -->
 <div th:replace="~{fragments/footer :: footer}"></div>
 
-<!-- JS de terceros -->
+<!-- JS: jQuery (requerido por Bootstrap Table) -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<!-- JS: Bootstrap -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- JS: Bootstrap Table -->
+<script src="https://unpkg.com/bootstrap-table@1.22.2/dist/bootstrap-table.min.js"></script>
+<script src="https://unpkg.com/bootstrap-table@1.22.2/dist/locale/bootstrap-table-es-ES.min.js"></script>
+
+<!-- SweetAlert2 -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- JS propio -->
-<script th:src="@{/js/app.js}"></script>
 <script th:src="@{/js/proveedores.js}"></script>
-<script th:src="@{/js/navbar.js}"></script>
 
 </body>
 </html>

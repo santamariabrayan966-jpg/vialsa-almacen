@@ -31,6 +31,9 @@ import java.nio.file.Paths;
 import java.nio.file.Files;
 import org.springframework.validation.BindingResult;
 
+import java.util.Map;
+import java.util.HashMap;
+
 
 
 
@@ -200,6 +203,33 @@ public class ClienteController {
             return "Error al importar: " + e.getMessage();
         }
     }
+    // ============================================================
+// CREAR CLIENTE AUTOMÁTICO PARA VENTAS
+// ============================================================
+    @PostMapping("/crear-automatico")
+    @ResponseBody
+    public Map<String, Object> crearAutomatico(@RequestBody Cliente c) {
+
+        // Ver si existe
+        Cliente existente = clienteService.buscarPorDocumento(c.getNro_documento());
+
+        if (existente != null) {
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("id", existente.getIdClientes());
+            resp.put("nuevo", false);
+            return resp;
+        }
+
+        // Registrar nuevo
+        Cliente nuevo = clienteService.crearAutomatico(c);
+
+        Map<String, Object> resp = new HashMap<>();
+        resp.put("id", nuevo.getIdClientes());
+        resp.put("nuevo", true);
+
+        return resp;
+    }
+
 
     // ============================================================
     // EXPORTAR (CSV, EXCEL, PDF)

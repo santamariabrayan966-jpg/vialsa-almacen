@@ -8,9 +8,12 @@ import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-
+import java.math.BigDecimal;
 import java.sql.*;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+
 
 @Repository
 public class JdbcCompraDao implements ICompraDao {
@@ -21,73 +24,105 @@ public class JdbcCompraDao implements ICompraDao {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    // ============================================================
+    // LISTAR COMPRAS (CORREGIDO)
+    // ============================================================
     @Override
     public List<Compra> listar() {
+
         String sql = """
-            SELECT 
-                c.idCompra,
-                c.FechaCompra,
-                c.NroComprobante,
-                c.TipoComprobante,
-                c.Serie,
-                c.Numero,
-                c.FechaEmision,
-                c.FechaVencimiento,
-                c.Moneda,
-                c.TipoCambio,
-                c.IncluyeIGV,
-                c.PorcentajeIGV,
-                c.Subtotal,
-                c.MontoIGV,
-                c.TotalCompra,
-                c.FormaPago,
-                c.PlazoDias,
-                c.NumeroCuotas,
-                c.NroOrdenCompra,
-                c.NroGuiaRemision,
-                c.Estado,
-                c.Observaciones,
-                p.NombreProveedor AS nombreProveedor,
-                u.NombreUsuario  AS nombreUsuario
-            FROM compras c
-            JOIN proveedores p ON c.idProveedor = p.idProveedor
-            JOIN usuarios   u ON c.idUsuario   = u.idUsuario
-            ORDER BY c.FechaCompra DESC
+        SELECT 
+            c.idCompra,
+            c.FechaCompra,
+            c.NroComprobante,
+            c.TipoComprobante,
+            c.Serie,
+            c.Numero,
+            c.FechaEmision,
+            c.FechaVencimiento,
+            c.Moneda,
+            c.TipoCambio,
+            c.IncluyeIGV,
+            c.PorcentajeIGV,
+            c.Subtotal,
+            c.MontoIGV,
+            c.TotalCompra,
+            c.FormaPago,
+            c.PlazoDias,
+            c.NumeroCuotas,
+            c.NroOrdenCompra,
+            c.NroGuiaRemision,
+            c.Estado,
+            c.Observaciones,
+            p.NombreProveedor AS nombreProveedor,
+            u.NombreUsuario  AS nombreUsuario,
+
+            -- DEUDA REAL = solo cuotas pendientes
+            COALESCE(SUM(CASE WHEN cc.estado = 'PENDIENTE' THEN cc.montoCuota ELSE 0 END), 0) AS deuda,
+
+            -- TOTAL PAGADO = cuotas con estado PAGADA
+            COALESCE(SUM(CASE WHEN cc.estado = 'PAGADA' THEN cc.montoCuota ELSE 0 END), 0) AS totalPagado,
+
+            -- TOTAL DE CUOTAS
+            COALESCE(COUNT(cc.idCuotaCompra), 0) AS cantidadCuotas
+
+        FROM compras c
+        JOIN proveedores p ON c.idProveedor = p.idProveedor
+        JOIN usuarios   u ON c.idUsuario   = u.idUsuario
+        LEFT JOIN cuotas_compra cc ON cc.idCompra = c.idCompra
+
+        GROUP BY c.idCompra
+        ORDER BY c.FechaCompra DESC
         """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToCompra(rs));
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            Compra c = mapRowToCompra(rs);
+
+            c.setDeuda(rs.getBigDecimal("deuda"));
+            c.setTotalPagado(rs.getBigDecimal("totalPagado"));
+            c.setNumeroCuotas(rs.getInt("cantidadCuotas"));
+
+            return c;
+        });
     }
 
+    // ============================================================
+    // REGISTRAR
+    // ============================================================
     @Override
     public int registrarYObtenerId(Compra c) {
+
+        String nuevoNroOrden = generarNuevoNumeroOrden();
+        c.setNroOrdenCompra(nuevoNroOrden);
+
         String sql = """
-            INSERT INTO compras (
-                FechaCompra,
-                NroComprobante,
-                TipoComprobante,
-                Serie,
-                Numero,
-                FechaEmision,
-                FechaVencimiento,
-                idProveedor,
-                idUsuario,
-                Moneda,
-                TipoCambio,
-                IncluyeIGV,
-                PorcentajeIGV,
-                Subtotal,
-                MontoIGV,
-                TotalCompra,
-                FormaPago,
-                PlazoDias,
-                NumeroCuotas,
-                NroOrdenCompra,
-                NroGuiaRemision,
-                Estado,
-                Observaciones
-            )
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """;
+        INSERT INTO compras (
+            FechaCompra,
+            NroComprobante,
+            TipoComprobante,
+            Serie,
+            Numero,
+            FechaEmision,
+            FechaVencimiento,
+            idProveedor,
+            idUsuario,
+            Moneda,
+            TipoCambio,
+            IncluyeIGV,
+            PorcentajeIGV,
+            Subtotal,
+            MontoIGV,
+            TotalCompra,
+            FormaPago,
+            PlazoDias,
+            NumeroCuotas,
+            NroOrdenCompra,
+            NroGuiaRemision,
+            Estado,
+            Observaciones
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """;
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
 
@@ -99,9 +134,13 @@ public class JdbcCompraDao implements ICompraDao {
             ps.setString(3, c.getTipoComprobante());
             ps.setString(4, c.getSerie());
             ps.setString(5, c.getNumero());
-            ps.setTimestamp(6, Timestamp.valueOf(c.getFechaEmision()));
+            ps.setTimestamp(6, c.getFechaEmision() != null ?
+                    Timestamp.valueOf(c.getFechaEmision().atStartOfDay()) : null);
+
             if (c.getFechaVencimiento() != null) {
-                ps.setTimestamp(7, Timestamp.valueOf(c.getFechaVencimiento()));
+                ps.setTimestamp(7, c.getFechaVencimiento() != null ?
+                        Timestamp.valueOf(c.getFechaVencimiento().atStartOfDay()) : null);
+
             } else {
                 ps.setNull(7, Types.TIMESTAMP);
             }
@@ -110,40 +149,16 @@ public class JdbcCompraDao implements ICompraDao {
             ps.setInt(9, c.getIdUsuario());
 
             ps.setString(10, c.getMoneda());
-            if (c.getTipoCambio() != null) {
-                ps.setBigDecimal(11, c.getTipoCambio());
-            } else {
-                ps.setNull(11, Types.DECIMAL);
-            }
-
+            ps.setBigDecimal(11, c.getTipoCambio());
             ps.setBoolean(12, c.isIncluyeIgv());
-            // Porcentaje IGV nunca debe ir null a la BD
-            if (c.getPorcentajeIgv() != null) {
-                ps.setBigDecimal(13, c.getPorcentajeIgv());
-            } else {
-                // aquí decides el default: 0 o 18, tú mandas
-                ps.setBigDecimal(13, java.math.BigDecimal.ZERO);
-                // Si quieres que sea 18% por defecto:
-                // ps.setBigDecimal(13, new java.math.BigDecimal("18.00"));
-            }
-
+            ps.setBigDecimal(13, c.getPorcentajeIgv());
             ps.setBigDecimal(14, c.getSubtotal());
             ps.setBigDecimal(15, c.getMontoIgv());
             ps.setBigDecimal(16, c.getTotalCompra());
-
             ps.setString(17, c.getFormaPago());
-            if (c.getPlazoDias() != null) {
-                ps.setInt(18, c.getPlazoDias());
-            } else {
-                ps.setNull(18, Types.INTEGER);
-            }
-            if (c.getNumeroCuotas() != null) {
-                ps.setInt(19, c.getNumeroCuotas());
-            } else {
-                ps.setNull(19, Types.INTEGER);
-            }
-
-            ps.setString(20, c.getNroOrdenCompra());
+            ps.setObject(18, c.getPlazoDias(), Types.INTEGER);
+            ps.setObject(19, c.getNumeroCuotas(), Types.INTEGER);
+            ps.setString(20, nuevoNroOrden);
             ps.setString(21, c.getNroGuiaRemision());
             ps.setString(22, c.getEstado());
             ps.setString(23, c.getObservaciones());
@@ -154,6 +169,9 @@ public class JdbcCompraDao implements ICompraDao {
         return keyHolder.getKey().intValue();
     }
 
+    // ============================================================
+    // BUSCAR POR ID
+    // ============================================================
     @Override
     public Compra buscarPorId(int idCompra) {
         String sql = """
@@ -194,6 +212,9 @@ public class JdbcCompraDao implements ICompraDao {
         return compras.isEmpty() ? null : compras.get(0);
     }
 
+    // ============================================================
+    // DETALLE COMPRA
+    // ============================================================
     @Override
     public List<DetalleCompra> listarPorCompra(int idCompra) {
         String sql = """
@@ -226,23 +247,18 @@ public class JdbcCompraDao implements ICompraDao {
         }, idCompra);
     }
 
-    @Override
-    public Integer obtenerIdUsuarioPorNombre(String nombreUsuario) {
-        String sql = "SELECT idUsuario FROM usuarios WHERE NombreUsuario = ? LIMIT 1";
-        try {
-            return jdbcTemplate.queryForObject(sql, Integer.class, nombreUsuario);
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
+    // ============================================================
+    // ACTUALIZAR ESTADO
+    // ============================================================
     @Override
     public int actualizarEstado(int idCompra, String estado) {
         String sql = "UPDATE compras SET Estado = ? WHERE idCompra = ?";
         return jdbcTemplate.update(sql, estado, idCompra);
     }
 
-    // 🔹 Actualizar SOLO cabecera
+    // ============================================================
+    // ACTUALIZAR CABECERA
+    // ============================================================
     @Override
     public int actualizarCabecera(Compra c) {
         String sql = """
@@ -267,7 +283,9 @@ public class JdbcCompraDao implements ICompraDao {
         );
     }
 
-    // 🗑️ Eliminar solo si está en BORRADOR
+    // ============================================================
+    // ELIMINAR SI ES BORRADOR
+    // ============================================================
     @Override
     public int eliminarSiBorrador(int idCompra) {
         try {
@@ -275,50 +293,43 @@ public class JdbcCompraDao implements ICompraDao {
             String estado = jdbcTemplate.queryForObject(sqlEstado, String.class, idCompra);
 
             if (estado == null || !"BORRADOR".equalsIgnoreCase(estado)) {
-                return 0; // no es borrador, no se elimina
+                return 0;
             }
 
-            // Primero elimina los detalles
             jdbcTemplate.update("DELETE FROM detallecompra WHERE idCompra = ?", idCompra);
-            // Luego la cabecera
             return jdbcTemplate.update("DELETE FROM compras WHERE idCompra = ?", idCompra);
 
         } catch (Exception e) {
-            // si no existe o cualquier error
             return 0;
         }
     }
 
-
-    // ---------- Mapeador común ----------
+    // ============================================================
+    // MAPEO DE COMPRA
+    // ============================================================
     private Compra mapRowToCompra(ResultSet rs) throws SQLException {
         Compra c = new Compra();
 
         c.setIdCompra(rs.getInt("idCompra"));
 
         Timestamp fCompra = rs.getTimestamp("FechaCompra");
-        if (fCompra != null) {
-            c.setFechaCompra(fCompra.toLocalDateTime());
-        }
+        if (fCompra != null) c.setFechaCompra(fCompra.toLocalDateTime());
 
         try { c.setNroComprobante(rs.getString("NroComprobante")); } catch (SQLException ignored) {}
         try { c.setTipoComprobante(rs.getString("TipoComprobante")); } catch (SQLException ignored) {}
         try { c.setSerie(rs.getString("Serie")); } catch (SQLException ignored) {}
         try { c.setNumero(rs.getString("Numero")); } catch (SQLException ignored) {}
 
-        try {
-            Timestamp fEmi = rs.getTimestamp("FechaEmision");
-            if (fEmi != null) c.setFechaEmision(fEmi.toLocalDateTime());
-        } catch (SQLException ignored) {}
+        Timestamp fEmi = rs.getTimestamp("FechaEmision");
+        if (fEmi != null) c.setFechaEmision(fEmi.toLocalDateTime().toLocalDate());
 
-        try {
-            Timestamp fVen = rs.getTimestamp("FechaVencimiento");
-            if (fVen != null) c.setFechaVencimiento(fVen.toLocalDateTime());
-        } catch (SQLException ignored) {}
+
+        Timestamp fVen = rs.getTimestamp("FechaVencimiento");
+        if (fVen != null) c.setFechaVencimiento(fVen.toLocalDateTime().toLocalDate());
+
 
         try { c.setIdProveedor(rs.getInt("idProveedor")); } catch (SQLException ignored) {}
         try { c.setIdUsuario(rs.getInt("idUsuario")); } catch (SQLException ignored) {}
-
         try { c.setMoneda(rs.getString("Moneda")); } catch (SQLException ignored) {}
         try { c.setTipoCambio(rs.getBigDecimal("TipoCambio")); } catch (SQLException ignored) {}
         try { c.setIncluyeIgv(rs.getBoolean("IncluyeIGV")); } catch (SQLException ignored) {}
@@ -330,10 +341,8 @@ public class JdbcCompraDao implements ICompraDao {
         try { c.setFormaPago(rs.getString("FormaPago")); } catch (SQLException ignored) {}
         try { c.setPlazoDias((Integer) rs.getObject("PlazoDias")); } catch (SQLException ignored) {}
         try { c.setNumeroCuotas((Integer) rs.getObject("NumeroCuotas")); } catch (SQLException ignored) {}
-
         try { c.setNroOrdenCompra(rs.getString("NroOrdenCompra")); } catch (SQLException ignored) {}
         try { c.setNroGuiaRemision(rs.getString("NroGuiaRemision")); } catch (SQLException ignored) {}
-
         try { c.setEstado(rs.getString("Estado")); } catch (SQLException ignored) {}
         try { c.setObservaciones(rs.getString("Observaciones")); } catch (SQLException ignored) {}
 
@@ -342,5 +351,106 @@ public class JdbcCompraDao implements ICompraDao {
 
         return c;
     }
+
+    // ============================================================
+    // ÚLTIMO NÚMERO ORDEN
+    // ============================================================
+    @Override
+    public String obtenerUltimoNumeroOrden() {
+        String sql = """
+        SELECT nroOrdenCompra 
+        FROM compras
+        WHERE nroOrdenCompra IS NOT NULL
+        ORDER BY CAST(SUBSTRING(nroOrdenCompra, 4) AS UNSIGNED) DESC
+        LIMIT 1
+        """;
+
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String generarNuevoNumeroOrden() {
+
+        String ultimo = obtenerUltimoNumeroOrden();
+
+        if (ultimo == null || ultimo.isBlank()) {
+            return "OC-0001";
+        }
+
+        try {
+            int num = Integer.parseInt(ultimo.replace("OC-", ""));
+            num++;
+            return "OC-" + String.format("%04d", num);
+
+        } catch (Exception e) {
+            return "OC-0001";
+        }
+    }
+
+    // ============================================================
+    // ACTUALIZAR DEUDA
+    // ============================================================
+    @Override
+    public int actualizarDeuda(int idCompra, BigDecimal nuevaDeuda) {
+        String sql = "UPDATE compras SET deuda = ? WHERE idCompra = ?";
+        return jdbcTemplate.update(sql, nuevaDeuda, idCompra);
+    }
+
+    @Override
+    public Integer obtenerIdUsuarioPorNombre(String nombreUsuario) {
+        String sql = "SELECT idUsuario FROM usuarios WHERE NombreUsuario = ? LIMIT 1";
+        try {
+            return jdbcTemplate.queryForObject(sql, Integer.class, nombreUsuario);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    // ============================================================
+// OBTENER ÚLTIMA SERIE POR TIPO
+// ============================================================
+    @Override
+    public String obtenerUltimaSeriePorTipo(String tipo) {
+
+        String sql = """
+        SELECT Serie 
+        FROM compras
+        WHERE TipoComprobante = ?
+        AND Serie IS NOT NULL
+        ORDER BY Serie DESC
+        LIMIT 1
+    """;
+
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, tipo);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    // ============================================================
+// OBTENER ÚLTIMO NÚMERO POR TIPO
+// ============================================================
+    @Override
+    public String obtenerUltimoNumeroPorTipo(String tipo) {
+
+        String sql = """
+        SELECT Numero
+        FROM compras
+        WHERE TipoComprobante = ?
+        AND Numero IS NOT NULL
+        ORDER BY CAST(Numero AS UNSIGNED) DESC
+        LIMIT 1
+    """;
+
+        try {
+            return jdbcTemplate.queryForObject(sql, String.class, tipo);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
 }
