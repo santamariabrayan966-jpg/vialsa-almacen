@@ -1,0 +1,27 @@
+{
+  "fdi": "16",
+  "version": "0.1.1",
+  "units": "metres",
+  "blender": "5.1.2",
+  "meshes": [
+    {
+      "name": "FDI_16_Corona",
+      "vertices": 18434,
+      "triangles": 36864,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "volume_mm3": 587.589
+    },
+    {
+      "name": "FDI_16_Raices",
+      "vertices": 14703,
+      "triangles": 29338,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "volume_mm3": 247.552
+    }
+  ],
+  "glb_bytes": 1416192,
+  "web_glb_bytes": 258616,
+  "purpose": "Illustrative editable odontogram base. Not measured patient anatomy."
+}

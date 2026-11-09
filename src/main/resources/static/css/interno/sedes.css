@@ -1,0 +1,404 @@
+.sedes-icon,
+.sedes-table-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sedes-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 20px;
+    font-size: 1.7rem;
+}
+
+.sedes-table-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    font-size: 1.1rem;
+}
+
+.sedes-table th {
+    font-size: .75rem;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 700;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.sedes-table td {
+    font-size: .9rem;
+    color: #1e293b;
+}
+
+.bg-purple-subtle {
+    background-color: #f3e8ff !important;
+}
+
+.text-purple {
+    color: #9333ea !important;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8fbff;
+}
+
+.sede-foto-tabla {
+    width: 46px;
+    height: 46px;
+    border-radius: 14px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+}
+
+.sede-preview,
+.sede-preview-icon {
+    width: 96px;
+    height: 96px;
+    border-radius: 20px;
+}
+
+.sede-preview {
+    object-fit: cover;
+    border: 1px solid #dbeafe;
+}
+
+.sede-preview-icon {
+    background: #dbeafe;
+    color: #0d6efd;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+}
+
+.sede-foto-detalle {
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    object-fit: cover;
+    border: 1px solid #e2e8f0;
+    margin: 0 auto 1rem;
+}
+
+.modal-sede-header {
+    background: linear-gradient(135deg, #0d6efd, #0f766e);
+}
+
+.modal-sede-dialog {
+    max-width: 860px;
+}
+
+#modalSede .modal-content {
+    border: none;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+#modalSede .modal-body {
+    padding: 28px;
+    background: #f8fafc;
+    max-height: 72vh;
+    overflow-y: auto;
+}
+
+#modalSede .modal-footer {
+    padding: 18px 28px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+}
+
+#modalSede .form-control,
+#modalSede .form-select {
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+#modalSede .form-control:focus,
+#modalSede .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .15);
+}
+
+#modalSede .form-control:hover,
+#modalSede .form-select:hover {
+    border-color: #93c5fd;
+}
+
+#modalSede .form-label {
+    color: #1f2937;
+    margin-bottom: 6px;
+}
+
+#modalSede .card-preview-sede {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 20px;
+    padding: 16px;
+}
+
+#modalSede textarea.form-control {
+    resize: none;
+}
+
+#modalSede .btn-primary,
+#modalSede .btn-secondary {
+    border-radius: 12px;
+    padding: 10px 18px;
+}
+
+#modalSede .btn-primary {
+    font-weight: 600;
+}
+
+#modalSede .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#modalSede .modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+}
+
+.transition-arrow {
+    transition: transform .3s ease;
+}
+
+.rotate-180 {
+    transform: rotate(180deg);
+}
+
+#modalSede,
+#modalDetalleSede,
+#modalHorariosSede {
+    z-index: 5000 !important;
+}
+
+.modal-backdrop {
+    z-index: 4500 !important;
+}
+
+@media (max-width: 768px) {
+    .sedes-module .sedes-table,
+    .sedes-module .sedes-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .sedes-module .sedes-table thead {
+        display: none;
+    }
+
+    .sedes-module .sedes-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem;
+        margin-bottom: .65rem;
+        padding: .75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: .8rem;
+        background: #fff;
+    }
+
+    .sedes-module .sedes-table tbody td {
+        display: block;
+        min-width: 0;
+        padding: 0;
+        border: 0;
+        white-space: normal;
+    }
+
+    .sedes-module .sedes-table tbody td::before {
+        display: block;
+        margin-bottom: .15rem;
+        content: attr(data-label);
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 700;
+    }
+
+    .sedes-module .sedes-table tbody td:first-child,
+    .sedes-module .sedes-table tbody td:last-child,
+    .sedes-module .sedes-table tbody td[colspan] {
+        grid-column: 1 / -1;
+    }
+
+    .sedes-module .sedes-table tbody td:last-child > div,
+    .sedes-module .sedes-table tbody td:last-child .btn-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .4rem;
+    }
+
+    .sedes-module .sedes-table tbody td:last-child .btn {
+        width: 100%;
+        min-height: 2.5rem;
+        min-width: 0;
+    }
+
+    .modal-sede-dialog {
+        max-width: 95%;
+        margin: 10px auto;
+    }
+
+    #modalSede .modal-body {
+        padding: .75rem;
+        max-height: calc(100dvh - 8rem);
+    }
+
+    #modalSede .sede-preview,
+    #modalSede .sede-preview-icon {
+        width: 82px;
+        height: 82px;
+    }
+}
+
+.sede-card {
+    transition: .25s ease;
+}
+
+.sede-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 35px rgba(15, 23, 42, .12) !important;
+}
+
+.sede-card-foto,
+.sede-card-icon {
+    width: 92px;
+    height: 92px;
+    border-radius: 24px;
+    object-fit: cover;
+}
+
+.sede-card-foto {
+    border: 1px solid #e2e8f0;
+}
+
+.sede-card-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+}
+
+#modalHorariosSede .modal-content {
+    border: none;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.18);
+}
+
+#modalHorariosSede .modal-body {
+    padding: 28px;
+    background: #f8fafc;
+    max-height: 72vh;
+    overflow-y: auto;
+}
+
+#modalHorariosSede .modal-footer {
+    padding: 18px 28px;
+    background: white;
+    border-top: 1px solid #e2e8f0;
+}
+
+#modalHorariosSede .form-control,
+#modalHorariosSede .form-select {
+    border-radius: 12px;
+    padding: 10px 14px;
+}
+
+#modalHorariosSede .form-control:focus,
+#modalHorariosSede .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .15);
+}
+
+#modalHorariosSede .form-control:hover,
+#modalHorariosSede .form-select:hover {
+    border-color: #93c5fd;
+}
+
+#modalHorariosSede textarea.form-control {
+    resize: none;
+}
+
+#modalHorariosSede .modal-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+#modalHorariosSede .modal-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 20px;
+}
+
+@media (max-width: 359.98px) {
+    .sedes-module .sedes-table tbody tr {
+        grid-template-columns: 1fr;
+    }
+
+    .sedes-module .sedes-table tbody td {
+        grid-column: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .sedes-module .sedes-table tbody tr {
+        gap: .4rem .65rem;
+        padding: .7rem;
+    }
+
+    .sedes-module .sedes-table tbody td {
+        font-size: .84rem;
+    }
+
+    .sedes-module .sedes-table tbody td:first-child {
+        padding-bottom: .4rem;
+        border-bottom: 1px solid #edf2f7;
+    }
+
+    .sedes-module .sedes-table tbody td:first-child > .d-flex {
+        gap: .6rem !important;
+    }
+
+    .sedes-module .sede-foto-tabla,
+    .sedes-module .sedes-table-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: .7rem;
+    }
+
+    .sedes-module .sedes-table tbody td:nth-child(4),
+    .sedes-module .sedes-table tbody td:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .sedes-module .sedes-table tbody td:last-child {
+        padding-top: .45rem;
+        border-top: 1px solid #edf2f7;
+    }
+
+    .sedes-module .sedes-table tbody td:last-child > div,
+    .sedes-module .sedes-table tbody td:last-child .btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: .4rem;
+    }
+
+    .sedes-module .sedes-table tbody td:last-child .btn {
+        width: 2.5rem;
+        min-width: 2.5rem;
+        height: 2.5rem;
+        min-height: 2.5rem;
+        padding: .35rem;
+        margin: 0 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Detalle de Venta</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/interno/panel-responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/ventas.css}">
+
+    <style>
+        body {
+            background: #f6f8fb;
+            font-size: 14px;
+        }
+
+        .detail-wrap {
+            padding: 1rem;
+        }
+
+        .detail-card {
+            border: 1px solid #e9eef5;
+            border-radius: 18px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+            background: #fff;
+        }
+
+        .mini-card {
+            border: 1px solid #eef2f7;
+            border-radius: 16px;
+            padding: .9rem;
+            background: #fff;
+            height: 100%;
+        }
+
+        .icon-box {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #eff6ff;
+            color: #0d6efd;
+            font-size: 1.1rem;
+        }
+
+        .badge-soft {
+            border-radius: 999px;
+            padding: .38rem .65rem;
+            font-weight: 700;
+            font-size: .72rem;
+        }
+
+        .timeline {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: .5rem;
+            position: relative;
+        }
+
+        .timeline-step {
+            border: 1px solid #e9eef5;
+            border-radius: 14px;
+            padding: .75rem .5rem;
+            text-align: center;
+            background: #fff;
+        }
+
+        .timeline-step.active {
+            border-color: #ffc107;
+            background: #fff8e1;
+        }
+
+        .ventas-table th {
+            background: #f8fafc;
+            color: #64748b;
+            font-size: .75rem;
+            text-transform: uppercase;
+        }
+
+        .total-box {
+            border-radius: 16px;
+            background: #ecfdf5;
+            border: 1px solid #bbf7d0;
+            padding: 1rem;
+        }
+    </style>
+</head>
+
+<body class="panel-interno ventas-module ventas-detalle-page">
+
+<div class="detail-wrap">
+
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-start mb-3">
+        <div>
+            <h4 class="fw-bold mb-1 text-dark">
+                <i class="bi bi-receipt-cutoff text-primary me-2"></i>
+                Detalle de Venta
+            </h4>
+            <p class="text-muted mb-0 small">
+                Información completa de la operación.
+            </p>
+        </div>
+
+
+    </div>
+
+    <!-- RESUMEN SUPERIOR -->
+    <div class="detail-card p-3 mb-3">
+
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+
+            <div>
+                <span class="text-muted small">Venta</span>
+                <h5 class="fw-bold mb-0 text-primary"
+                    th:text="${venta.nroComprobante}">
+                    001-000000
+                </h5>
+            </div>
+
+            <div class="d-flex gap-2 flex-wrap">
+
+                <span class="badge badge-soft bg-primary-subtle text-primary"
+                      th:text="${venta.canalVenta}">
+                    PRESENCIAL
+                </span>
+
+                <span class="badge badge-soft"
+                      th:classappend="
+        ${venta.estadoVenta=='BORRADOR'} ? ' bg-secondary-subtle text-secondary' :
+        (${venta.estadoVenta=='PAGADO'} ? ' bg-success-subtle text-success' :
+        (${venta.estadoVenta=='CREDITO'} ? ' bg-warning-subtle text-warning' :
+        (${venta.estadoVenta=='ANULADA'} ? ' bg-danger-subtle text-danger' : ' bg-dark-subtle text-dark')))
+      "
+                      th:text="${venta.estadoVenta == 'BORRADOR' ? 'PROFORMA' : (venta.estadoVenta == 'CREDITO' ? 'POR COBRAR' : venta.estadoVenta)}">
+    PAGADO
+</span>
+
+                <span class="badge badge-soft bg-warning-subtle text-warning"
+                      th:if="${venta.nombreEstadoPedido != null}"
+                      th:text="${venta.nombreEstadoPedido}">
+                    PENDIENTE
+                </span>
+
+                <span class="badge badge-soft bg-secondary-subtle text-secondary"
+                      th:if="${venta.nombreEstadoPedido == null}">
+                    SIN ENTREGA
+                </span>
+
+            </div>
+        </div>
+
+        <div class="row g-3">
+
+            <div class="col-md-3 col-6">
+                <div class="mini-card">
+                    <div class="icon-box mb-2">
+                        <i class="bi bi-person"></i>
+                    </div>
+                    <small class="text-muted d-block">Cliente</small>
+                    <strong th:text="${venta.nombreCliente}">Cliente</strong>
+                    <div class="small text-muted mt-1">
+                        Doc: <span th:text="${venta.documentoCliente}">---</span>
+                    </div>
+                    <div class="small text-muted">
+                        Tel: <span th:text="${venta.telefonoCliente ?: 'No registrado'}">---</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <div class="mini-card">
+                    <div class="icon-box mb-2">
+                        <i class="bi bi-person-badge"></i>
+                    </div>
+                    <small class="text-muted d-block">Atendido por</small>
+                    <strong th:if="${venta.canalVenta == 'ONLINE'}">
+                        Tienda Web
+                    </strong>
+
+                    <strong th:if="${venta.canalVenta == 'PRESENCIAL'}"
+                            th:text="${venta.nombreUsuario}">
+                    </strong>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <div class="mini-card">
+                    <div class="icon-box mb-2">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <small class="text-muted d-block">Fecha venta</small>
+                    <strong th:text="${#temporals.format(venta.fechaVenta,'dd/MM/yyyy HH:mm')}">
+                        20/05/2026
+                    </strong>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <div class="mini-card">
+                    <div class="icon-box mb-2">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                    <small class="text-muted d-block">Comprobante</small>
+                    <strong th:text="${venta.tipoComprobante}">BOLETA</strong>
+                </div>
+            </div>
+
+            <div class="col-md-3 col-6">
+                <div class="mini-card">
+                    <div class="icon-box mb-2">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+                    <small class="text-muted d-block">Sede de venta</small>
+                    <strong th:text="${venta.nombreSede != null ? venta.nombreSede : 'Sin sede'}">
+                        Almacen 1
+                    </strong>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="alert alert-success border-0 rounded-4 mb-3"
+         th:if="${venta.tipoEntregaHistorial == 'INMEDIATA'
+        and venta.nombreEstadoPedido == 'ENTREGADO'}">
+
+        <div class="d-flex align-items-center gap-2">
+
+            <i class="bi bi-check-circle-fill fs-4"></i>
+
+            <div>
+
+                <strong>
+                    Entrega inmediata completada
+                </strong>
+
+                <div class="small">
+                    El producto fue entregado al momento de la venta.
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TIMELINE ENTREGA -->
+    <div class="detail-card p-3 mb-3"
+         th:if="${venta.tipoEntregaHistorial != 'INMEDIATA'
+             and venta.fechaRecojoProgramada != null}">
+        <h6 class="fw-bold mb-3">
+            <i class="bi bi-truck text-primary me-1"></i>
+            Seguimiento de entrega
+        </h6>
+        <div class="alert alert-light border rounded-4 py-2 px-3 mb-3"
+             th:if="${venta.fechaRecojoProgramada != null}">
+
+            <div class="d-flex align-items-center gap-2">
+
+                <i class="bi bi-calendar-event text-primary"></i>
+
+                <div>
+
+                    <small class="text-muted d-block">
+                        Recojo programado
+                    </small>
+
+                    <strong th:text="${#temporals.format(
+                    venta.fechaRecojoProgramada,
+                    'dd/MM/yyyy HH:mm')}">
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="timeline">
+
+            <div class="timeline-step"
+                 th:classappend="${venta.nombreEstadoPedido == 'PENDIENTE'} ? ' active'">
+                <i class="bi bi-clock fs-5 text-warning"></i>
+                <div class="fw-bold small mt-1">Pendiente</div>
+                <small class="text-muted d-block mt-1"
+                       th:if="${venta.fechaRecojoProgramada != null}"
+                       th:text="${#temporals.format(
+                venta.fechaRecojoProgramada,
+                'HH:mm')}">
+                </small>
+            </div>
+
+            <div class="timeline-step"
+                 th:classappend="${venta.nombreEstadoPedido == 'PREPARANDO'} ? ' active'">
+                <i class="bi bi-box-seam fs-5 text-info"></i>
+                <div class="fw-bold small mt-1">Preparando</div>
+                <small class="text-muted d-block mt-1"
+                       th:if="${venta.fechaPreparando != null}"
+                       th:text="${#temporals.format(
+                venta.fechaPreparando,
+                'HH:mm')}">
+                </small>
+            </div>
+
+            <div class="timeline-step"
+                 th:classappend="${venta.nombreEstadoPedido == 'LISTO_RECOJO'} ? ' active'">
+                <i class="bi bi-check2-circle fs-5 text-success"></i>
+                <div class="fw-bold small mt-1">Listo</div>
+                <small class="text-muted d-block mt-1"
+                       th:if="${venta.fechaListo != null}"
+                       th:text="${#temporals.format(
+                venta.fechaListo,
+                'HH:mm')}">
+                </small>
+            </div>
+
+            <div class="timeline-step"
+                 th:classappend="${venta.nombreEstadoPedido == 'ENTREGADO'} ? ' active'">
+                <i class="bi bi-bag-check fs-5 text-secondary"></i>
+                <div class="fw-bold small mt-1">Entregado</div>
+                <small class="text-muted d-block mt-1"
+                       th:if="${venta.fechaEntregado != null}"
+                       th:text="${#temporals.format(
+                venta.fechaEntregado,
+                'HH:mm')}">
+                </small>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="alert alert-primary border-0 rounded-4 mt-3"
+         th:if="${venta.tipoEntregaHistorial != 'INMEDIATA'
+             and venta.codigoRecojo != null}">
+
+        <div class="d-flex align-items-center gap-3">
+
+            <i class="bi bi-shield-lock fs-2"></i>
+
+            <div>
+
+                <div class="small text-uppercase fw-semibold">
+                    Código de recojo
+                </div>
+
+                <div class="fs-3 fw-bold"
+                     th:text="${venta.codigoRecojo}">
+                    482915
+                </div>
+
+                <small>
+                    El cliente debe presentar este código al retirar.
+                </small>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- PRODUCTOS + TOTAL -->
+    <div class="row g-3">
+
+        <div class="col-lg-8">
+            <div class="detail-card p-3 h-100">
+                <h6 class="fw-bold mb-3">
+                    <i class="bi bi-cart-check text-primary me-1"></i>
+                    Productos vendidos
+                </h6>
+
+                <div class="table-responsive">
+                    <table class="table ventas-table align-middle mb-0">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th class="text-center">Cant.</th>
+                            <th class="text-end">Precio</th>
+                            <th class="text-end">Desc.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="d : ${detalles}">
+                            <td>
+                                <strong th:text="${d.nombreProducto}">Producto</strong>
+                            </td>
+                            <td th:text="${d.nombreUnidad}">Unidad</td>
+                            <td class="text-center">
+                                <span class="badge bg-primary-subtle text-primary"
+                                      th:text="${#numbers.formatDecimal(d.cantidad,1,2)}">
+                                    1
+                                </span>
+                            </td>
+                            <td class="text-end"
+                                th:text="'S/ ' + ${#numbers.formatDecimal(d.precioUnitario,1,2)}">
+                            </td>
+                            <td class="text-end"
+                                th:text="'S/ ' + ${#numbers.formatDecimal(d.descuento,1,2)}">
+                            </td>
+                            <td class="text-end fw-bold text-success"
+                                th:text="'S/ ' + ${#numbers.formatDecimal((d.cantidad * d.precioUnitario) - (d.descuento != null ? d.descuento : 0),1,2)}">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="detail-card p-3 h-100">
+                <h6 class="fw-bold mb-3">
+                    Resumen financiero
+                </h6>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Productos</span>
+                    <strong th:text="${#numbers.formatDecimal(totalItems,1,0)} + ' ítems'"></strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+    <span class="text-muted"
+          th:text="${venta.tipoComprobante == 'NOTA' ? 'Importe de venta' : 'Subtotal gravado'}">
+        Subtotal gravado
+    </span>
+
+                    <strong th:text="'S/ ' + ${#numbers.formatDecimal(subtotalGravado,1,2)}"></strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Descuento total</span>
+
+                    <strong class="text-danger"
+                            th:text="'S/ ' + ${#numbers.formatDecimal(descuentoTotal,1,2)}">
+                    </strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2"
+                     th:if="${venta.tipoComprobante != 'NOTA'}">
+                    <span class="text-muted">IGV (18%)</span>
+
+                    <strong th:text="'S/ ' + ${#numbers.formatDecimal(igv,1,2)}">
+                    </strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Forma de venta</span>
+                    <strong th:text="${venta.formaPago == 'CREDITO' ? 'CRÉDITO' : 'CONTADO'}"></strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2"
+                     th:if="${venta.metodoPago != null and !#strings.isEmpty(venta.metodoPago)}">
+                    <span class="text-muted">Método de cobro</span>
+                    <strong th:text="${venta.metodoPago}"></strong>
+                </div>
+
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Estado venta</span>
+                    <strong th:text="${venta.estadoVenta == 'BORRADOR' ? 'PROFORMA' : (venta.estadoVenta == 'CREDITO' ? 'POR COBRAR' : venta.estadoVenta)}"></strong>
+                </div>
+
+                <div class="total-box mt-3">
+                    <small class="text-muted fw-semibold">TOTAL</small>
+                    <h3 class="fw-bold text-success mb-0"
+                        th:text="'S/ ' + ${#numbers.formatDecimal(venta.totalVenta,1,2)}">
+                        S/ 0.00
+                    </h3>
+                </div>
+
+                <div th:if="${venta.formaPago == 'CREDITO'}" class="mt-3">
+
+                    <hr>
+
+                    <h6 class="fw-bold text-warning">
+                        <i class="bi bi-credit-card-2-front me-1"></i>
+                        Información del crédito
+                    </h6>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Pago inicial</span>
+                        <strong th:text="'S/ ' + ${#numbers.formatDecimal(venta.pagoInicial,1,2)}"></strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Deuda pendiente</span>
+                        <strong class="text-danger"
+                                th:text="'S/ ' + ${#numbers.formatDecimal(venta.deuda,1,2)}"></strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">N° cuotas</span>
+                        <strong th:text="${venta.numeroCuotas}"></strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Frecuencia</span>
+                        <strong th:text="${venta.frecuenciaCuotas}"></strong>
+                    </div>
+
+                </div>
+
+                <div th:if="${venta.formaPago == 'CREDITO'}"
+                     class="mt-4">
+
+                    <hr>
+
+                    <h6 class="fw-bold text-warning mb-3">
+                        <i class="bi bi-calendar-check me-1"></i>
+                        Cuotas registradas
+                    </h6>
+
+                    <div class="table-responsive"
+                         style="max-height: 260px; overflow-y: auto;">
+
+                        <table class="table table-sm ventas-table align-middle mb-0">
+
+                            <thead>
+                            <tr>
+                                <th>Cuota</th>
+                                <th>Vence</th>
+                                <th class="text-end">Monto</th>
+                                <th>Estado</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <tr th:each="c : ${cuotas}">
+
+                                <td>
+                    <span class="badge bg-primary-subtle text-primary"
+                          th:text="'Cuota ' + ${c.nroCuota}">
+                    </span>
+                                </td>
+
+                                <td th:text="${#temporals.format(c.fechaVencimiento,'dd/MM/yyyy')}">
+                                </td>
+
+                                <td class="text-end fw-bold"
+                                    th:text="'S/ ' + ${#numbers.formatDecimal(c.montoCuota,1,2)}">
+                                </td>
+
+                                <td>
+
+                    <span class="badge badge-soft"
+
+                          th:classappend="
+                            ${c.estado == 'PAGADO'} ?
+                            ' bg-success-subtle text-success' :
+
+                            (${c.estado == 'VENCIDO'} ?
+                            ' bg-danger-subtle text-danger' :
+
+                            (${c.estado == 'PARCIAL'} ?
+                            ' bg-warning-subtle text-warning' :
+
+                            ' bg-secondary-subtle text-secondary'))
+                          "
+
+                          th:text="${c.estado}">
+                    </span>
+
+                                </td>
+
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(cuotas)}">
+
+                                <td colspan="4"
+                                    class="text-center text-muted py-3">
+
+                                    No hay cuotas registradas.
+
+                                </td>
+
+                            </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <button type="button"
+                        class="btn btn-outline-secondary w-100 mt-3"
+                        th:onclick="|window.parent.imprimirVenta(${venta.idVentas})|">
+
+                    <i class="bi bi-printer me-1"></i>
+                    Imprimir
+
+                </button>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script th:src="@{/js/interno/navbar.js}"></script>
+</body>
+</html>

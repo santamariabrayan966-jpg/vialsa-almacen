@@ -1,0 +1,66 @@
+.dentia-mobile-nav { display:none; }
+@media (max-width:991.98px) {
+    body { padding-bottom:calc(76px + env(safe-area-inset-bottom)) !important; }
+    body.mobile-settings-module,
+    body.profile-edit-mode {
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    body.mobile-settings-module .dentia-mobile-nav,
+    body.profile-edit-mode .dentia-mobile-nav {
+        display: none !important;
+    }
+    #dentiaSidebar, #sidebarOpenBtn, #sidebarCloseBtn, #sidebarOverlay { display:none !important; }
+    .dentia-mobile-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1030;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+        background: #ffffff;
+        border-top: 1px solid #dbe7e7;
+        box-shadow: 0 -4px 18px rgba(18, 50, 50, 0.08);
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .dentia-mobile-nav::-webkit-scrollbar { display: none; }
+    .dentia-mobile-nav > a {
+        flex: 0 0 auto;
+        min-width: 62px;
+        padding: 6px 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        color: #4b6b72;
+        font-size: 11px;
+        font-weight: 500;
+        text-decoration: none;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }
+    .dentia-mobile-nav > a i {
+        font-size: 20px;
+        line-height: 1;
+        transition: transform 0.2s ease;
+    }
+    .dentia-mobile-nav > a:active {
+        transform: scale(0.95);
+    }
+    .dentia-mobile-nav > a[aria-current=page] {
+        color: #087f86;
+        background: rgba(8, 127, 134, 0.09);
+        font-weight: 700;
+    }
+    .dentia-mobile-nav > a[aria-current=page] i {
+        transform: scale(1.1);
+    }
+}

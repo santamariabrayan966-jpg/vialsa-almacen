@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es">
+<head>
+    <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>DentIA · Estudio dental 3D</title>
+    <link rel="stylesheet" href="/css/dentia/dental-studio.css">
+</head>
+<body>
+    <header><a class="brand" href="/">D<span>·</span> DentIA</a><span class="header-label">ESTUDIO DENTAL</span><span class="version">Modelo articulado · v2</span></header>
+    <main>
+        <section class="intro"><div><p class="eyebrow">EXPLORACIÓN ANATÓMICA</p><h1>Una mirada a cada pieza.</h1><p>Explora las arcadas, abre la mandíbula y examina cada diente.</p></div><a class="download" href="/models/dental/dentia-articulado-v2.glb" download>Descargar modelo GLB ↗</a></section>
+        <div class="workspace">
+            <section class="scene-card" aria-label="Modelo dental tridimensional">
+                <div class="scene-top"><span class="live-dot"></span><span id="model-status" role="status">Cargando modelo dental…</span><span class="units">FDI · Permanente</span></div>
+                <div class="viewport" id="viewport"><canvas id="dental-canvas" aria-label="Arrastra para rotar la dentadura. Usa la rueda para acercar."></canvas><div class="view-label">DENTIA / ANATOMÍA 3D</div><div class="camera-tools"><button data-view="three-quarter" class="active">Perspectiva</button><button data-view="front">Frontal</button><button data-view="upper">Oclusal superior</button><button data-view="lower">Oclusal inferior</button></div></div>
+                <div class="scene-bottom"><span>Arrastrar: rotar · Rueda: zoom · Clic: seleccionar</span><div><button id="zoom-in" aria-label="Acercar">＋</button><button id="zoom-out" aria-label="Alejar">−</button><button id="reset-view">Restablecer</button></div></div>
+            </section>
+            <aside>
+                <section class="panel"><p class="eyebrow">CONTROLES DEL MODELO</p><div class="control-heading"><label for="opening">Apertura de mandíbula</label><output id="opening-value">65%</output></div><input id="opening" type="range" min="0" max="100" value="65"><div class="range-labels"><span>Cerrada</span><span>Abierta</span></div><div class="divider"></div><label class="toggle"><span>Encías</span><input id="gums" type="checkbox" checked></label><label class="toggle"><span>Raíces</span><input id="roots" type="checkbox" checked></label><label class="toggle"><span>Pieza adicional de origen</span><input id="additional" type="checkbox" checked></label><label class="toggle"><span>Malla</span><input id="wireframe" type="checkbox"></label><label class="field-label" for="arch">Arcada visible</label><select id="arch"><option value="both">Ambas arcadas</option><option value="upper">Superior</option><option value="lower">Inferior</option></select></section>
+                <section class="panel selection"><p class="eyebrow">PIEZA SELECCIONADA</p><h2 id="selected-tooth">FDI 26</h2><p id="selected-name">Primer molar superior izquierdo</p><label class="field-label" for="inclination">Inclinación ilustrativa <output id="inclination-value">0°</output></label><input id="inclination" type="range" min="-45" max="45" value="0"><button id="reset-tooth" class="text-button">Restablecer pieza</button></section>
+                <p class="model-note">Coronas del modelo fuente · raíces y apertura aproximadas. Esta vista de exploración no contiene datos de pacientes.</p>
+            </aside>
+        </div>
+        <section class="tooth-picker"><div><p class="eyebrow">SELECCIÓN POR NUMERACIÓN FDI</p><h2>32 piezas, una vista conectada.</h2><p>También puedes seleccionar una pieza directamente en el modelo.</p></div><div id="teeth-grid" aria-label="Seleccionar pieza dental"></div></section>
+    </main>
+    <footer>DentIA <span>Modelo editable en Blender · exploración interactiva en web</span></footer>
+    <script src="/vendor/three/three.min.js"></script><script src="/vendor/three/OrbitControls.js"></script><script src="/vendor/three/GLTFLoader.js"></script><script src="/js/dentia/dental-viewer.js"></script><script src="/js/dentia/dental-studio.js"></script>
+</body>
+</html>

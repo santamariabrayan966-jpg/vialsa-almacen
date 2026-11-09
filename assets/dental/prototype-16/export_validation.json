@@ -1,0 +1,34 @@
+[
+  {
+    "file": "molar_16.glb",
+    "size_bytes": 1416192,
+    "triangles": 66186,
+    "dimensions_mm": [
+      10.82,
+      11.839,
+      20.951
+    ],
+    "mesh_parts": [
+      "crown",
+      "roots"
+    ],
+    "import_roundtrip": "OK",
+    "metadata": "FDI 16, original procedural geometry"
+  },
+  {
+    "file": "molar_16_web.glb",
+    "size_bytes": 258616,
+    "triangles": 12130,
+    "dimensions_mm": [
+      10.817,
+      11.834,
+      20.948
+    ],
+    "mesh_parts": [
+      "crown",
+      "roots"
+    ],
+    "import_roundtrip": "OK",
+    "metadata": "FDI 16, original procedural geometry"
+  }
+]

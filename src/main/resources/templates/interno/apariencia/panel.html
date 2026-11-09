@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Apariencia del Panel Interno | DentIA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css(v=${#dates.createNow().time})}">
+    <link rel="stylesheet" th:href="@{/css/interno/apariencia.css(v=${#dates.createNow().time})}">
+</head>
+
+<body class="apariencia-body panel-appearance-body">
+
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="apariencia-page panel-appearance-page">
+
+    <section class="apariencia-hero panel-appearance-hero">
+        <div>
+            <p class="apariencia-kicker">
+                <i class="bi bi-window-sidebar"></i>
+                Apariencia
+            </p>
+            <h1>Apariencia del Panel Interno</h1>
+            <p>
+                Configura los colores globales del encabezado y pie de pagina del sistema interno.
+            </p>
+        </div>
+
+        <div class="identity-status-card panel-status-card">
+            <div class="identity-status-icon">
+                <i class="bi bi-grid-1x2"></i>
+            </div>
+            <div>
+                <strong>Diseno interno del ERP</strong>
+                <span>Colores globales para navbar y footer interno.</span>
+            </div>
+            <span class="status-dot"></span>
+        </div>
+    </section>
+
+    <div th:if="${mensajeExito}" class="alert alert-success apariencia-alert">
+        <i class="bi bi-check-circle-fill"></i>
+        <span th:text="${mensajeExito}">Cambios guardados.</span>
+    </div>
+
+    <div th:if="${mensajeError}" class="alert alert-danger apariencia-alert">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <span th:text="${mensajeError}">No se pudo guardar.</span>
+    </div>
+
+    <section class="panel-section-picker">
+        <div class="panel-section-picker-head">
+            <div>
+                <h2>Secciones del panel interno</h2>
+                <p>Selecciona el apartado que quieres configurar.</p>
+            </div>
+        </div>
+
+        <div class="panel-section-card-grid">
+            <button type="button"
+                    class="panel-section-card active"
+                    data-panel-section-button="colores">
+                <span class="panel-section-icon">
+                    <i class="bi bi-palette-fill"></i>
+                </span>
+                <span>
+                    <strong>Colores</strong>
+                    <small>Header, texto del header, footer y texto del footer.</small>
+                </span>
+                <b>Activo</b>
+            </button>
+
+            <button type="button"
+                    class="panel-section-card"
+                    data-panel-section-button="login">
+                <span class="panel-section-icon">
+                    <i class="bi bi-shield-lock"></i>
+                </span>
+                <span>
+                    <strong>Login</strong>
+                    <small>Fondo y presentación visual del acceso de trabajadores.</small>
+                </span>
+                <b>Activo</b>
+            </button>
+
+            <button type="button"
+                    class="panel-section-card"
+                    data-panel-section-button="menu">
+                <span class="panel-section-icon">
+                    <i class="bi bi-layout-sidebar-inset"></i>
+                </span>
+                <span>
+                    <strong>Menu interno</strong>
+                    <small>Define la posicion global del menu del ERP.</small>
+                </span>
+                <b>Activo</b>
+            </button>
+        </div>
+    </section>
+
+    <section class="panel-config-section active" data-panel-section="colores">
+        <div class="panel-section-title">
+            <div>
+                <h2>Colores del panel interno</h2>
+                <p>Personaliza unicamente el header y footer global del ERP.</p>
+            </div>
+        </div>
+
+        <form id="panel-colores-form"
+              th:action="@{/interno/apariencia/panel/colores/guardar}"
+              th:object="${panelColoresConfig}"
+              method="post">
+
+        <input type="hidden" th:field="*{idConfig}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        <input type="hidden" th:field="*{colorFondo}">
+        <input type="hidden" th:field="*{colorTarjeta}">
+        <input type="hidden" th:field="*{colorBotonPrimario}">
+        <input type="hidden" th:field="*{colorAcento}">
+        <input type="hidden" th:field="*{colorTextoPrincipal}">
+        <input type="hidden" th:field="*{posicionMenu}" data-panel-menu-field>
+
+        <section class="panel-color-workspace">
+
+            <div class="panel-color-editor">
+                <div class="panel-theme-card">
+                    <div>
+                        <span class="panel-color-eyebrow">Temas rapidos</span>
+                        <h2>Combinaciones listas para el ERP</h2>
+                        <p>Rellenan los colores del formulario. Se guardan solo al presionar Guardar cambios.</p>
+                    </div>
+
+                    <div class="panel-theme-grid" data-panel-themes>
+                        <button type="button"
+                                class="panel-theme-option"
+                                data-panel-theme
+                                data-color-header="#0f2f4f"
+                                data-color-header-secundario="#0f766e"
+                                data-color-texto-header="#ffffff"
+                                data-color-footer="#111827"
+                                data-color-texto-footer="#ffffff">
+                            <span class="theme-dots"><i style="background:#0f2f4f"></i><i style="background:#0f766e"></i><i style="background:#111827"></i></span>
+                            <strong>Azul DentIA</strong>
+                        </button>
+
+                        <button type="button"
+                                class="panel-theme-option"
+                                data-panel-theme
+                                data-color-header="#064e3b"
+                                data-color-header-secundario="#0d9488"
+                                data-color-texto-header="#ffffff"
+                                data-color-footer="#064e3b"
+                                data-color-texto-footer="#ffffff">
+                            <span class="theme-dots"><i style="background:#064e3b"></i><i style="background:#0d9488"></i><i style="background:#064e3b"></i></span>
+                            <strong>Verde operativo</strong>
+                        </button>
+
+                        <button type="button"
+                                class="panel-theme-option"
+                                data-panel-theme
+                                data-color-header="#7f1d1d"
+                                data-color-header-secundario="#dc2626"
+                                data-color-texto-header="#ffffff"
+                                data-color-footer="#7f1d1d"
+                                data-color-texto-footer="#ffffff">
+                            <span class="theme-dots"><i style="background:#7f1d1d"></i><i style="background:#dc2626"></i><i style="background:#7f1d1d"></i></span>
+                            <strong>Rojo comercial</strong>
+                        </button>
+
+                        <button type="button"
+                                class="panel-theme-option"
+                                data-panel-theme
+                                data-color-header="#020617"
+                                data-color-header-secundario="#1e293b"
+                                data-color-texto-header="#ffffff"
+                                data-color-footer="#020617"
+                                data-color-texto-footer="#ffffff">
+                            <span class="theme-dots"><i style="background:#020617"></i><i style="background:#1e293b"></i><i style="background:#020617"></i></span>
+                            <strong>Oscuro elegante</strong>
+                        </button>
+                    </div>
+                </div>
+
+                <section class="panel-config-card">
+                    <div class="store-card-title compact">
+                        <span class="store-title-icon"><i class="bi bi-sliders"></i></span>
+                        <div>
+                            <h2>Colores del panel interno</h2>
+                            <p>Configura solo el encabezado y pie de pagina global.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-color-grid">
+                        <label class="panel-color-control">
+                            <div>
+                                <strong>Barra superior</strong>
+                                <span>Color principal del navbar interno.</span>
+                            </div>
+                            <div class="panel-color-inputs">
+                                <span class="panel-color-swatch" data-panel-color-swatch="colorHeader" th:style="'background:' + ${panelColoresConfig.colorHeader}"></span>
+                                <span class="panel-color-change">Cambiar color</span>
+                                <input type="color" data-panel-color-input="colorHeader" th:value="*{colorHeader}">
+                                <details>
+                                    <summary>Avanzado: codigo HEX</summary>
+                                    <input type="text" class="form-control" data-panel-color-text="colorHeader" th:field="*{colorHeader}" maxlength="7">
+                                </details>
+                            </div>
+                        </label>
+
+                        <label class="panel-color-control">
+                            <div>
+                                <strong>Degradado secundario</strong>
+                                <span>Segundo color del encabezado.</span>
+                            </div>
+                            <div class="panel-color-inputs">
+                                <span class="panel-color-swatch" data-panel-color-swatch="colorHeaderSecundario" th:style="'background:' + ${panelColoresConfig.colorHeaderSecundario}"></span>
+                                <span class="panel-color-change">Cambiar color</span>
+                                <input type="color" data-panel-color-input="colorHeaderSecundario" th:value="*{colorHeaderSecundario}">
+                                <details>
+                                    <summary>Avanzado: codigo HEX</summary>
+                                    <input type="text" class="form-control" data-panel-color-text="colorHeaderSecundario" th:field="*{colorHeaderSecundario}" maxlength="7">
+                                </details>
+                            </div>
+                        </label>
+
+                        <label class="panel-color-control">
+                            <div>
+                                <strong>Texto del encabezado</strong>
+                                <span>Texto sobre la barra superior.</span>
+                            </div>
+                            <div class="panel-color-inputs">
+                                <span class="panel-color-swatch" data-panel-color-swatch="colorTextoHeader" th:style="'background:' + ${panelColoresConfig.colorTextoHeader}"></span>
+                                <span class="panel-color-change">Cambiar color</span>
+                                <input type="color" data-panel-color-input="colorTextoHeader" th:value="*{colorTextoHeader}">
+                                <details>
+                                    <summary>Avanzado: codigo HEX</summary>
+                                    <input type="text" class="form-control" data-panel-color-text="colorTextoHeader" th:field="*{colorTextoHeader}" maxlength="7">
+                                </details>
+                            </div>
+                        </label>
+
+                        <label class="panel-color-control">
+                            <div>
+                                <strong>Footer interno</strong>
+                                <span>Color de fondo del pie de pagina del ERP.</span>
+                            </div>
+                            <div class="panel-color-inputs">
+                                <span class="panel-color-swatch" data-panel-color-swatch="colorFooter" th:style="'background:' + ${panelColoresConfig.colorFooter}"></span>
+                                <span class="panel-color-change">Cambiar color</span>
+                                <input type="color" data-panel-color-input="colorFooter" th:value="*{colorFooter}">
+                                <details>
+                                    <summary>Avanzado: codigo HEX</summary>
+                                    <input type="text" class="form-control" data-panel-color-text="colorFooter" th:field="*{colorFooter}" maxlength="7">
+                                </details>
+                            </div>
+                        </label>
+
+                        <label class="panel-color-control">
+                            <div>
+                                <strong>Texto del footer</strong>
+                                <span>Color del texto dentro del pie de pagina.</span>
+                            </div>
+                            <div class="panel-color-inputs">
+                                <span class="panel-color-swatch" data-panel-color-swatch="colorTextoFooter" th:style="'background:' + ${panelColoresConfig.colorTextoFooter}"></span>
+                                <span class="panel-color-change">Cambiar color</span>
+                                <input type="color" data-panel-color-input="colorTextoFooter" th:value="*{colorTextoFooter}">
+                                <details>
+                                    <summary>Avanzado: codigo HEX</summary>
+                                    <input type="text" class="form-control" data-panel-color-text="colorTextoFooter" th:field="*{colorTextoFooter}" maxlength="7">
+                                </details>
+                            </div>
+                        </label>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="panel-preview-column">
+                <section class="panel-config-card panel-preview-card">
+                    <div class="store-card-title compact">
+                        <span class="store-title-icon"><i class="bi bi-display"></i></span>
+                        <div>
+                            <h2>Vista previa de header y footer</h2>
+                            <p>Los cambios se ven al instante aqui y se guardan solo al presionar Guardar cambios.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-live-preview"
+                         data-panel-preview
+                         th:style="'--panel-preview-header:' + ${panelColoresConfig.colorHeader}
+                            + '; --panel-preview-header-secondary:' + ${panelColoresConfig.colorHeaderSecundario}
+                            + '; --panel-preview-text-header:' + ${panelColoresConfig.colorTextoHeader}
+                            + '; --panel-preview-footer:' + ${panelColoresConfig.colorFooter}
+                            + '; --panel-preview-text-footer:' + ${panelColoresConfig.colorTextoFooter}">
+                        <div class="panel-preview-navbar">
+                            <strong>DentIA</strong>
+                            <span>Pacientes</span>
+                            <span>Agenda</span>
+                            <span>Clínica</span>
+                            <span>Configuración</span>
+                        </div>
+
+                        <div class="panel-preview-footer">
+                            <strong>DentIA</strong>
+                            <span>Clínica odontológica</span>
+                        </div>
+                    </div>
+                </section>
+
+            </aside>
+        </section>
+        </form>
+
+        <form id="panel-colores-default-form"
+              th:action="@{/interno/apariencia/panel/colores/restaurar}"
+              method="post"
+              class="d-none">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        </form>
+
+        <div class="panel-color-actions">
+            <button type="submit" form="panel-colores-default-form" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar colores
+            </button>
+
+            <button type="submit" form="panel-colores-form" class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="bi bi-save me-1"></i> Guardar cambios
+            </button>
+        </div>
+    </section>
+
+    <section class="panel-config-section" data-panel-section="menu">
+        <div class="panel-section-title">
+            <div>
+                <h2>Menu interno</h2>
+                <p>Elige la posicion global del menu del ERP. La vista previa cambia al instante y el sistema real cambia solo al guardar.</p>
+            </div>
+        </div>
+
+        <form id="panel-menu-form"
+              th:action="@{/interno/apariencia/panel/colores/guardar}"
+              th:object="${panelColoresConfig}"
+              method="post"
+              data-panel-menu-form>
+
+            <input type="hidden" th:field="*{idConfig}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" name="colorHeader" th:value="*{colorHeader}" data-panel-menu-color-sync="colorHeader">
+            <input type="hidden" name="colorHeaderSecundario" th:value="*{colorHeaderSecundario}" data-panel-menu-color-sync="colorHeaderSecundario">
+            <input type="hidden" name="colorFondo" th:value="*{colorFondo}" data-panel-menu-color-sync="colorFondo">
+            <input type="hidden" name="colorTarjeta" th:value="*{colorTarjeta}" data-panel-menu-color-sync="colorTarjeta">
+            <input type="hidden" name="colorBotonPrimario" th:value="*{colorBotonPrimario}" data-panel-menu-color-sync="colorBotonPrimario">
+            <input type="hidden" name="colorAcento" th:value="*{colorAcento}" data-panel-menu-color-sync="colorAcento">
+            <input type="hidden" name="colorTextoPrincipal" th:value="*{colorTextoPrincipal}" data-panel-menu-color-sync="colorTextoPrincipal">
+            <input type="hidden" name="colorTextoHeader" th:value="*{colorTextoHeader}" data-panel-menu-color-sync="colorTextoHeader">
+            <input type="hidden" name="colorFooter" th:value="*{colorFooter}" data-panel-menu-color-sync="colorFooter">
+            <input type="hidden" name="colorTextoFooter" th:value="*{colorTextoFooter}" data-panel-menu-color-sync="colorTextoFooter">
+
+            <section class="panel-menu-workspace">
+                <article class="panel-config-card panel-menu-editor-card">
+                    <div class="store-card-title compact">
+                        <span class="store-title-icon"><i class="bi bi-layout-three-columns"></i></span>
+                        <div>
+                            <h2>Posicion del menu</h2>
+                            <p>Selecciona la distribucion que se aplicara despues de guardar.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-menu-options" role="radiogroup" aria-label="Posicion del menu interno">
+                        <label class="panel-menu-option">
+                            <input type="radio" th:field="*{posicionMenu}" value="ARRIBA" data-panel-menu-option>
+                            <span><i class="bi bi-layout-text-window-reverse"></i><strong>Arriba</strong></span>
+                        </label>
+
+                        <label class="panel-menu-option">
+                            <input type="radio" th:field="*{posicionMenu}" value="IZQUIERDA" data-panel-menu-option>
+                            <span><i class="bi bi-layout-sidebar"></i><strong>Izquierda</strong></span>
+                        </label>
+
+                        <label class="panel-menu-option">
+                            <input type="radio" th:field="*{posicionMenu}" value="DERECHA" data-panel-menu-option>
+                            <span><i class="bi bi-layout-sidebar-inset-reverse"></i><strong>Derecha</strong></span>
+                        </label>
+
+                        <label class="panel-menu-option">
+                            <input type="radio" th:field="*{posicionMenu}" value="ABAJO" data-panel-menu-option>
+                            <span><i class="bi bi-layout-three-columns"></i><strong>Abajo</strong></span>
+                        </label>
+                    </div>
+                </article>
+
+                <aside class="panel-config-card panel-menu-preview-card">
+                    <div class="store-card-title compact">
+                        <span class="store-title-icon"><i class="bi bi-window-sidebar"></i></span>
+                        <div>
+                            <h2>Vista previa local</h2>
+                            <p>Solo representa el layout. No cambia el sistema real hasta guardar.</p>
+                        </div>
+                    </div>
+
+                    <div class="panel-menu-preview"
+                         th:attr="data-panel-menu-preview=${panelColoresConfig.posicionMenu != null ? panelColoresConfig.posicionMenu : 'ARRIBA'}"
+                         th:style="'--panel-preview-header:' + ${panelColoresConfig.colorHeader}
+                            + '; --panel-preview-header-secondary:' + ${panelColoresConfig.colorHeaderSecundario}
+                            + '; --panel-preview-text-header:' + ${panelColoresConfig.colorTextoHeader}
+                            + '; --panel-preview-footer:' + ${panelColoresConfig.colorFooter}
+                            + '; --panel-preview-text-footer:' + ${panelColoresConfig.colorTextoFooter}">
+                        <div class="panel-menu-preview-nav">
+                            <strong>DentIA</strong>
+                            <span>Pacientes</span>
+                            <span>Agenda</span>
+                            <span>Clínica</span>
+                            <span>Configuración</span>
+                            <em>admin</em>
+                        </div>
+
+                        <div class="panel-menu-preview-content">
+                            <span></span>
+                            <strong>Panel interno</strong>
+                            <p>Contenido central del sistema</p>
+                            <div></div>
+                            <div></div>
+                        </div>
+
+                        <div class="panel-menu-preview-footer">
+                            DentIA
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </form>
+
+        <div class="panel-color-actions">
+            <button type="submit" form="panel-colores-default-form" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar diseno
+            </button>
+
+            <button type="submit" form="panel-menu-form" class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="bi bi-save me-1"></i> Guardar cambios
+            </button>
+        </div>
+    </section>
+
+    <section class="panel-config-section" data-panel-section="login">
+        <div class="panel-section-title">
+            <div>
+                <h2>Login interno</h2>
+                <p>Configura solo la apariencia visual del acceso de trabajadores.</p>
+            </div>
+        </div>
+
+        <form id="panel-login-form"
+              th:action="@{/interno/apariencia/panel/login/guardar}"
+              th:object="${loginAparienciaConfig}"
+              method="post"
+              enctype="multipart/form-data"
+              data-login-config-form>
+
+            <input type="hidden" th:field="*{idConfig}">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+            <input type="hidden" th:field="*{imagenFondo}" data-login-config="imagenFondo">
+            <input type="hidden" th:field="*{carruselImagen1}" data-login-config="carruselImagen1">
+            <input type="hidden" th:field="*{carruselImagen1Zoom}" data-carousel-zoom="1">
+            <input type="hidden" th:field="*{carruselImagen1OffsetX}" data-carousel-offset-x="1">
+            <input type="hidden" th:field="*{carruselImagen1OffsetY}" data-carousel-offset-y="1">
+            <input type="hidden" th:field="*{carruselImagen2}" data-login-config="carruselImagen2">
+            <input type="hidden" th:field="*{carruselImagen2Zoom}" data-carousel-zoom="2">
+            <input type="hidden" th:field="*{carruselImagen2OffsetX}" data-carousel-offset-x="2">
+            <input type="hidden" th:field="*{carruselImagen2OffsetY}" data-carousel-offset-y="2">
+            <input type="hidden" th:field="*{carruselImagen3}" data-login-config="carruselImagen3">
+            <input type="hidden" th:field="*{carruselImagen3Zoom}" data-carousel-zoom="3">
+            <input type="hidden" th:field="*{carruselImagen3OffsetX}" data-carousel-offset-x="3">
+            <input type="hidden" th:field="*{carruselImagen3OffsetY}" data-carousel-offset-y="3">
+            <input type="hidden" th:field="*{titulo}" data-login-config="titulo">
+            <input type="hidden" th:field="*{subtitulo}" data-login-config="subtitulo">
+            <input type="hidden" th:field="*{textoInformativo}" data-login-config="textoInformativo">
+            <input type="hidden" th:field="*{colorCard}" data-login-config="colorCard">
+            <input type="hidden" th:field="*{colorTexto}" data-login-config="colorTexto">
+
+            <section class="panel-login-workspace">
+                <div class="panel-login-editor">
+                    <article class="panel-config-card">
+                        <div class="store-card-title compact">
+                            <span class="store-title-icon"><i class="bi bi-image"></i></span>
+                            <div>
+                                <h2>Fondo y posición</h2>
+                                <p>Elige fondo visual y ubicación del cuadro de acceso.</p>
+                            </div>
+                        </div>
+
+                        <div class="panel-login-control-grid">
+                            <label class="panel-login-field-control">
+                                <span>Tipo de fondo</span>
+                                <select class="form-select" th:field="*{tipoFondo}" data-login-config="tipoFondo">
+                                    <option value="COLOR">Color solido</option>
+                                    <option value="DEGRADADO">Degradado</option>
+                                    <option value="IMAGEN">Imagen</option>
+                                </select>
+                            </label>
+
+                            <label class="panel-login-field-control">
+                                <span>Posición del cuadro</span>
+                                <select class="form-select" th:field="*{posicionCard}" data-login-config="posicionCard">
+                                    <option value="IZQUIERDA">Izquierda</option>
+                                    <option value="CENTRO">Centro</option>
+                                    <option value="DERECHA">Derecha</option>
+                                </select>
+                            </label>
+                        </div>
+
+                        <div class="panel-color-grid login-colors-grid">
+                            <label class="panel-color-control">
+                                <div>
+                                    <strong>Color fondo 1</strong>
+                                    <span>Color base o inicio del degradado.</span>
+                                </div>
+                                <div class="panel-color-inputs">
+                                    <span class="panel-color-swatch" data-login-swatch="colorFondo1" th:style="'background:' + ${loginAparienciaConfig.colorFondo1}"></span>
+                                    <span class="panel-color-change">Cambiar color</span>
+                                    <input type="color" data-login-color-input="colorFondo1" th:value="*{colorFondo1}">
+                                    <details>
+                                        <summary>Avanzado: código HEX</summary>
+                                        <input type="text" class="form-control" data-login-config="colorFondo1" data-login-color-text="colorFondo1" th:field="*{colorFondo1}" maxlength="7">
+                                    </details>
+                                </div>
+                            </label>
+
+                            <label class="panel-color-control">
+                                <div>
+                                    <strong>Color fondo 2</strong>
+                                    <span>Segundo color del degradado.</span>
+                                </div>
+                                <div class="panel-color-inputs">
+                                    <span class="panel-color-swatch" data-login-swatch="colorFondo2" th:style="'background:' + ${loginAparienciaConfig.colorFondo2}"></span>
+                                    <span class="panel-color-change">Cambiar color</span>
+                                    <input type="color" data-login-color-input="colorFondo2" th:value="*{colorFondo2}">
+                                    <details>
+                                        <summary>Avanzado: código HEX</summary>
+                                        <input type="text" class="form-control" data-login-config="colorFondo2" data-login-color-text="colorFondo2" th:field="*{colorFondo2}" maxlength="7">
+                                    </details>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="panel-login-image-row">
+                            <label class="panel-login-field-control">
+                                <span>Imagen de fondo</span>
+                                <input type="file"
+                                       class="form-control"
+                                       name="imagenFondoFile"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       data-login-image-input
+                                       data-login-file-input="imagenFondo">
+                                <small>JPG, PNG o WEBP. Se guarda solo al presionar Guardar cambios.</small>
+                                <div class="login-image-preview" data-login-file-preview="imagenFondo">
+                                    <img th:if="${loginAparienciaConfig.imagenFondo != null and !#strings.isEmpty(loginAparienciaConfig.imagenFondo)}"
+                                         th:src="${loginAparienciaConfig.imagenFondo}"
+                                         alt="Imagen de fondo actual">
+                                    <span class="login-image-empty"
+                                          th:classappend="${loginAparienciaConfig.imagenFondo != null and !#strings.isEmpty(loginAparienciaConfig.imagenFondo)} ? ' d-none' : ''"
+                                          data-login-file-empty="imagenFondo">Sin imagen seleccionada</span>
+                                    <span class="login-image-remove-note d-none"
+                                          data-login-file-remove-note="imagenFondo">Se eliminará al guardar</span>
+                                    <button type="button"
+                                            class="login-image-clear-btn d-none"
+                                            data-login-file-clear="imagenFondo">Quitar selección</button>
+                                </div>
+                            </label>
+
+                            <label class="panel-login-check"
+                                   th:if="${loginAparienciaConfig.imagenFondo != null and !#strings.isEmpty(loginAparienciaConfig.imagenFondo)}">
+                                <input type="checkbox" name="eliminarImagen" value="true" data-login-remove-image data-login-file-remove-current="imagenFondo">
+                                <span>Quitar imagen actual</span>
+                            </label>
+                        </div>
+                    </article>
+
+                    <article class="panel-config-card">
+                        <div class="store-card-title compact">
+                            <span class="store-title-icon"><i class="bi bi-mouse2"></i></span>
+                            <div>
+                                <h2>Botón de acceso</h2>
+                                <p>Configura los colores del botón principal del login.</p>
+                            </div>
+                        </div>
+
+                        <div class="panel-color-grid login-colors-grid">
+                            <label class="panel-color-control">
+                                <div>
+                                    <strong>Color botón principal</strong>
+                                    <span>Inicio del degradado del botón.</span>
+                                </div>
+                                <div class="panel-color-inputs">
+                                    <span class="panel-color-swatch" data-login-swatch="colorBoton1" th:style="'background:' + ${loginAparienciaConfig.colorBoton1}"></span>
+                                    <span class="panel-color-change">Cambiar color</span>
+                                    <input type="color" data-login-color-input="colorBoton1" th:value="*{colorBoton1}">
+                                    <details>
+                                        <summary>Avanzado: código HEX</summary>
+                                        <input type="text" class="form-control" data-login-config="colorBoton1" data-login-color-text="colorBoton1" th:field="*{colorBoton1}" maxlength="7">
+                                    </details>
+                                </div>
+                            </label>
+
+                            <label class="panel-color-control">
+                                <div>
+                                    <strong>Color botón secundario</strong>
+                                    <span>Final del degradado del botón.</span>
+                                </div>
+                                <div class="panel-color-inputs">
+                                    <span class="panel-color-swatch" data-login-swatch="colorBoton2" th:style="'background:' + ${loginAparienciaConfig.colorBoton2}"></span>
+                                    <span class="panel-color-change">Cambiar color</span>
+                                    <input type="color" data-login-color-input="colorBoton2" th:value="*{colorBoton2}">
+                                    <details>
+                                        <summary>Avanzado: código HEX</summary>
+                                        <input type="text" class="form-control" data-login-config="colorBoton2" data-login-color-text="colorBoton2" th:field="*{colorBoton2}" maxlength="7">
+                                    </details>
+                                </div>
+                            </label>
+
+                            <label class="panel-color-control">
+                                <div>
+                                    <strong>Color texto del botón</strong>
+                                    <span>Color del texto del botón.</span>
+                                </div>
+                                <div class="panel-color-inputs">
+                                    <span class="panel-color-swatch" data-login-swatch="colorTextoBoton" th:style="'background:' + ${loginAparienciaConfig.colorTextoBoton}"></span>
+                                    <span class="panel-color-change">Cambiar color</span>
+                                    <input type="color" data-login-color-input="colorTextoBoton" th:value="*{colorTextoBoton}">
+                                    <details>
+                                        <summary>Avanzado: código HEX</summary>
+                                        <input type="text" class="form-control" data-login-config="colorTextoBoton" data-login-color-text="colorTextoBoton" th:field="*{colorTextoBoton}" maxlength="7">
+                                    </details>
+                                </div>
+                            </label>
+                        </div>
+                    </article>
+
+                    <article class="panel-config-card">
+                        <div class="store-card-title compact">
+                            <span class="store-title-icon"><i class="bi bi-images"></i></span>
+                            <div>
+                                <h2>Carrusel visual</h2>
+                                <p>Se muestra en el espacio libre cuando el cuadro está a la izquierda o derecha.</p>
+                            </div>
+                        </div>
+
+                        <label class="panel-login-switch">
+                            <input type="checkbox" th:field="*{carruselActivo}" data-login-config="carruselActivo">
+                            <span>
+                                <strong>Activar carrusel</strong>
+                                <small>Si el cuadro está centrado, el carrusel se oculta automáticamente.</small>
+                            </span>
+                        </label>
+
+                        <div class="panel-login-carousel-grid">
+                            <div class="panel-login-carousel-item">
+                                <span>Imagen 1</span>
+                                <input type="file"
+                                       class="form-control"
+                                       name="carruselImagen1File"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       data-login-carousel-file="1"
+                                       data-login-file-input="carruselImagen1">
+                                <div class="login-image-preview" data-login-file-preview="carruselImagen1">
+                                    <img th:if="${loginAparienciaConfig.carruselImagen1 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen1)}"
+                                         th:src="${loginAparienciaConfig.carruselImagen1}"
+                                         alt="Imagen 1 del carrusel">
+                                    <span class="login-image-empty"
+                                          th:classappend="${loginAparienciaConfig.carruselImagen1 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen1)} ? ' d-none' : ''"
+                                          data-login-file-empty="carruselImagen1">Sin imagen seleccionada</span>
+                                    <span class="login-image-remove-note d-none"
+                                          data-login-file-remove-note="carruselImagen1">Se eliminará al guardar</span>
+                                    <button type="button"
+                                            class="login-image-clear-btn d-none"
+                                            data-login-file-clear="carruselImagen1">Quitar selección</button>
+                                </div>
+                                <label class="panel-login-check compact"
+                                       th:if="${loginAparienciaConfig.carruselImagen1 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen1)}">
+                                    <input type="checkbox" name="eliminarCarruselImagen1" value="true" data-login-carousel-remove="1" data-login-file-remove-current="carruselImagen1">
+                                    <span>Quitar imagen actual</span>
+                                </label>
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm login-carousel-frame-btn"
+                                        th:classappend="${loginAparienciaConfig.carruselImagen1 == null or #strings.isEmpty(loginAparienciaConfig.carruselImagen1)} ? ' d-none' : ''"
+                                        data-carousel-crop-button="1">
+                                    <i class="bi bi-crop"></i> Ajustar encuadre
+                                </button>
+                            </div>
+
+                            <div class="panel-login-carousel-item">
+                                <span>Imagen 2</span>
+                                <input type="file"
+                                       class="form-control"
+                                       name="carruselImagen2File"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       data-login-carousel-file="2"
+                                       data-login-file-input="carruselImagen2">
+                                <div class="login-image-preview" data-login-file-preview="carruselImagen2">
+                                    <img th:if="${loginAparienciaConfig.carruselImagen2 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen2)}"
+                                         th:src="${loginAparienciaConfig.carruselImagen2}"
+                                         alt="Imagen 2 del carrusel">
+                                    <span class="login-image-empty"
+                                          th:classappend="${loginAparienciaConfig.carruselImagen2 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen2)} ? ' d-none' : ''"
+                                          data-login-file-empty="carruselImagen2">Sin imagen seleccionada</span>
+                                    <span class="login-image-remove-note d-none"
+                                          data-login-file-remove-note="carruselImagen2">Se eliminará al guardar</span>
+                                    <button type="button"
+                                            class="login-image-clear-btn d-none"
+                                            data-login-file-clear="carruselImagen2">Quitar selección</button>
+                                </div>
+                                <label class="panel-login-check compact"
+                                       th:if="${loginAparienciaConfig.carruselImagen2 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen2)}">
+                                    <input type="checkbox" name="eliminarCarruselImagen2" value="true" data-login-carousel-remove="2" data-login-file-remove-current="carruselImagen2">
+                                    <span>Quitar imagen actual</span>
+                                </label>
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm login-carousel-frame-btn"
+                                        th:classappend="${loginAparienciaConfig.carruselImagen2 == null or #strings.isEmpty(loginAparienciaConfig.carruselImagen2)} ? ' d-none' : ''"
+                                        data-carousel-crop-button="2">
+                                    <i class="bi bi-crop"></i> Ajustar encuadre
+                                </button>
+                            </div>
+
+                            <div class="panel-login-carousel-item">
+                                <span>Imagen 3</span>
+                                <input type="file"
+                                       class="form-control"
+                                       name="carruselImagen3File"
+                                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                       data-login-carousel-file="3"
+                                       data-login-file-input="carruselImagen3">
+                                <div class="login-image-preview" data-login-file-preview="carruselImagen3">
+                                    <img th:if="${loginAparienciaConfig.carruselImagen3 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen3)}"
+                                         th:src="${loginAparienciaConfig.carruselImagen3}"
+                                         alt="Imagen 3 del carrusel">
+                                    <span class="login-image-empty"
+                                          th:classappend="${loginAparienciaConfig.carruselImagen3 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen3)} ? ' d-none' : ''"
+                                          data-login-file-empty="carruselImagen3">Sin imagen seleccionada</span>
+                                    <span class="login-image-remove-note d-none"
+                                          data-login-file-remove-note="carruselImagen3">Se eliminará al guardar</span>
+                                    <button type="button"
+                                            class="login-image-clear-btn d-none"
+                                            data-login-file-clear="carruselImagen3">Quitar selección</button>
+                                </div>
+                                <label class="panel-login-check compact"
+                                       th:if="${loginAparienciaConfig.carruselImagen3 != null and !#strings.isEmpty(loginAparienciaConfig.carruselImagen3)}">
+                                    <input type="checkbox" name="eliminarCarruselImagen3" value="true" data-login-carousel-remove="3" data-login-file-remove-current="carruselImagen3">
+                                    <span>Quitar imagen actual</span>
+                                </label>
+                                <button type="button"
+                                        class="btn btn-outline-primary btn-sm login-carousel-frame-btn"
+                                        th:classappend="${loginAparienciaConfig.carruselImagen3 == null or #strings.isEmpty(loginAparienciaConfig.carruselImagen3)} ? ' d-none' : ''"
+                                        data-carousel-crop-button="3">
+                                    <i class="bi bi-crop"></i> Ajustar encuadre
+                                </button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <aside class="panel-login-preview-column">
+                    <article class="panel-config-card panel-login-real-preview-card">
+                        <div class="store-card-title compact">
+                            <span class="store-title-icon"><i class="bi bi-window"></i></span>
+                            <div>
+                                <h2>Vista previa real</h2>
+                                <p>Actualiza al instante, pero guarda solo al presionar Guardar cambios.</p>
+                            </div>
+                        </div>
+
+                        <div class="login-preview-toolbar" role="tablist" aria-label="Dispositivo de vista previa">
+                            <button type="button"
+                                    class="active"
+                                    data-login-preview-device="desktop">
+                                <i class="bi bi-display"></i> Escritorio
+                            </button>
+                            <button type="button"
+                                    data-login-preview-device="tablet">
+                                <i class="bi bi-tablet-landscape"></i> Tablet
+                            </button>
+                            <button type="button"
+                                    data-login-preview-device="mobile">
+                                <i class="bi bi-phone"></i> Celular
+                            </button>
+                        </div>
+
+                        <div class="panel-login-iframe-shell login-preview-device-shell login-preview-desktop"
+                             data-login-preview-frame>
+                            <div class="login-preview-frame-stage">
+                                <iframe class="panel-login-real-frame"
+                                        title="Vista previa del login interno"
+                                        th:src="@{/interno/login(preview='embed')}"
+                                        data-login-preview-iframe></iframe>
+                            </div>
+                        </div>
+                    </article>
+                </aside>
+            </section>
+        </form>
+
+        <div class="carousel-crop-modal" id="loginCarouselCropModal" aria-hidden="true" data-carousel-crop-modal>
+            <div class="carousel-crop-backdrop" data-carousel-crop-close></div>
+
+            <section class="carousel-crop-dialog" role="dialog" aria-modal="true" aria-labelledby="carouselCropTitle">
+                <header class="carousel-crop-header">
+                    <div>
+                        <h3 id="carouselCropTitle">Ajustar imagen del carrusel</h3>
+                        <p>Arrastra la imagen y usa el zoom para elegir que parte se mostrara.</p>
+                    </div>
+                    <button type="button" class="carousel-crop-close" data-carousel-crop-close aria-label="Cerrar">
+                        &times;
+                    </button>
+                </header>
+
+                <div class="carousel-crop-body">
+                    <div class="carousel-crop-stage" data-carousel-crop-stage>
+                        <img src="" alt="Imagen del carrusel" class="carousel-crop-image" data-carousel-crop-image>
+                        <div class="carousel-crop-frame" aria-hidden="true"></div>
+                    </div>
+
+                    <div class="carousel-crop-controls">
+                        <label>
+                            <span>Zoom</span>
+                            <input type="range" min="1" max="4" step="0.05" value="1" data-carousel-crop-zoom>
+                            <strong data-carousel-crop-zoom-label>1.00x</strong>
+                        </label>
+
+                        <button type="button" class="btn btn-outline-secondary" data-carousel-crop-reset>
+                            Restaurar encuadre
+                        </button>
+                    </div>
+                </div>
+
+                <footer class="carousel-crop-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-carousel-crop-close>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-primary" data-carousel-crop-apply>
+                        Aplicar encuadre
+                    </button>
+                </footer>
+            </section>
+        </div>
+
+        <form id="panel-login-default-form"
+              th:action="@{/interno/apariencia/panel/login/restaurar}"
+              method="post"
+              class="d-none">
+            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+        </form>
+
+        <div class="panel-color-actions">
+            <button type="submit" form="panel-login-default-form" class="btn btn-outline-secondary rounded-pill px-4">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Restaurar diseno
+            </button>
+
+            <button type="submit" form="panel-login-form" class="btn btn-primary rounded-pill px-4 fw-bold">
+                <i class="bi bi-save me-1"></i> Guardar cambios
+            </button>
+        </div>
+    </section>
+
+</main>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/apariencia.js}"></script>
+
+</body>
+</html>

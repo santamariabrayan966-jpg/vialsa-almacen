@@ -1,0 +1,410 @@
+{
+  "teeth": [
+    {
+      "tooth_id": "FDI_28",
+      "fdi": 28,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 7768,
+      "center_mm": [
+        23.509809494018555,
+        14.567697525024414,
+        0.6423717737197876
+      ]
+    },
+    {
+      "tooth_id": "FDI_27",
+      "fdi": 27,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 8268,
+      "center_mm": [
+        20.917546272277832,
+        7.229374647140503,
+        0.48438429832458496
+      ]
+    },
+    {
+      "tooth_id": "FDI_26",
+      "fdi": 26,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 8113,
+      "center_mm": [
+        17.99179744720459,
+        -0.3876974582672119,
+        0.1741706132888794
+      ]
+    },
+    {
+      "tooth_id": "FDI_25",
+      "fdi": 25,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 6468,
+      "center_mm": [
+        14.853950023651123,
+        -6.598212957382202,
+        1.0174859762191772
+      ]
+    },
+    {
+      "tooth_id": "FDI_24",
+      "fdi": 24,
+      "arch": "upper",
+      "root_count": 2,
+      "source_crown_faces": 4160,
+      "center_mm": [
+        11.960318088531494,
+        -12.178353309631348,
+        0.8916117548942566
+      ]
+    },
+    {
+      "tooth_id": "FDI_23",
+      "fdi": 23,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 3741,
+      "center_mm": [
+        8.198054313659668,
+        -15.53103256225586,
+        3.1934349685907364
+      ]
+    },
+    {
+      "tooth_id": "FDI_22",
+      "fdi": 22,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 1868,
+      "center_mm": [
+        3.4179309010505676,
+        -18.028151035308838,
+        3.013323426246643
+      ]
+    },
+    {
+      "tooth_id": "FDI_21",
+      "fdi": 21,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 1840,
+      "center_mm": [
+        -1.6090731620788574,
+        -18.551028728485107,
+        2.8678244799375534
+      ]
+    },
+    {
+      "tooth_id": "FDI_11",
+      "fdi": 11,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 1544,
+      "center_mm": [
+        -6.78780198097229,
+        -17.529517650604248,
+        2.94058957695961
+      ]
+    },
+    {
+      "tooth_id": "FDI_12",
+      "fdi": 12,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 2047,
+      "center_mm": [
+        -11.320921421051025,
+        -15.491018295288086,
+        4.673358201980591
+      ]
+    },
+    {
+      "tooth_id": "FDI_13",
+      "fdi": 13,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 2578,
+      "center_mm": [
+        -15.507650375366211,
+        -12.302896976470947,
+        3.534728080034256
+      ]
+    },
+    {
+      "tooth_id": "FDI_14",
+      "fdi": 14,
+      "arch": "upper",
+      "root_count": 2,
+      "source_crown_faces": 4768,
+      "center_mm": [
+        -17.928503036499023,
+        -8.236344814300537,
+        2.125460624694824
+      ]
+    },
+    {
+      "tooth_id": "FDI_15",
+      "fdi": 15,
+      "arch": "upper",
+      "root_count": 1,
+      "source_crown_faces": 6544,
+      "center_mm": [
+        -19.7559175491333,
+        -2.1851266622543335,
+        1.9401605129241943
+      ]
+    },
+    {
+      "tooth_id": "FDI_16",
+      "fdi": 16,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 7646,
+      "center_mm": [
+        -21.360122680664062,
+        4.29066411126405,
+        1.6076212525367737
+      ]
+    },
+    {
+      "tooth_id": "FDI_17",
+      "fdi": 17,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 8387,
+      "center_mm": [
+        -22.419283866882324,
+        12.345426321029663,
+        1.9201728999614716
+      ]
+    },
+    {
+      "tooth_id": "FDI_18",
+      "fdi": 18,
+      "arch": "upper",
+      "root_count": 3,
+      "source_crown_faces": 8048,
+      "center_mm": [
+        -23.088825225830078,
+        20.174735069274902,
+        2.2632632553577423
+      ]
+    },
+    {
+      "tooth_id": "FDI_48",
+      "fdi": 48,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 6324,
+      "center_mm": [
+        -22.98841953277588,
+        17.607675552368164,
+        -2.3554442524909973
+      ]
+    },
+    {
+      "tooth_id": "FDI_47",
+      "fdi": 47,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 5758,
+      "center_mm": [
+        -22.108367919921875,
+        9.925975799560547,
+        -1.5127050876617432
+      ]
+    },
+    {
+      "tooth_id": "FDI_46",
+      "fdi": 46,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 5868,
+      "center_mm": [
+        -21.135153770446777,
+        3.496594876050949,
+        -1.2394460439682007
+      ]
+    },
+    {
+      "tooth_id": "FDI_45",
+      "fdi": 45,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 5662,
+      "center_mm": [
+        -19.012491703033447,
+        -2.747003734111786,
+        -0.3547487258911133
+      ]
+    },
+    {
+      "tooth_id": "FDI_44",
+      "fdi": 44,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 3456,
+      "center_mm": [
+        -16.399629592895508,
+        -8.361215591430664,
+        0.12169051170349121
+      ]
+    },
+    {
+      "tooth_id": "FDI_43",
+      "fdi": 43,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 4124,
+      "center_mm": [
+        -13.139881610870361,
+        -12.198144912719727,
+        -0.019101738929748535
+      ]
+    },
+    {
+      "tooth_id": "FDI_42",
+      "fdi": 42,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 3420,
+      "center_mm": [
+        -9.992915868759155,
+        -15.992992877960205,
+        -0.3813234567642212
+      ]
+    },
+    {
+      "tooth_id": "FDI_41",
+      "fdi": 41,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 1898,
+      "center_mm": [
+        -6.461053371429443,
+        -18.41337490081787,
+        -0.21719449758529663
+      ]
+    },
+    {
+      "tooth_id": "EXTRA_L_01",
+      "fdi": null,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 2345,
+      "center_mm": [
+        -2.736275315284729,
+        -19.176180839538574,
+        -0.4444205164909363
+      ]
+    },
+    {
+      "tooth_id": "FDI_31",
+      "fdi": 31,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 2914,
+      "center_mm": [
+        0.4736431837081909,
+        -18.137733459472656,
+        -0.6679620742797852
+      ]
+    },
+    {
+      "tooth_id": "FDI_32",
+      "fdi": 32,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 3462,
+      "center_mm": [
+        4.364519953727722,
+        -15.73196792602539,
+        -1.4920841455459595
+      ]
+    },
+    {
+      "tooth_id": "FDI_33",
+      "fdi": 33,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 3807,
+      "center_mm": [
+        8.558317422866821,
+        -13.732661724090576,
+        -1.25114107131958
+      ]
+    },
+    {
+      "tooth_id": "FDI_34",
+      "fdi": 34,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 6350,
+      "center_mm": [
+        11.673234462738037,
+        -9.270872831344604,
+        -1.4940848350524902
+      ]
+    },
+    {
+      "tooth_id": "FDI_35",
+      "fdi": 35,
+      "arch": "lower",
+      "root_count": 1,
+      "source_crown_faces": 6000,
+      "center_mm": [
+        15.140549659729004,
+        -5.16931426525116,
+        -1.6471571326255798
+      ]
+    },
+    {
+      "tooth_id": "FDI_36",
+      "fdi": 36,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 6413,
+      "center_mm": [
+        17.998401641845703,
+        0.9971585273742676,
+        -2.8102964758872986
+      ]
+    },
+    {
+      "tooth_id": "FDI_37",
+      "fdi": 37,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 4356,
+      "center_mm": [
+        20.86328125,
+        5.498605787754059,
+        -2.9682723581790924
+      ]
+    },
+    {
+      "tooth_id": "FDI_38",
+      "fdi": 38,
+      "arch": "lower",
+      "root_count": 2,
+      "source_crown_faces": 5180,
+      "center_mm": [
+        23.393110275268555,
+        11.766658544540405,
+        -3.539399802684784
+      ]
+    }
+  ],
+  "crown_count": 33,
+  "web_bytes": 3127852,
+  "units": "metres",
+  "frames": {
+    "closed": 1,
+    "open": 41,
+    "closed_again": 81
+  },
+  "roots": "schematic",
+  "version": "2.0"
+}

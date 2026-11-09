@@ -1,0 +1,1809 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title>Odontograma clínico | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/panel.css(v='4.1')}">
+    <link rel="stylesheet" th:href="@{/css/dentia/clinica.css(v='3.6')}">
+</head>
+<body class="panel-interno clinica-page-body">
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="dentia-page clinica-luminous-workspace" id="clinica-workspace"
+      th:data-modulo="${moduloClinica}"
+      th:data-odonto-2d="${puedeOdontograma2d}" th:data-odonto-3d="${puedeOdontograma3d}"
+      th:data-paciente-id="${pacienteInicialId}"
+      th:data-cita-id="${citaInicialId}">
+
+    <!-- Avisos clínicos visibles y descartables, sin tapar los controles -->
+    <div id="clinica-toast" class="clinica-notice alert alert-success" role="status" aria-live="polite" hidden>
+        <span id="clinica-toast-message"></span>
+        <button type="button" class="btn-close" id="clinica-toast-close" aria-label="Cerrar notificación"></button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         1. BANNER SUPERIOR DEL PACIENTE ACTIVO (BLANCO & LUMINOSO)
+         ══════════════════════════════════════════════════════════════ -->
+    <section class="patient-hero-banner mb-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <!-- Info del Paciente -->
+            <div class="d-flex align-items-center gap-3">
+                <a class="btn btn-light btn-sm border rounded-circle p-2 text-secondary shadow-sm" th:href="@{/interno/citas}" title="Volver a la agenda de citas">
+                    <i class="bi bi-arrow-left fs-6"></i>
+                </a>
+                <div class="patient-avatar-badge" id="paciente-avatar">—</div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h1 class="h4 fw-bold text-dark mb-0" id="paciente-nombre">Selecciona un paciente</h1>
+                        <span class="badge bg-light text-secondary border" id="paciente-meta-id">Expediente clínico</span>
+                        <div id="contenedor-cita-hero" class="d-inline-flex align-items-center gap-2 flex-wrap">
+                            <span th:if="${citaInicialId != null and !citaInicialId.isEmpty()}" class="badge bg-primary text-white shadow-sm" id="badge-cita-hero">
+                                <i class="bi bi-heart-pulse me-1"></i> Cita Activa #<span th:text="${citaInicialId}" id="badge-cita-id"></span>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-success fw-bold shadow-xs py-1 px-2.5" id="btn-hero-finalizar-cita" th:if="${citaInicialId != null and !citaInicialId.isEmpty()}" title="Finalizar cita agendada y registrar atención médica">
+                                <i class="bi bi-check2-circle me-1"></i> Finalizar Cita y Registrar Atención
+                            </button>
+                            <form method="post" th:action="@{/interno/citas/estado}" class="d-inline" id="form-hero-regresar-espera" th:if="${citaInicialId != null and !citaInicialId.isEmpty()}">
+                                <input type="hidden" name="idCita" th:value="${citaInicialId}" id="input-hero-cita-id">
+                                <input type="hidden" name="nuevoEstado" value="RESERVADA">
+                                <input type="hidden" name="observacion" value="Atención revertida a espera por el profesional">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary fw-medium shadow-xs py-1 px-2.5" title="Regresar esta cita a espera y volver a la agenda si atendiste por error" onclick="return confirm('¿Deseas regresar esta cita a espera? Podrás atenderla después o atender a otro paciente.');">
+                                    <i class="bi bi-arrow-counterclockwise me-1"></i> Regresar a Espera
+                                </button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-success fw-bold shadow-xs py-1 px-2.5" id="btn-hero-atencion-directa" th:if="${citaInicialId == null or citaInicialId.isEmpty()}" title="Registrar atención médica o procedimiento para este paciente" style="display: none;">
+                                <i class="bi bi-journal-medical me-1"></i> Registrar Atención
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-secondary small mt-1 d-flex align-items-center gap-3 flex-wrap">
+                        <span><i class="bi bi-calendar3 text-teal me-1"></i> <span id="paciente-meta-edad">—</span></span>
+                        <span><i class="bi bi-telephone text-teal me-1"></i> <span id="paciente-meta-tel">—</span></span>
+                        <span><i class="bi bi-card-text text-teal me-1"></i> <span id="paciente-meta-dni">—</span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Buscador y Próxima Cita en el Banner -->
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+                <!-- Buscador de Pacientes -->
+                <div class="patient-search-box">
+                    <i class="bi bi-search"></i>
+                    <input type="text" id="buscar-paciente" placeholder="Buscar paciente..." autocomplete="off">
+                    <ul id="resultados-pacientes" class="clinica-search-results" hidden></ul>
+                </div>
+
+                <!-- Widget Próxima Cita -->
+                <div class="next-visit-pill">
+                    <i class="bi bi-calendar-check text-primary fs-5"></i>
+                    <div>
+                        <small class="d-block text-secondary" style="font-size: 0.7rem; line-height: 1;">PRÓXIMA CITA</small>
+                        <strong class="text-dark small" id="widget-proxima-cita-fecha">Sin cita programada</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chips de Alertas Médicas (Alergias, Hipertensión) -->
+        <div id="paciente-alertas" class="patient-alert-chips mt-2" hidden></div>
+    </section>
+
+    <button type="button" id="btn-recuperar-atencion" class="btn btn-outline-primary mb-3" hidden>Continuar atención guardada</button>
+    <!-- ══════════════════════════════════════════════════════════════
+         2. BARRA DE PESTAÑAS CLÍNICAS SUPERIOR (SIN DUPLICADOS)
+         ══════════════════════════════════════════════════════════════ -->
+    <nav class="clinical-tabs-bar mb-3">
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'odontograma'} ? 'active'" data-modulo="odontograma" th:if="${#lists.contains(modulosPermitidos, 'odontograma')}">
+            <i class="bi bi-grid-3x3"></i> Odontograma
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'historia-clinica'} ? 'active'" data-modulo="historia-clinica" th:if="${#lists.contains(modulosPermitidos, 'historia-clinica')}">
+            <i class="bi bi-journal-medical"></i> Historia clínica
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'diagnosticos'} ? 'active'" data-modulo="diagnosticos" th:if="${#lists.contains(modulosPermitidos, 'diagnosticos')}">
+            <i class="bi bi-clipboard2-pulse"></i> Diagnósticos
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'plan-tratamiento'} ? 'active'" data-modulo="plan-tratamiento" th:if="${#lists.contains(modulosPermitidos, 'plan-tratamiento')}">
+            <i class="bi bi-list-check"></i> Plan y Tratamientos
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'atenciones'} ? 'active'" data-modulo="atenciones" th:if="${#lists.contains(modulosPermitidos, 'atenciones')}">
+            <i class="bi bi-journal-check"></i> Atenciones Realizadas
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'cuentas-pagos'} ? 'active'" data-modulo="cuentas-pagos" th:if="${#lists.contains(modulosPermitidos, 'cuentas-pagos')}">
+            <i class="bi bi-wallet2"></i> Cuentas y Deudas
+        </button>
+        <button type="button" class="tab-pill-btn" th:classappend="${moduloClinica == 'historial-citas'} ? 'active'" data-modulo="historial-citas" th:if="${#lists.contains(modulosPermitidos, 'historial-citas')}">
+            <i class="bi bi-calendar-range"></i> Historial de Citas
+        </button>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         3. MÓDULOS DE CONTENIDO CLÍNICO
+         ══════════════════════════════════════════════════════════════ -->
+
+    <!-- MÓDULO A: ODONTOGRAMA 3D LUMINOSO CON INSPECTOR LATERAL -->
+    <div class="clinica-view-panel" id="panel-odontograma" th:hidden="${moduloClinica != 'odontograma'}">
+        <!-- Tarjeta de Evolución Ortodóntica / Brackets -->
+        <div class="ortho-progress-card p-3 mb-3 rounded-4 border shadow-sm bg-white" id="ortho-tracker-card" hidden>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 fs-6">
+                        <i class="bi bi-shield-shaded me-1"></i> <span id="ortho-card-title">Ortodoncia con Brackets</span>
+                    </span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" id="ortho-card-status">En Curso</span>
+                </div>
+                <div class="text-secondary small">
+                    <i class="bi bi-stopwatch text-teal me-1"></i> <strong class="text-dark" id="ortho-card-timer">Procedimientos registrados</strong> (<span id="ortho-card-percent-label">0% completado</span>)
+                </div>
+            </div>
+            <!-- Barra de Progreso de Tratamiento -->
+            <div class="progress mb-2" style="height: 10px; background-color: #e9ecef; border-radius: 999px; overflow: hidden;">
+                <div class="progress-bar bg-teal progress-bar-striped progress-bar-animated" id="ortho-card-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-secondary small">
+                <span><i class="bi bi-gear-wide-connected text-teal me-1"></i> <strong class="text-dark">Fase Actual:</strong> <span id="ortho-card-fase">Sin fase registrada</span></span>
+                <span><i class="bi bi-calendar-check text-primary me-1"></i> <strong class="text-dark">Próximo Control:</strong> <span id="ortho-card-next">Consultar agenda</span></span>
+            </div>
+        </div>
+
+        <div class="odonto-view-switch mb-2.5 p-2 px-3" role="group" aria-label="Vista del odontograma">
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge bg-teal-soft text-teal border border-teal-subtle px-2 py-1 rounded-pill fw-bold" style="font-size: 0.72rem;"><i class="bi bi-grid-3x3 me-1"></i>FDI</span>
+                <strong class="d-block fs-6 mb-0 text-dark">Odontograma</strong>
+                <span class="odonto-save-status d-none d-sm-inline-flex py-1 px-2" id="odonto-2d-status" style="font-size: 0.72rem;">Selecciona un paciente</span>
+            </div>
+            <div class="odonto-view-actions">
+                <button type="button" class="odonto-view-btn active py-1 px-2.5" th:if="${puedeOdontograma2d}" id="btn-studio-2d" aria-pressed="true" style="min-height: 34px; font-size: 0.8rem;"><i class="bi bi-grid-3x3 me-1"></i> 2D</button>
+                <button type="button" class="odonto-view-btn py-1 px-2.5" th:if="${puedeOdontograma3d}" id="btn-studio-3d" aria-pressed="false" style="min-height: 34px; font-size: 0.8rem;"><i class="bi bi-box me-1"></i> 3D</button>
+            </div>
+        </div>
+
+        <section th:if="${puedeOdontograma2d}" id="studio-2d-container" class="odonto-2d-workspace" aria-label="Odontograma 2D interactivo">
+            <div class="row g-2.5">
+                <!-- Columna Odontograma FDI (Izquierda) -->
+                <div class="col-xl-8 col-lg-7">
+                    <!-- Barra de Herramientas Compacta y Táctil -->
+                    <div class="odonto-tool-panel p-2 mb-2">
+                        <div class="odonto-tools">
+                            <button type="button" class="odonto-tool-btn active" data-tool="CARIES"><span class="odonto-tool-dot red"></span> Caries</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="OBTURACION"><span class="odonto-tool-dot blue"></span> Resina</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="SELLANTE"><span class="odonto-tool-dot green"></span> Sellante</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="CORONA"><i class="bi bi-gem"></i> Corona</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="ENDODONCIA"><i class="bi bi-lightning-charge"></i> Endo</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="BRACKETS"><i class="bi bi-grid-3x3-gap"></i> Brackets</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="AUSENTE"><i class="bi bi-x-circle"></i> Ausente</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="IMPLANTE"><i class="bi bi-shield-plus"></i> Implante</button>
+                            <button type="button" class="odonto-tool-btn" data-tool="LIMPIAR"><i class="bi bi-eraser"></i> Borrar</button>
+                        </div>
+                    </div>
+
+                    <!-- Filtro rápido de arcadas para pantallas móviles -->
+                    <div class="odonto-mobile-arcada-filter d-flex d-md-none gap-1 mb-2">
+                        <button type="button" class="btn btn-xs odonto-arcada-tab active" data-arcada="ALL">🦷 Todo (52)</button>
+                        <button type="button" class="btn btn-xs odonto-arcada-tab" data-arcada="SUP">⬆️ Maxilar Sup</button>
+                        <button type="button" class="btn btn-xs odonto-arcada-tab" data-arcada="INF">⬇️ Mandíbula Inf</button>
+                    </div>
+
+                    <div class="odonto-sheet">
+                        <div class="odonto-container">
+                            <div class="odonto-unified-board">
+                                <!-- Fila 1: Dientes permanentes superiores (Adultos · 18–28) -->
+                                <div class="odonto-row-group odonto-row-adulto" id="odonto-row-adulto-sup">
+                                    <div class="odonto-arch-label">
+                                        <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5 rounded-pill"><i class="bi bi-person me-1"></i>Adultos 18–28</span>
+                                    </div>
+                                    <div class="odonto-arch odonto-arch-upper">
+                                        <div class="odonto-quadrant" id="odonto-q1"></div>
+                                        <div class="odonto-quadrant" id="odonto-q2"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Fila 2: Dientes de leche superiores (Niños · 55–65) -->
+                                <div class="odonto-row-group odonto-row-nino mt-1" id="odonto-row-nino-sup">
+                                    <div class="odonto-arch-label text-teal">
+                                        <span class="badge bg-teal-soft text-teal border border-teal-subtle px-2 py-0.5 rounded-pill"><i class="bi bi-emoji-smile me-1"></i>Niños 55–65</span>
+                                    </div>
+                                    <div class="odonto-arch odonto-arch-child odonto-arch-upper">
+                                        <div class="odonto-quadrant" id="odonto-q5"></div>
+                                        <div class="odonto-quadrant" id="odonto-q6"></div>
+                                    </div>
+                                </div>
+
+                                <!-- LÍNEA OCLUSAL / CENTRO DE LA BOCA -->
+                                <div class="odonto-sheet-divider my-2">
+                                    <span>Línea Oclusal</span>
+                                </div>
+
+                                <!-- Fila 3: Dientes de leche inferiores (Niños · 85–75) -->
+                                <div class="odonto-row-group odonto-row-nino mb-1" id="odonto-row-nino-inf">
+                                    <div class="odonto-arch odonto-arch-child odonto-arch-lower">
+                                        <div class="odonto-quadrant" id="odonto-q8"></div>
+                                        <div class="odonto-quadrant" id="odonto-q7"></div>
+                                    </div>
+                                    <div class="odonto-arch-label text-teal mt-0.5">
+                                        <span class="badge bg-teal-soft text-teal border border-teal-subtle px-2 py-0.5 rounded-pill"><i class="bi bi-emoji-smile me-1"></i>Niños 85–75</span>
+                                    </div>
+                                </div>
+
+                                <!-- Fila 4: Dientes permanentes inferiores (Adultos · 48–38) -->
+                                <div class="odonto-row-group odonto-row-adulto mt-1" id="odonto-row-adulto-inf">
+                                    <div class="odonto-arch odonto-arch-lower">
+                                        <div class="odonto-quadrant" id="odonto-q4"></div>
+                                        <div class="odonto-quadrant" id="odonto-q3"></div>
+                                    </div>
+                                    <div class="odonto-arch-label mt-0.5">
+                                        <span class="badge bg-secondary-subtle text-secondary border px-2 py-0.5 rounded-pill"><i class="bi bi-person me-1"></i>Adultos 48–38</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="odonto-save-bar mt-2">
+                        <span class="d-none d-md-inline small text-secondary"><i class="bi bi-info-circle me-1"></i> Se guarda en el expediente del paciente.</span>
+                        <div class="d-flex gap-2 align-items-center ms-auto">
+                            <button type="button" class="btn btn-sm btn-outline-teal fw-bold" id="btn-odonto-a-atencion" title="Registrar atención clínica con las piezas y tratamientos marcados en el odontograma">
+                                <i class="bi bi-journal-check me-1"></i> Pasar a Atención
+                            </button>
+                            <button type="button" class="btn btn-sm btn-success fw-bold" id="btn-guardar-odontograma-2d"><i class="bi bi-check2-circle me-1"></i> Reintentar guardado</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Workspace Lateral: Pieza Seleccionada (Derecha / Bottom Sheet en Móvil) -->
+                <div class="col-xl-4 col-lg-5">
+                    <div id="odonto-sidebar-backdrop" class="odonto-sidebar-backdrop d-lg-none" hidden></div>
+                    <aside id="odonto-sidebar-panel" class="odonto-sidebar-card shadow-sm" aria-label="Panel de control de la pieza seleccionada">
+                        <!-- Header de la Pieza -->
+                        <div class="sidebar-pieza-header p-2.5 border-bottom d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge bg-teal-soft text-teal border border-teal-subtle fs-5 px-2 py-1 rounded-2 fw-bold" id="sidebar-pieza-badge">16</span>
+                                <div>
+                                    <h3 class="h6 fw-bold text-dark mb-0" id="sidebar-pieza-nombre" style="font-size: 0.88rem;">Primer molar superior derecho</h3>
+                                    <small class="text-secondary" id="sidebar-pieza-meta" style="font-size: 0.72rem;">Arcada Superior · Cuadrante 1</small>
+                                </div>
+                            </div>
+                            <div class="d-flex align-items-center gap-1.5">
+                                <span class="badge bg-light text-secondary border px-1.5 py-0.5" id="sidebar-pieza-tipo-badge" style="font-size: 0.7rem;">Adulto</span>
+                                <button type="button" class="btn-close d-lg-none ms-1" id="btn-odonto-sidebar-close" aria-label="Cerrar panel" style="font-size: 0.72rem;"></button>
+                            </div>
+                        </div>
+
+                        <!-- Contenido del Sidebar -->
+                        <div class="sidebar-pieza-body p-2.5">
+                            <!-- 1. Estado en Odontograma -->
+                            <div class="sidebar-section mb-2.5">
+                                <div class="d-flex align-items-center justify-content-between mb-1.5">
+                                    <span class="sidebar-section-title"><i class="bi bi-shield-shaded text-teal me-1"></i>Estado Odontológico</span>
+                                    <small class="text-muted" style="font-size: 0.7rem;">Superficies</small>
+                                </div>
+                                <div id="sidebar-pieza-hallazgos" class="d-flex flex-wrap gap-1">
+                                    <span class="text-muted small fst-italic">Cargando estado...</span>
+                                </div>
+                            </div>
+
+                            <!-- 2. Acción Directa: Atender Pieza Ahora -->
+                            <div class="mb-2.5">
+                                <button type="button" class="btn btn-teal text-white w-100 fw-bold py-1.5 shadow-xs d-flex align-items-center justify-content-center gap-1.5" id="btn-sidebar-atender-directo" style="font-size: 0.84rem;">
+                                    <i class="bi bi-heart-pulse-fill"></i>
+                                    <span id="btn-sidebar-atender-texto">Atender Pieza</span>
+                                </button>
+                            </div>
+
+                            <!-- 3. Cotizador Rápido en Plan de Tratamiento -->
+                            <div class="sidebar-section mb-2.5 p-2 rounded-2 bg-light border">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="sidebar-section-title"><i class="bi bi-cart-plus text-teal me-1"></i>Cotizar en Plan</span>
+                                    <span class="badge bg-white text-teal border border-teal-subtle" style="font-size: 0.68rem;">+ Cotización</span>
+                                </div>
+                                <div class="mb-1.5">
+                                    <select id="sidebar-select-tratamiento" class="form-select form-select-sm mb-1" style="font-size: 0.78rem;">
+                                        <option value="" data-precio="0">Cargando servicios del consultorio…</option>
+                                    </select>
+                                    <input type="text" id="sidebar-custom-tratamiento" class="form-control form-control-sm mb-1" placeholder="Nombre del procedimiento personalizado..." hidden>
+                                </div>
+                                <div class="row g-1.5">
+                                    <div class="col-6">
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text bg-white px-1.5" style="font-size: 0.74rem;">S/</span>
+                                            <input type="number" step="0.50" id="sidebar-input-precio" min="0.01" class="form-control form-control-sm px-1.5" style="font-size: 0.76rem;">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <button type="button" class="btn btn-sm btn-outline-teal w-100 fw-bold py-1" id="btn-sidebar-cotizar-plan" style="font-size: 0.74rem;">
+                                            <i class="bi bi-plus-circle me-1"></i> Cotizar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 4. Resumen Rápido de la Pieza -->
+                            <div class="sidebar-section p-2 rounded-2 border bg-white">
+                                <div class="d-flex align-items-center justify-content-between mb-1">
+                                    <span class="sidebar-section-title"><i class="bi bi-folder2-open text-teal me-1"></i>Expediente</span>
+                                    <span class="badge bg-light text-muted border" id="sidebar-resumen-badges" style="font-size: 0.68rem;">0 planes · 0 atenciones</span>
+                                </div>
+                                <div id="sidebar-pieza-resumen-info" class="small text-secondary mb-1.5" style="font-size: 0.74rem; line-height: 1.35;">
+                                    <span class="text-muted fst-italic">Sin procedimientos ni atenciones registradas.</span>
+                                </div>
+                                <div class="d-flex gap-1.5">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary flex-fill text-nowrap py-1" id="btn-sidebar-ver-planes" style="font-size: 0.72rem;">
+                                        <i class="bi bi-list-check me-1"></i>Ver Planes
+                                    </button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary flex-fill text-nowrap py-1" id="btn-sidebar-ver-atenciones" style="font-size: 0.72rem;">
+                                        <i class="bi bi-journal-check me-1"></i>Ver Atenciones
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </section>
+
+        <div class="row g-3" th:if="${puedeOdontograma3d}" id="studio-3d-workspace" hidden>
+            <!-- Visor 3D Principal (Centro) -->
+            <div class="col-lg-8 col-xl-8">
+                <div class="studio-3d-card">
+                    <!-- Cabecera del visor 3D -->
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-teal-soft text-teal border px-2 py-1"><i class="bi bi-box-fill me-1"></i> Render Dental 3D</span>
+                            <span class="text-secondary small">Rotación libre 360° con clic izquierdo · Zoom con rueda · Clic en un diente para seleccionarlo</span>
+                        </div>
+                        <!-- Acciones exclusivas del visor 3D -->
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-teal text-white fw-bold shadow-sm" id="btn-abrir-panoramica">
+                                <i class="bi bi-file-earmark-medical-fill me-1"></i> Asistente Panorámica
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Escenario 3D Luminoso -->
+                    <div id="studio-3d-container" hidden>
+                        <div class="d-flex align-items-center flex-wrap gap-3 p-2 bg-light rounded-3 mb-2">
+                            <label class="small flex-grow-1" for="studio-opening">Apertura <output id="studio-opening-value">65%</output>
+                                <input id="studio-opening" class="form-range" type="range" min="0" max="100" value="65">
+                            </label>
+                            <label class="small">Arcada
+                                <select id="studio-arch" class="form-select form-select-sm"><option value="both">Ambas</option><option value="upper">Superior</option><option value="lower">Inferior</option></select>
+                            </label>
+                            <label class="small">Seleccionar pieza
+                                <select id="studio-select-tooth" class="form-select form-select-sm"><option value="18">FDI 18</option><option value="17">FDI 17</option><option value="16">FDI 16</option><option value="15">FDI 15</option><option value="14">FDI 14</option><option value="13">FDI 13</option><option value="12">FDI 12</option><option value="11">FDI 11</option><option value="21">FDI 21</option><option value="22">FDI 22</option><option value="23">FDI 23</option><option value="24">FDI 24</option><option value="25">FDI 25</option><option value="26" selected>FDI 26</option><option value="27">FDI 27</option><option value="28">FDI 28</option><option value="48">FDI 48</option><option value="47">FDI 47</option><option value="46">FDI 46</option><option value="45">FDI 45</option><option value="44">FDI 44</option><option value="43">FDI 43</option><option value="42">FDI 42</option><option value="41">FDI 41</option><option value="31">FDI 31</option><option value="32">FDI 32</option><option value="33">FDI 33</option><option value="34">FDI 34</option><option value="35">FDI 35</option><option value="36">FDI 36</option><option value="37">FDI 37</option><option value="38">FDI 38</option></select>
+                            </label>
+                        </div>
+                        <div id="studio-model-status" class="small text-secondary mb-2" role="status" aria-live="polite">Preparando visor…</div>
+                        <div class="viewport-3d-stage" id="studio-3d-viewport">
+                            <!-- Herramientas flotantes a la izquierda del visor -->
+                            <div class="stage-floating-toolbar">
+                                <button type="button" class="stage-tool-btn active" id="tool-3d-teeth" title="Vista Normal de Dientes">
+                                    <i class="bi bi-heart-pulse-fill"></i>
+                                </button>
+                                <button type="button" class="stage-tool-btn active" id="tool-3d-roots" title="Mostrar u ocultar raíces">
+                                    <i class="bi bi-diagram-3-fill"></i>
+                                </button>
+                                <button type="button" class="stage-tool-btn active" id="tool-3d-gums" title="Alternar Encías 3D">
+                                    <i class="bi bi-shield-fill"></i>
+                                </button>
+                                <button type="button" class="stage-tool-btn" id="tool-3d-wireframe" title="Ver malla del modelo">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button type="button" class="stage-tool-btn" id="tool-3d-occlusal" title="Vista Oclusal Cenital">
+                                    <i class="bi bi-grid-fill"></i>
+                                </button>
+                            </div>
+
+                            <!-- Canvas Three.js Principal -->
+                            <canvas id="canvas-odontograma-3d"></canvas>
+
+                            <!-- Callout flotante del diente seleccionado (ej: 26) -->
+                            <div class="tooth-selected-callout" id="studio-tooth-callout">
+                                <span class="callout-pill" id="callout-numero-pieza">26</span>
+                            </div>
+
+                            <!-- Controles circulares de navegación 3D en el centro -->
+                            <div class="stage-dpad-controls">
+                                <button type="button" class="dpad-key" id="dpad-up" title="Girar arriba"><i class="bi bi-chevron-up"></i></button>
+                                <div class="d-flex gap-1">
+                                    <button type="button" class="dpad-key" id="dpad-left" title="Girar izquierda"><i class="bi bi-chevron-left"></i></button>
+                                    <button type="button" class="dpad-key" id="dpad-center" title="Centrar cámara"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    <button type="button" class="dpad-key" id="dpad-right" title="Girar derecha"><i class="bi bi-chevron-right"></i></button>
+                                </div>
+                                <button type="button" class="dpad-key" id="dpad-down" title="Girar abajo"><i class="bi bi-chevron-down"></i></button>
+                                <div class="d-flex gap-1 mt-1">
+                                    <button type="button" class="dpad-key" id="dpad-zoom-in" title="Zoom +"><i class="bi bi-plus-lg"></i></button>
+                                    <button type="button" class="dpad-key" id="dpad-zoom-out" title="Zoom -"><i class="bi bi-dash-lg"></i></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Leyenda Cromática Inferior -->
+                        <div class="stage-legend-bar">
+                            <span class="legend-chip"><span class="chip-dot sano"></span> Sano</span>
+                            <span class="legend-chip"><span class="chip-dot curacion"></span> Curación</span>
+                            <span class="legend-chip"><span class="chip-dot caries"></span> Caries</span>
+                            <span class="legend-chip"><span class="chip-dot extraccion"></span> Extracción</span>
+                            <span class="legend-chip"><span class="chip-dot corona"></span> Corona</span>
+                            <span class="legend-chip"><span class="chip-dot conducto"></span> Conducto</span>
+                            <span class="legend-chip"><span class="chip-dot protesis"></span> Prótesis</span>
+                            <span class="legend-chip"><span class="chip-dot brackets"></span> Brackets</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Inspector del Diente Seleccionado (Columna Derecha, Limpia y Blanca) -->
+            <div class="col-lg-4 col-xl-4">
+                <div class="tooth-inspector-card">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h2 class="h5 fw-bold text-dark mb-0" id="inspector-pieza-titulo">Diente 26</h2>
+                        <button type="button" class="btn btn-sm btn-light border rounded-circle text-primary" id="btn-rotar-diente" title="Rotar vista 3D individual">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mini Visor 3D Aislado del Diente Individual -->
+                    <div class="isolated-tooth-stage">
+                        <canvas id="canvas-tooth-isolated"></canvas>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle isolated-state-badge" id="inspector-estado-badge">Sin paciente seleccionado</span>
+                    </div>
+
+                    <!-- Ficha Técnica de la Pieza -->
+                    <div class="tooth-specs-list mt-3">
+                        <div class="spec-row">
+                            <span class="text-secondary">Fecha</span>
+                            <strong class="text-dark" id="spec-fecha">No registrado</strong>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Tratamiento</span>
+                            <strong class="text-dark" id="spec-tratamiento">No registrado</strong>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Odontólogo</span>
+                            <strong class="text-dark" id="spec-odontologo">No registrado</strong>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Material usado</span>
+                            <strong class="text-dark" id="spec-material">No registrado</strong>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Color / Tono</span>
+                            <strong class="text-dark" id="spec-color">No registrado</strong>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Observación</span>
+                            <span class="text-dark" id="spec-observacion">No registrado</span>
+                        </div>
+                        <div class="spec-row">
+                            <span class="text-secondary">Próxima cita</span>
+                            <strong class="text-primary" id="spec-proxima-cita">No registrado</strong>
+                        </div>
+                    </div>
+
+                    <!-- Historial Cronológico de la Pieza -->
+                    <div class="tooth-history-box mt-3">
+                        <h3 class="h6 fw-bold text-dark mb-2">Historial del diente</h3>
+                        <div class="history-timeline-light" id="inspector-history-nodes"><p class="small text-secondary">Selecciona un paciente para consultar el historial.</p></div>
+                    </div>
+
+                    <!-- Ajustes Clínicos 3D de la Pieza (Inclinación / Estado) -->
+                    <div class="mt-3 p-2 bg-light rounded-3 border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-secondary fw-bold">Alineación / Inclinación 3D</small>
+                            <span class="badge bg-white border text-dark" id="inspector-angulacion-val">0°</span>
+                        </div>
+                        <div class="d-flex gap-1 mb-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="btn-inclinar-mesial" title="Inclinar Mesial (-8°)">◀ Mesial</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="btn-reset-inclinacion" title="Restablecer eje vertical (0°)">0°</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary flex-fill" id="btn-inclinar-distal" title="Inclinar Distal (+8°)">Distal ▶</button>
+                        </div>
+                        <div class="d-flex gap-1">
+                            <button type="button" class="btn btn-sm btn-outline-danger flex-fill" id="btn-marcar-ausente-3d" title="Marcar ausente">Ausente</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning flex-fill" id="btn-marcar-retenido-3d" title="Marcar retenido/incluido">Retenido</button>
+                            <button type="button" class="btn btn-sm btn-outline-success flex-fill" id="btn-marcar-erupcionado-3d" title="Restablecer presente">Presente</button>
+                        </div>
+                    </div>
+
+                    <!-- Botón de Acción -->
+                    <button type="button" class="btn btn-primary w-100 mt-3 py-2 fw-bold shadow-sm" id="btn-inspector-agregar">
+                        <i class="bi bi-plus-circle me-1"></i> Agregar tratamiento / nota
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÓDULO B: HISTORIA CLÍNICA Y ANAMNESIS -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-historia-clinica" th:hidden="${moduloClinica != 'historia-clinica'}">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-journal-medical text-teal me-2"></i> Historia Clínica y Anamnesis</h2>
+                <p class="text-secondary small mb-0">Antecedentes sistémicos, alergias, medicación habitual y anamnesis del paciente.</p>
+            </div>
+            <button type="submit" form="form-historia" class="btn btn-primary btn-sm px-3 fw-bold shadow-sm"><i class="bi bi-check-lg me-1"></i> Guardar Historia</button>
+        </div>
+        <form id="form-historia" class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Alergias y Reacciones Adversas</label>
+                <input type="text" name="alergias" class="form-control" placeholder="Ej: Penicilina, Látex, AINES, Anestesia local…">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-bold text-teal"><i class="bi bi-heart-pulse me-1"></i> Enfermedades Sistémicas</label>
+                <input type="text" name="enfermedadesSistemicas" class="form-control" placeholder="Ej: Hipertensión arterial, Diabetes, Asma…">
+            </div>
+            <div class="col-md-6">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="hemorragias" id="check-hemorragias">
+                    <label class="form-check-label fw-bold text-danger" for="check-hemorragias">
+                        <i class="bi bi-droplet-fill me-1"></i> Riesgo Hemorrágico / Coagulopatías
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-check form-switch mt-2">
+                    <input class="form-check-input" type="checkbox" name="embarazo" id="check-embarazo">
+                    <label class="form-check-label fw-bold" for="check-embarazo" style="color: #7c3aed;">
+                        <i class="bi bi-person-heart me-1"></i> Paciente Gestante / Embarazo
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label text-dark">Medicación habitual / Tratamiento farmacológico</label>
+                <input type="text" name="medicacionActual" class="form-control" placeholder="Medicamentos que toma actualmente">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-dark">Grupo Sanguíneo</label>
+                <select name="grupoSanguineo" class="form-select">
+                    <option value="">No especificado</option>
+                    <option value="O+">O+ (O Positivo)</option>
+                    <option value="O-">O- (O Negativo)</option>
+                    <option value="A+">A+ (A Positivo)</option>
+                    <option value="A-">A- (A Negativo)</option>
+                    <option value="B+">B+ (B Positivo)</option>
+                    <option value="B-">B- (B Negativo)</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-dark">Presión Arterial (P/A)</label>
+                <input type="text" name="presionArterial" class="form-control" placeholder="Ej: 120/80">
+            </div>
+            <div class="col-12">
+                <label class="form-label text-dark">Hábitos del paciente</label>
+                <input type="text" name="habitos" class="form-control" placeholder="Ej: Bruxismo nocturno, tabaquismo, etc.">
+            </div>
+            <div class="col-12">
+                <label class="form-label text-dark">Motivo de consulta / Anamnesis inicial</label>
+                <textarea name="motivoPrimeraConsulta" rows="2" class="form-control" placeholder="Relato del paciente sobre su motivo de atención"></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label text-dark">Antecedentes médicos familiares</label>
+                <textarea name="antecedentesFamiliares" rows="2" class="form-control" placeholder="Antecedentes familiares relevantes"></textarea>
+            </div>
+            <div class="col-12">
+                <label class="form-label text-dark">Observaciones médicas adicionales</label>
+                <textarea name="observacionesMedicas" rows="2" class="form-control" placeholder="Otras anotaciones médicas de relevancia"></textarea>
+            </div>
+        </form>
+    </div>
+
+    <!-- MÓDULO C: DIAGNÓSTICOS CLÍNICOS & HALLAZGOS DEL ODONTOGRAMA -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-diagnosticos" th:hidden="${moduloClinica != 'diagnosticos'}">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-clipboard2-pulse text-teal me-2"></i> Diagnósticos y Hallazgos Clínicos</h2>
+                <p class="text-secondary small mb-0">Patologías identificadas en el odontograma y diagnósticos médicos por pieza dental.</p>
+            </div>
+            <button class="btn btn-outline-primary btn-sm px-3 fw-bold shadow-sm" id="btn-nuevo-diagnostico">
+                <i class="bi bi-plus-lg me-1"></i> Agregar Diagnóstico CIE-10
+            </button>
+        </div>
+
+        <!-- SECCIÓN 1: HALLAZGOS DETECTADOS DIRECTAMENTE EN EL ODONTOGRAMA -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-light-subtle mb-4">
+            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-teal text-white rounded-pill px-2.5 py-1 fw-bold" style="background-color: #0b7f86;"><i class="bi bi-grid-3x3 me-1"></i> Odontograma</span>
+                    <strong class="text-dark small text-uppercase" style="letter-spacing: .05em;">Hallazgos y Patologías de las Piezas Dentales</strong>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <small class="text-secondary" id="odonto-hallazgos-count">0 piezas con marcas</small>
+                    <button type="button" class="btn btn-sm btn-outline-teal fw-bold shadow-xs py-1 px-2.5" hidden id="btn-atender-todos-hallazgos" title="Registrar atención agrupando todas las piezas con patologías">
+                        <i class="bi bi-journal-plus me-1"></i> Atender Todas las Piezas Marcadas
+                    </button>
+                    <button type="button" class="btn btn-sm btn-teal text-white fw-bold shadow-xs py-1 px-2.5 d-none" id="btn-atender-hallazgos-sel" style="background-color: #0b7f86;">
+                        <i class="bi bi-check2-all me-1"></i> Atender Seleccionadas (<span id="count-hallazgos-sel">0</span>)
+                    </button>
+                </div>
+            </div>
+            <div class="table-responsive bg-white rounded-3 border">
+                <table class="table table-hover align-middle table-sm mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 36px;" class="text-center">
+                                <input type="checkbox" id="chk-hallazgos-master" class="form-check-input" title="Seleccionar todas" style="cursor: pointer;">
+                            </th>
+                            <th style="width: 130px;">Pieza Dental</th>
+                            <th>Condición / Hallazgo</th>
+                            <th>Superficie</th>
+                            <th>Tipo Clínico</th>
+                            <th class="text-end">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-odonto-hallazgos-body">
+                        <tr><td colspan="6" class="text-center text-secondary py-3 small">Sin hallazgos registrados en el odontograma.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: DIAGNÓSTICOS FORMALES CIE-10 -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <strong class="text-dark small text-uppercase" style="letter-spacing: .05em;"><i class="bi bi-journal-medical text-teal me-1"></i> Diagnósticos Médicos Registrados (CIE-10)</strong>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>CIE-10</th>
+                        <th>Descripción</th>
+                        <th>Pieza Dental</th>
+                        <th>Gravedad</th>
+                        <th>Estado</th>
+                        <th class="text-end">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-diagnosticos-body">
+                    <tr><td colspan="6" class="text-center text-secondary py-3">Selecciona un paciente para consultar sus diagnósticos.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- MÓDULO D: PLAN Y TRATAMIENTOS (CATÁLOGO Y CARRITO INTERACTIVO) -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-plan-tratamiento" th:hidden="${moduloClinica != 'plan-tratamiento'}">
+        <!-- Encabezado Ejecutivo sin textos redundantes -->
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <h2 class="h5 fw-bold text-dark mb-0"><i class="bi bi-cart3 text-teal me-1.5"></i> Plan y Presupuestos</h2>
+                <span class="badge bg-teal-subtle text-teal fw-semibold rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">Constructor Inteligente</span>
+            </div>
+            <button class="btn btn-outline-secondary btn-sm px-3 fw-semibold rounded-pill shadow-xs d-inline-flex align-items-center gap-1.5" id="btn-nuevo-plan">
+                <i class="bi bi-arrow-clockwise"></i> Reiniciar Plan
+            </button>
+        </div>
+
+        <!-- CONSTRUCTOR INTERACTIVO (CARRITO) -->
+        <div class="plan-builder-box mb-4 p-3 rounded-4 border shadow-xs" id="plan-builder-container">
+            <!-- Selector Móvil de Pestañas (Catálogo vs Carrito) solo en pantallas pequeñas -->
+            <div class="d-lg-none d-flex p-1 bg-white border rounded-pill shadow-xs mb-3 builder-mobile-nav" role="tablist">
+                <button type="button" class="btn btn-sm flex-fill rounded-pill fw-bold active builder-mob-tab-btn" id="mob-tab-btn-cat" data-target="catalogo">
+                    <i class="bi bi-grid-fill me-1"></i> Catálogo
+                </button>
+                <button type="button" class="btn btn-sm flex-fill rounded-pill fw-bold text-secondary builder-mob-tab-btn" id="mob-tab-btn-cart" data-target="cart">
+                    <i class="bi bi-cart3 me-1"></i> Carrito <span class="badge bg-teal text-white ms-1 rounded-pill" id="mob-cart-badge-count">0</span>
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <!-- Columna Izquierda: Catálogo Rápido -->
+                <div class="col-lg-6 builder-col-catalogo" id="builder-col-catalogo">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold small text-dark"><i class="bi bi-grid-fill text-teal me-1"></i> Catálogo de Servicios</span>
+                        <span class="badge bg-white text-secondary border rounded-pill px-2 py-0.5" id="builder-cat-count" style="font-size: 0.72rem;">0 procedimientos</span>
+                    </div>
+                    <div class="input-group input-group-sm mb-2 shadow-xs rounded-3 overflow-hidden border">
+                        <span class="input-group-text bg-white border-0 pe-1"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" class="form-control border-0 ps-1" id="builder-buscar-tratamiento" placeholder="Buscar procedimiento o código...">
+                    </div>
+                    <!-- Categorías rápidas en pills -->
+                    <div class="d-flex gap-1 overflow-x-auto pb-1 mb-2 builder-pills-scroll" id="builder-cat-pills">
+                        <button type="button" class="btn btn-sm btn-teal active builder-pill-btn" data-cat="">Todos</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary builder-pill-btn" data-cat="OPERATORIA">Operatoria</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary builder-pill-btn" data-cat="ORTODONCIA">Ortodoncia</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary builder-pill-btn" data-cat="CIRUGIA">Cirugía</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary builder-pill-btn" data-cat="ENDODONCIA">Endodoncia</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary builder-pill-btn" data-cat="PREVENTIVA">Preventiva</button>
+                    </div>
+                    <!-- Lista de tratamientos listos para [+] -->
+                    <div class="builder-catalog-list border rounded-3 p-2 bg-white" id="builder-catalog-items" style="max-height: 480px; overflow-y: auto;">
+                        <p class="text-secondary small text-center py-3">Cargando procedimientos...</p>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Carrito del Plan en Vivo -->
+                <div class="col-lg-6 builder-col-cart" id="builder-col-cart">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="fw-bold small text-dark"><i class="bi bi-cart-check-fill text-teal me-1"></i> Presupuesto en Armado</span>
+                        <span class="badge bg-teal-subtle text-teal border-0 rounded-pill px-2.5 py-1" id="builder-cart-badge" style="font-size: 0.72rem;">0 procedimientos</span>
+                    </div>
+
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm fw-bold border-0 bg-white shadow-xs rounded-3 px-2.5 py-1.5" id="builder-plan-titulo" value="Plan de Tratamiento Integral" placeholder="Título del plan...">
+                    </div>
+
+                    <!-- Módulo Compacto de Descuentos -->
+                    <div class="cart-discount-switch-card p-2 mb-2 rounded-3 border bg-white shadow-xs">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center gap-1.5">
+                                <i class="bi bi-tag-fill text-teal small"></i>
+                                <span class="small fw-semibold text-dark">Descuentos</span>
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input" type="checkbox" id="builder-toggle-descuentos" style="cursor:pointer;">
+                            </div>
+                        </div>
+                        <!-- Modalidad de Descuento (Visible si está activo el switch) -->
+                        <div class="pt-2 mt-1.5 border-top d-flex align-items-center justify-content-between gap-2 flex-wrap" id="discount-mode-selector" hidden>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <input type="radio" class="btn-check" name="discount-mode" id="discount-mode-item" value="item" checked autocomplete="off">
+                                <label class="btn btn-xs btn-outline-teal" for="discount-mode-item">Individual</label>
+                                <input type="radio" class="btn-check" name="discount-mode" id="discount-mode-global" value="global" autocomplete="off">
+                                <label class="btn btn-xs btn-outline-teal" for="discount-mode-global">Global Total</label>
+                            </div>
+                            <!-- Campo para Descuento Global -->
+                            <div class="d-flex align-items-center gap-1" id="global-discount-container" hidden>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <button type="button" class="btn btn-xs btn-outline-secondary active btn-global-type" data-type="pct">%</button>
+                                    <button type="button" class="btn btn-xs btn-outline-secondary btn-global-type" data-type="val">S/</button>
+                                </div>
+                                <input type="number" step="0.5" min="0" class="form-control form-control-sm text-end fw-bold text-teal" id="input-global-discount-val" value="0" style="width: 70px; height: 26px; font-size: 0.8rem;">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Items del carrito -->
+                    <div class="builder-cart-items-container border rounded-3 p-2 bg-white mb-2" id="builder-cart-items" style="max-height: 400px; overflow-y: auto;">
+                        <div class="text-center py-4 text-secondary small">
+                            <i class="bi bi-bag-plus fs-2 text-teal opacity-50 d-block mb-1"></i>
+                            El carrito está vacío.<br>Haz clic en <strong>[+ Agregar]</strong> en el catálogo para armar el plan.
+                        </div>
+                    </div>
+
+                    <!-- Notas u Observaciones opcionales -->
+                    <div class="mb-2">
+                        <input type="text" class="form-control form-control-sm bg-white border shadow-xs rounded-3 px-2.5" id="builder-plan-notas" placeholder="Observaciones o facilidades de pago (opcional)...">
+                    </div>
+
+                    <!-- Resumen Financiero y Acciones -->
+                    <div class="p-3 rounded-3 bg-white border shadow-sm cart-summary-panel">
+                        <div class="d-flex justify-content-between align-items-center mb-1 text-secondary small">
+                            <span>Subtotal:</span>
+                            <strong class="text-dark" id="builder-summary-subtotal">S/ 0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-1 text-success small" id="builder-summary-discount-row" hidden>
+                            <span class="d-flex align-items-center gap-1"><i class="bi bi-tag-fill"></i> Descuento:</span>
+                            <strong id="builder-summary-discount">- S/ 0.00</strong>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top mb-3">
+                            <div>
+                                <span class="d-block text-secondary small fw-bold text-uppercase" style="letter-spacing: .04em; line-height: 1.1;">Total a Presupuestar</span>
+                                <small class="text-muted" id="builder-summary-items-count">0 procedimientos</small>
+                            </div>
+                            <span class="fs-4 fw-bolder text-teal" id="builder-cart-total">S/ 0.00</span>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button type="button" class="btn btn-outline-secondary btn-sm flex-fill fw-semibold rounded-3 py-1.5 shadow-xs d-inline-flex align-items-center justify-content-center gap-1" id="btn-builder-guardar-borrador" title="Guarda el plan como cotización sin generar deuda">
+                                <i class="bi bi-file-earmark-text"></i> Guardar Cotización
+                            </button>
+                            <button type="button" class="btn btn-success btn-sm flex-fill fw-bold rounded-3 py-1.5 shadow-sm d-inline-flex align-items-center justify-content-center gap-1 text-white" id="btn-builder-aprobar-deuda" style="background-color: #0b7f86; border-color: #0b7f86;" title="Aprueba el plan y genera la deuda en la cuenta del paciente">
+                                <i class="bi bi-check2-circle"></i> Aprobar y Generar Deuda
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Barra Móvil Sticky cuando se navega el catálogo en celular -->
+            <div class="d-lg-none sticky-mobile-cart-bar" id="mobile-sticky-cart-bar" hidden>
+                <div class="d-flex align-items-center justify-content-between gap-2 p-2 px-3 bg-teal text-white rounded-pill shadow-lg" style="background-color: #0b7f86;">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-cart-check-fill fs-5"></i>
+                        <div>
+                            <strong class="d-block small" id="mobile-sticky-total">S/ 0.00</strong>
+                            <span style="font-size:0.7rem; opacity:0.9;" id="mobile-sticky-count">0 procedimientos</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-light text-teal fw-bold rounded-pill px-3 shadow-sm" id="btn-mobile-ver-carrito" style="color: #0b7f86;">
+                        Ver Plan <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <h3 class="h6 fw-bold text-dark mb-0"><i class="bi bi-clock-history text-secondary me-1"></i> Planes Registrados del Paciente</h3>
+        </div>
+        <div id="contenedor-planes">
+            <p class="text-secondary small">Selecciona un paciente para consultar sus planes de tratamiento.</p>
+        </div>
+    </div>
+
+    <!-- MÓDULO F: ATENCIONES REALIZADAS -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-atenciones" th:hidden="${moduloClinica != 'atenciones'}">
+        <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-journal-check text-teal me-2"></i> Sesiones y Atenciones Realizadas</h2>
+                <p class="text-secondary small mb-0">Procedimientos clínicos agrupados por sesión y cita con su receta médica unificada.</p>
+            </div>
+            <button type="button" class="btn btn-success btn-sm fw-bold shadow-xs d-inline-flex align-items-center gap-1.5" id="btn-nueva-atencion" title="Registrar nueva atención o procedimiento clínico para este paciente">
+                <i class="bi bi-plus-circle-fill"></i> Nueva Atención / Consulta
+            </button>
+        </div>
+
+        <div id="contenedor-atenciones" class="timeline-atenciones">
+            <p class="text-secondary small">Selecciona un paciente para consultar sus atenciones y evoluciones.</p>
+        </div>
+    </div>
+
+    <!-- MÓDULO G: CUENTAS, PAGOS Y DEUDAS — Todo inline, sin salir de la vista -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-cuentas-pagos" th:hidden="${moduloClinica != 'cuentas-pagos'}">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-wallet2 text-teal me-2"></i>Cuentas, Deudas y Pagos</h2>
+                <p class="text-secondary small mb-0">Balance en tiempo real · Registra abonos, revisa saldos y controla el estado de cada tratamiento.</p>
+            </div>
+            <button class="btn btn-success btn-sm fw-bold shadow-sm" id="btn-registrar-abono-rapido" disabled>
+                <i class="bi bi-plus-lg me-1"></i>Registrar abono
+            </button>
+        </div>
+
+        <!-- KPIs -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-4">
+                <div class="kpi-financial-card p-3 rounded-4 border bg-light shadow-sm">
+                    <small class="text-secondary text-uppercase fw-bold" style="font-size:.72rem;">Total presupuestado</small>
+                    <h3 class="h4 fw-bold text-dark mt-1 mb-0" id="kpi-fin-total">S/ 0.00</h3>
+                    <small class="text-muted" id="kpi-fin-pres-count">0 presupuestos aprobados</small>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="kpi-financial-card p-3 rounded-4 border bg-success-subtle border-success-subtle shadow-sm">
+                    <small class="text-success text-uppercase fw-bold" style="font-size:.72rem;">Total abonado</small>
+                    <h3 class="h4 fw-bold text-success mt-1 mb-0" id="kpi-fin-pagado">S/ 0.00</h3>
+                    <small class="text-success" id="kpi-fin-pagos-count">0 pagos registrados</small>
+                </div>
+            </div>
+            <div class="col-sm-4">
+                <div class="kpi-financial-card p-3 rounded-4 border shadow-sm" id="kpi-fin-deuda-card">
+                    <small class="text-uppercase fw-bold" style="font-size:.72rem;" id="kpi-fin-deuda-label">Saldo pendiente</small>
+                    <h3 class="h4 fw-bold mt-1 mb-0" id="kpi-fin-deuda">S/ 0.00</h3>
+                    <small class="fw-semibold" id="kpi-fin-deuda-status">Al día</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aviso de error -->
+        <div id="cuentas-aviso" class="alert alert-danger py-2 px-3 mb-3" style="display:none;font-size:.87rem;"></div>
+
+        <!-- Presupuestos del paciente con acciones inline -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="h6 fw-bold text-dark mb-0"><i class="bi bi-receipt text-teal me-1"></i>Presupuestos y estado de cobro</h3>
+                <span class="text-muted small" id="pres-filtro-estado-label">Todos</span>
+            </div>
+            <div id="contenedor-fin-presupuestos">
+                <p class="text-secondary text-center py-3 small">Cargando presupuestos…</p>
+            </div>
+        </div>
+
+        <!-- Cuotas del plan de tratamiento (ortodoncia, brackets, largo plazo) -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white mb-3" id="card-cuotas-plan" style="display:none;">
+            <div class="d-flex align-items-center justify-content-between mb-3">
+                <h3 class="h6 fw-bold text-dark mb-0"><i class="bi bi-calendar-check text-teal me-1"></i>Cuotas por cita — Plan de largo plazo</h3>
+                <span class="badge bg-primary-subtle text-primary" id="cuotas-plan-titulo">Plan activo</span>
+            </div>
+            <p class="text-secondary small mb-3" id="cuotas-plan-desc">Cada cita puede tener un pago asociado. Registra el abono correspondiente a cada sesión.</p>
+            <div id="contenedor-cuotas-citas">
+                <p class="text-secondary text-center py-3 small">Sin citas con cuota registradas.</p>
+            </div>
+        </div>
+
+        <!-- Historial de abonos registrados -->
+        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+            <h3 class="h6 fw-bold text-dark mb-3"><i class="bi bi-clock-history text-teal me-1"></i>Historial de abonos y pagos</h3>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle table-sm">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Fecha</th><th>Presupuesto</th><th>Método</th><th class="text-end">Monto</th><th>Estado</th><th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-fin-pagos-body">
+                        <tr><td colspan="6" class="text-center text-muted py-3">Sin abonos registrados</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MÓDULO H: HISTORIAL DE CITAS -->
+    <div class="clinica-view-panel clinica-white-card" id="panel-historial-citas" th:hidden="${moduloClinica != 'historial-citas'}">
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <h2 class="h5 fw-bold text-dark mb-1"><i class="bi bi-calendar-range text-teal me-2"></i> Historial Integral de Citas</h2>
+                <p class="text-secondary small mb-0">Citas pasadas, asistencia, cancelaciones y próximas citas programadas del paciente.</p>
+            </div>
+            <a th:href="@{/interno/citas}" class="btn btn-primary btn-sm px-3 fw-bold shadow-sm">
+                <i class="bi bi-calendar-plus me-1"></i> Agendar Nueva Cita
+            </a>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Fecha y Hora</th>
+                        <th>Profesional</th>
+                        <th>Especialidad</th>
+                        <th>Tipo de Atención</th>
+                        <th>Motivo</th>
+                        <th>Estado</th>
+                        <th class="text-end">Detalle de Atención</th>
+                    </tr>
+                </thead>
+                <tbody id="tabla-historial-citas-body">
+                    <tr><td colspan="7" class="text-center text-muted py-4">Selecciona un paciente para consultar su historial de citas.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<!-- MODALES (REGISTRO RÁPIDO) -->
+<div class="modal fade" id="modal-crear-diagnostico" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Nuevo Diagnóstico Clínico</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-crear-diagnostico">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Pieza Dental</label>
+                        <input type="number" id="diag-numero-pieza" class="form-control" placeholder="Ej: 26 (o vacío para general)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Código CIE-10 / Diagnóstico</label>
+                        <select id="diag-codigo-cie" class="form-select" required>
+                            <option value="K02.1">K02.1 - Caries de la dentina</option>
+                            <option value="K02.0">K02.0 - Caries del esmalte</option>
+                            <option value="K04.0">K04.0 - Pulpitis irreversible</option>
+                            <option value="K05.1">K05.1 - Gingivitis crónica</option>
+                            <option value="K07.2">K07.2 - Maloclusión dental</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Descripción clínica</label>
+                        <input type="text" id="diag-descripcion" class="form-control" required placeholder="Detalle del diagnóstico">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold ms-auto">Guardar Diagnóstico</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-crear-plan" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Nuevo Plan de Tratamiento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-crear-plan">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold">Título del Plan</label>
+                            <input type="text" name="titulo" class="form-control" value="Plan de Tratamiento Integral" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Estado Inicial</label>
+                            <select name="estado" class="form-select">
+                                <option value="PROPUESTO" selected>PROPUESTO</option>
+                                <option value="BORRADOR">BORRADOR</option>
+                                <option value="APROBADO">APROBADO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                        <label class="form-label small fw-bold mb-0">Procedimientos del Plan</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <select id="select-catalogo-rapido" class="form-select form-select-sm" style="max-width: 320px;">
+                                <option value="">+ Seleccionar del catálogo oficial...</option>
+                            </select>
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-bold" id="btn-agregar-fila-plan">
+                                <i class="bi bi-plus-lg me-1"></i> Otra fila
+                            </button>
+                        </div>
+                    </div>
+                    <datalist id="datalist-tratamientos-plan"></datalist>
+                    <div class="table-responsive mb-3 border rounded-3">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 75px;">Fase</th>
+                                    <th style="width: 80px;">Pieza</th>
+                                    <th>Procedimiento / Tratamiento</th>
+                                    <th style="width: 120px;">Precio (S/)</th>
+                                    <th style="width: 45px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="plan-items-lista"></tbody>
+                        </table>
+                    </div>
+                    <div>
+                        <label class="form-label small fw-bold">Notas u Observaciones del Plan</label>
+                        <textarea name="notas" rows="2" class="form-control" placeholder="Observaciones sobre tiempos, facilidades de pago o prioridades clínicas..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold ms-auto"><i class="bi bi-check2-circle me-1"></i> Guardar Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-detalle-pieza" tabindex="-1" aria-labelledby="detalle-pieza-titulo" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-xl odonto-detail-dialog">
+        <div class="modal-content odonto-detail-modal-custom border-0 shadow-2xl">
+            <div class="modal-header border-bottom bg-white py-3 px-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="odonto-hero-avatar-box" id="detalle-pieza-badge-num">
+                        --
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2 mb-1 flex-wrap">
+                            <span class="odonto-hero-badge-tag">
+                                <i class="bi bi-person-vcard me-1"></i>FICHA INDIVIDUAL DEL DIENTE
+                            </span>
+                            <span class="badge bg-light text-dark border small fw-semibold" id="detalle-pieza-tipo-badge">Dentición permanente</span>
+                        </div>
+                        <h2 class="modal-title h5 mb-0 fw-bold text-dark d-flex align-items-center gap-2" id="detalle-pieza-titulo">Diente --</h2>
+                        <small id="detalle-pieza-denticion" class="text-muted fw-medium d-block mt-0.5"></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar ficha"></button>
+            </div>
+            <div class="modal-body p-3 p-md-4 bg-light-subtle">
+                <div class="row g-3">
+                    <!-- COLUMNA IZQUIERDA: INFORMACIÓN ANATÓMICA Y ESTADO ACTUAL -->
+                    <div class="col-lg-5 d-flex flex-column gap-3">
+                        <!-- SECCIÓN 1: INFORMACIÓN ANATÓMICA -->
+                        <section class="odonto-detail-card shadow-xs">
+                            <div class="odonto-card-header mb-3 pb-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="odonto-icon-pill bg-teal-subtle text-teal">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="odonto-card-title mb-0">Información del diente</h3>
+                                        <span class="odonto-card-subtitle">Morfología y localización anatómica</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="odonto-specs-table">
+                                <div class="odonto-spec-row">
+                                    <span class="odonto-spec-label"><i class="bi bi-arrows-expand me-1 text-teal"></i>Arcada / Posición:</span>
+                                    <span class="odonto-spec-value" id="detalle-pieza-arcada">--</span>
+                                </div>
+                                <div class="odonto-spec-row">
+                                    <span class="odonto-spec-label"><i class="bi bi-pie-chart me-1 text-teal"></i>Cuadrante:</span>
+                                    <span class="odonto-spec-value" id="detalle-pieza-cuadrante">--</span>
+                                </div>
+                                <div class="odonto-spec-row">
+                                    <span class="odonto-spec-label"><i class="bi bi-layers me-1 text-teal"></i>Grupo dental:</span>
+                                    <span class="odonto-spec-value" id="detalle-pieza-grupo">--</span>
+                                </div>
+                                <div class="odonto-spec-row flex-column align-items-start gap-1">
+                                    <span class="odonto-spec-label"><i class="bi bi-activity me-1 text-teal"></i>Función principal:</span>
+                                    <span class="odonto-spec-value text-secondary fw-normal small text-start" id="detalle-pieza-funcion">--</span>
+                                </div>
+                                <div class="odonto-spec-row flex-column align-items-start gap-1.5 pt-2">
+                                    <span class="odonto-spec-label"><i class="bi bi-box me-1 text-teal"></i>Caras anatómicas de la pieza:</span>
+                                    <div class="odonto-caras-chips" id="detalle-pieza-caras-chips">
+                                        <!-- Chips de caras -->
+                                    </div>
+                                    <span class="d-none" id="detalle-pieza-caras">--</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- SECCIÓN 2: ESTADO ACTUAL EN ODONTOGRAMA Y DIAGNÓSTICOS -->
+                        <section class="odonto-detail-card shadow-xs flex-grow-1">
+                            <div class="odonto-card-header mb-3 pb-2 border-bottom">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="odonto-icon-pill bg-primary-subtle text-primary">
+                                        <i class="bi bi-shield-check"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="odonto-card-title mb-0">Estado actual de la pieza</h3>
+                                        <span class="odonto-card-subtitle">Condiciones vigentes en odontograma</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <span class="odonto-spec-label d-block mb-1.5"><i class="bi bi-palette me-1 text-primary"></i>Condición en odontograma:</span>
+                                <div id="detalle-pieza-marcas" class="d-flex flex-wrap gap-1.5">
+                                    Sin marcas registradas.
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <span class="odonto-spec-label d-block mb-1.5"><i class="bi bi-clipboard2-pulse me-1 text-danger"></i>Diagnósticos vigentes:</span>
+                                <div id="detalle-pieza-diagnosticos" class="small">
+                                    Sin diagnósticos vigentes para esta pieza.
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+
+                    <!-- COLUMNA DERECHA: SECCIÓN 3: TRATAMIENTOS REALIZADOS (HISTORIAL CLÍNICO INDIVIDUAL) -->
+                    <div class="col-lg-7">
+                        <section class="odonto-detail-card h-100 shadow-xs d-flex flex-column">
+                            <div class="odonto-card-header mb-2 pb-2 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2.5">
+                                    <div class="odonto-icon-pill bg-teal text-white shadow-xs">
+                                        <i class="bi bi-journal-medical"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="odonto-card-title mb-0">Historial de tratamientos realizados</h3>
+                                        <span class="odonto-card-subtitle">Atenciones y procedimientos exclusivos de esta pieza</span>
+                                    </div>
+                                </div>
+                                <span class="badge bg-teal-subtle text-teal border border-teal-subtle px-2.5 py-1.5 rounded-pill fw-bold" id="detalle-pieza-conteo-historial">0 tratamientos</span>
+                            </div>
+                            
+                            <div class="odonto-scope-alert py-1.5 px-2.5 mb-2.5 rounded-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-check-circle-fill text-teal"></i>
+                                <span class="small text-secondary">
+                                    Mostrando únicamente intervenciones realizadas en la <strong>pieza <span id="detalle-pieza-num-notice">--</span></strong> (excluye auditorías 3D).
+                                </span>
+                            </div>
+                            
+                            <div id="detalle-pieza-historial" class="odonto-detail-history-container flex-grow-1 custom-scrollbar">
+                                <div class="text-center py-4 text-secondary small">
+                                    <i class="bi bi-clock-history d-block fs-3 mb-2 text-muted"></i>
+                                    Sin antecedentes clínicos registrados en esta pieza.
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white py-2.5 px-4 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <span class="text-muted small">
+                    <i class="bi bi-lightbulb me-1 text-teal"></i>Los tratamientos mostrados corresponden individualmente a esta pieza dental.
+                </span>
+                <button type="button" class="btn btn-teal btn-sm px-3.5 rounded-pill fw-semibold shadow-xs d-flex align-items-center gap-1.5" id="btn-detalle-pieza-atender">
+                    <i class="bi bi-plus-circle-fill"></i>Registrar atención en pieza
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-nuevo-tratamiento" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Nuevo Procedimiento en Catálogo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-nuevo-tratamiento">
+                <div class="modal-body">
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold">Código (Único)</label>
+                            <input type="text" name="codigo" class="form-control" placeholder="Ej: OPER-04" required>
+                        </div>
+                        <div class="col-md-7">
+                            <label class="form-label small fw-bold">Categoría</label>
+                            <select name="categoria" class="form-select" required>
+                                <option value="EVALUACION">Consulta y evaluación</option>
+                                <option value="PREVENTIVA">Preventiva</option>
+                                <option value="OPERATORIA" selected>Operatoria</option>
+                                <option value="ENDODONCIA">Endodoncia</option>
+                                <option value="PERIODONCIA">Periodoncia</option>
+                                <option value="CIRUGIA">Cirugía</option>
+                                <option value="REHABILITACION">Rehabilitación</option>
+                                <option value="ESTETICA">Estética</option>
+                                <option value="ORTODONCIA">Ortodoncia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nombre del Procedimiento</label>
+                        <input type="text" name="nombre" class="form-control" placeholder="Ej: Incrustación de resina estética" required style="text-transform: uppercase;">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Subcategoría</label>
+                        <input type="text" name="subcategoria" class="form-control" maxlength="80" placeholder="Ej: Resinas, prótesis móviles, conductos" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Descripción / Detalles</label>
+                        <textarea name="descripcion" rows="2" class="form-control" placeholder="Detalle clínico o alcance del procedimiento"></textarea>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Costo Sugerido (S/)</label>
+                            <input type="number" step="0.01" min="0" name="precio" class="form-control" placeholder="0 si falta confirmar" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Duración Est. (min)</label>
+                            <input type="number" min="5" max="480" name="duracion" class="form-control" placeholder="Minutos aproximados" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary fw-bold ms-auto"><i class="bi bi-plus-circle me-1"></i> Guardar en Catálogo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-crear-atencion" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modal-atencion-titulo-wrap"><i class="bi bi-journal-medical text-teal me-2"></i><span id="modal-atencion-titulo">Registrar Atención Clínica</span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-crear-atencion">
+                <input type="hidden" name="citaId" id="atencion-cita-id" th:value="${citaInicialId}">
+                <input type="hidden" name="itemPlanIdCompletar" id="atencion-item-plan-id">
+                <div class="px-3 pt-3" id="atencion-importe-panel">
+                    <label class="form-label" for="atencion-importe">Importe acordado de esta atención (S/)</label>
+                    <input id="atencion-importe" name="importeTratamiento" type="number" min="0" max="9999999.99" step="0.01" class="form-control" aria-describedby="atencion-importe-ayuda">
+                    <small id="atencion-importe-ayuda" class="text-secondary">Opcional. Genera un cargo pendiente al finalizar. Si atiendes un tratamiento del plan, se conserva su presupuesto y no se duplica el cargo.</small>
+                </div>
+                <div class="modal-body">
+                    <!-- Aviso de cita vinculada (compacto y sutil) -->
+                    <div id="atencion-modal-cita-notice" class="alert alert-primary-subtle border border-primary-subtle rounded-3 py-1.5 px-3 small d-flex align-items-center justify-content-between mb-2.5" hidden>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-check-fill text-primary"></i>
+                            <span class="fw-bold text-dark" id="atencion-modal-cita-titulo">Cita en curso</span>
+                            <span class="text-secondary" style="font-size: 0.78rem;" id="atencion-modal-cita-sub">· Se marcará como ATENDIDA en agenda</span>
+                        </div>
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle py-1 px-2" id="atencion-modal-cita-badge">Cita vinculada</span>
+                    </div>
+
+                    <!-- Aviso de atención directa (sin cita previa) -->
+                    <div id="atencion-modal-directo-notice" class="alert alert-teal-subtle border border-teal-subtle rounded-3 py-1.5 px-3 small d-flex align-items-center justify-content-between mb-2.5" style="background-color: #e6f6f7; border-color: #b2e2e6;" hidden>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-teal"></i>
+                            <span class="fw-bold text-dark">Consulta / Atención Directa</span>
+                            <span class="text-secondary" style="font-size: 0.78rem;">· Registro directo en historia clínica sin cita</span>
+                        </div>
+                        <span class="badge bg-white text-teal border border-teal-subtle py-1 px-2">Sin Cita</span>
+                    </div>
+
+                    <!-- Aviso de tratamiento del plan vinculado -->
+                    <div id="atencion-modal-plan-notice" class="alert alert-info border border-info-subtle rounded-3 py-1.5 px-3 small d-flex align-items-center justify-content-between mb-2.5" hidden>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-clipboard2-check-fill text-info"></i>
+                            <span class="fw-bold text-dark" id="atencion-modal-plan-titulo">Tratamiento del Plan</span>
+                            <span class="text-secondary" style="font-size: 0.78rem;" id="atencion-modal-plan-sub">· Se marcará como REALIZADO</span>
+                        </div>
+                        <span class="badge bg-info-subtle text-info border border-info-subtle py-1 px-2">Plan de Tratamiento</span>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-5">
+                            <label class="form-label small fw-bold text-secondary mb-1" for="atencion-profesional-id">
+                                <i class="bi bi-person-badge text-teal me-1"></i>Profesional Odontólogo
+                            </label>
+                            <span id="atencion-profesional-display" class="d-none" th:text="${profesionales != null and !profesionales.isEmpty() ? profesionales[0]['nombre'] : 'Odontólogo Tratante'}"></span>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-light border-end-0 text-teal"><i class="bi bi-person-fill"></i></span>
+                                <select class="form-select form-select-sm border-start-0 fw-semibold" name="profesionalId" id="atencion-profesional-id">
+                                    <option th:each="prof : ${profesionales}" th:value="${prof['id']}" th:text="${prof['nombre']}"></option>
+                                    <option th:if="${profesionales == null or profesionales.isEmpty()}" value="" selected>Odontólogo Tratante</option>
+                                </select>
+                            </div>
+                            <small class="text-secondary d-block mt-1" id="atencion-profesional-sub" style="font-size: 0.72rem;"><i class="bi bi-shield-check text-success me-1"></i>Odontólogo a cargo de la atención</small>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                                <label class="form-label small fw-bold mb-0">
+                                    <i class="bi bi-grid-3x3-gap text-teal me-1"></i>Pieza(s) Tratada(s) Hoy
+                                </label>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="form-check form-check-inline m-0">
+                                        <input class="form-check-input" type="checkbox" id="chk-todas-piezas" style="cursor: pointer;">
+                                        <label class="form-check-label small fw-semibold text-teal" for="chk-todas-piezas" style="cursor: pointer; font-size: 0.76rem;">
+                                            Todas
+                                        </label>
+                                    </div>
+                                    <button type="button" class="btn btn-link btn-xs text-teal p-0 text-decoration-none fw-semibold" id="btn-cargar-odonto-atencion" style="font-size: 0.74rem;" title="Importar hallazgos recientes del odontograma">
+                                        <i class="bi bi-magic me-1"></i>Auto-cargar
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Input oculto para persistencia limpia -->
+                            <input type="hidden" name="piezasTratadas" id="atencion-pieza-input" maxlength="100">
+
+                            <!-- Selector visual interactivo de piezas (Siempre visible, interactivo con un clic) -->
+                            <div id="atencion-tooth-picker" class="p-2 border rounded-3 bg-light-subtle">
+                                <div class="d-flex justify-content-between align-items-center mb-1.5 flex-wrap gap-1">
+                                    <div class="small text-truncate" id="atencion-piezas-seleccionadas-label" style="font-size: 0.75rem;">
+                                        <span class="text-muted">Pieza(s): </span><span id="atencion-piezas-seleccionadas-texto" class="fw-semibold text-dark">Ninguna (General)</span>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-xs btn-outline-teal py-0 px-1" id="btn-quick-sel-sup" style="font-size: 0.68rem;" title="Arcada Superior (18..28)">Sup. (18-28)</button>
+                                        <button type="button" class="btn btn-xs btn-outline-teal py-0 px-1" id="btn-quick-sel-inf" style="font-size: 0.68rem;" title="Arcada Inferior (48..38)">Inf. (48-38)</button>
+                                        <button type="button" class="btn btn-xs btn-outline-danger py-0 px-1" id="btn-quick-sel-limpiar" style="font-size: 0.68rem;" title="Desmarcar todas">Limpiar</button>
+                                    </div>
+                                </div>
+                                <div class="d-flex justify-content-center gap-1 mb-1 flex-wrap tooth-picker-row" id="tooth-picker-row-sup"></div>
+                                <div class="d-flex justify-content-center gap-1 flex-wrap tooth-picker-row" id="tooth-picker-row-inf"></div>
+                            </div>
+                            <div class="invalid-feedback" id="atencion-pieza-feedback">Seleccione al menos una pieza o marque 'Todas'.</div>
+                        </div>
+                    </div>
+                    <!-- Procedimiento Realizado (Principal) -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-teal"><i class="bi bi-tools me-1"></i> Procedimiento Dental Realizado Hoy</label>
+                        <textarea name="planProcedimiento" rows="2" class="form-control" maxlength="2000" required aria-describedby="atencion-procedimiento-ayuda" placeholder="Ej: Curación con resina estética Filtek A2, extracción de tercer molar, ajuste de brackets..."></textarea>
+                        <div class="invalid-feedback">Por favor, detalle el procedimiento dental realizado.</div>
+                        <small id="atencion-procedimiento-ayuda" class="text-secondary">Obligatorio · describe de forma directa el tratamiento efectuado.</small>
+                    </div>
+                    <!-- Indicaciones y Receta Médica -->
+                    <div class="mb-3 p-3 rounded-3 border bg-light-subtle">
+                        <div class="d-flex justify-content-between align-items-center mb-1 flex-wrap gap-1">
+                            <label class="form-label small fw-bold text-teal mb-0"><i class="bi bi-prescription2 me-1"></i> Indicaciones y Receta Médica de la Cita (Rp.)</label>
+                            <span class="text-secondary" style="font-size: 0.72rem;">Clic rápido para prescribir:</span>
+                        </div>
+                        <div class="d-flex gap-1 flex-wrap mb-2">
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-quick-rx" data-rx="Amoxicilina 500mg: 1 cápsula cada 8 horas por 7 días vía oral.">+ Amoxicilina 500mg</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-quick-rx" data-rx="Ibuprofeno 400mg: 1 tableta cada 8 horas por 3 días después de alimentos.">+ Ibuprofeno 400mg</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-quick-rx" data-rx="Paracetamol 500mg: 1 tableta cada 8 horas condicional a dolor o fiebre.">+ Paracetamol 500mg</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-quick-rx" data-rx="Ketorolaco 10mg: 1 tableta sublingual cada 8 horas por máximo 3 días.">+ Ketorolaco 10mg</button>
+                            <button type="button" class="btn btn-xs btn-outline-secondary btn-quick-rx" data-rx="Enjuague bucal con Clorhexidina 0.12%: 15 ml cada 12 horas por 7 días tras cepillado.">+ Clorhexidina 0.12%</button>
+                        </div>
+                        <textarea name="indicacionesReceta" id="input-atencion-receta" rows="3" class="form-control" maxlength="2000" placeholder="Escribe aquí los medicamentos, dosis e indicaciones médicas para el paciente..."></textarea>
+                        <small class="text-muted mt-1 d-block" style="font-size: 0.74rem;"><i class="bi bi-printer me-1 text-teal"></i> Al finalizar la atención podrás imprimir la receta oficial o compartirla directamente por WhatsApp.</small>
+                    </div>
+                    <!-- Observaciones de la Visita -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark"><i class="bi bi-chat-left-dots me-1"></i> Observaciones de la Cita / Motivo</label>
+                        <textarea name="subjetivo" rows="1" class="form-control" maxlength="1500" placeholder="Ej: Paciente toleró bien el procedimiento, se programa cita de control en 15 días..."></textarea>
+                    </div>
+                    <!-- Detalles adicionales (Ocultos de la interfaz por simplificación médica solicitada) -->
+                    <div class="row g-2 d-none" aria-hidden="true" style="display: none !important;">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">E (Evaluación) - Valoración clínica</label>
+                            <input type="text" name="evaluacion" class="form-control form-control-sm" maxlength="1500" placeholder="Valoración general">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Hallazgos / Objetivo</label>
+                            <input type="text" name="objetivo" class="form-control form-control-sm" maxlength="1500" placeholder="Inspección intraoral">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Materiales usados</label>
+                            <input type="text" name="materiales" class="form-control form-control-sm" maxlength="500" placeholder="Materiales utilizados">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-warning" id="btn-recargar-atencion-conflicto" hidden>Recargar borrador actualizado</button>
+                    <div id="estado-guardado-atencion" class="small text-secondary" style="font-size: 0.78rem;">
+                        <i class="bi bi-shield-lock me-1 text-teal"></i>Tus cambios se conservan automáticamente en este paciente.
+                    </div>
+                    <button type="submit" class="btn btn-clinica px-4 fw-bold" id="btn-submit-atencion">
+                        <i class="bi bi-check2-circle me-1"></i> Finalizar atención
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DETALLE DE ATENCIÓN DE CITA -->
+<div class="modal fade" id="modal-detalle-atencion-cita" tabindex="-1" aria-labelledby="modal-detalle-cita-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-teal text-white py-3" style="background-color: #0b7f86;">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white text-teal d-flex align-items-center justify-content-center fw-bold shadow-xs" style="width: 38px; height: 38px; color: #0b7f86;">
+                        <i class="bi bi-clipboard2-pulse fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="modal-detalle-cita-title">Detalle de Atención Clínica</h5>
+                        <small class="text-white-50" id="modal-detalle-cita-sub">Resumen de la cita y procedimientos realizados</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <!-- Info de la Cita -->
+                <div class="bg-white p-3 rounded-3 border shadow-xs mb-3">
+                    <div class="row g-2 small">
+                        <div class="col-sm-6">
+                            <span class="text-secondary d-block">Fecha y Hora de la Cita:</span>
+                            <strong class="text-dark fs-6" id="det-cita-fecha-hora">—</strong>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <span class="text-secondary d-block">Estado de la Cita:</span>
+                            <span id="det-cita-estado-badge" class="badge bg-secondary">—</span>
+                        </div>
+                        <div class="col-sm-6 mt-2">
+                            <span class="text-secondary d-block">Odontólogo / Profesional:</span>
+                            <strong class="text-dark" id="det-cita-profesional">—</strong>
+                            <small class="text-muted d-block" id="det-cita-especialidad">—</small>
+                        </div>
+                        <div class="col-sm-6 text-sm-end mt-2">
+                            <span class="text-secondary d-block">Tipo de Atención / Motivo:</span>
+                            <strong class="text-dark" id="det-cita-tipo">—</strong>
+                            <small class="text-muted d-block" id="det-cita-motivo">—</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Procedimientos Realizados en la Cita -->
+                <div class="bg-white p-3 rounded-3 border shadow-xs mb-3">
+                    <div class="d-flex align-items-center gap-2 mb-2 pb-2 border-bottom">
+                        <i class="bi bi-check2-circle text-teal fs-5" style="color: #0b7f86;"></i>
+                        <h6 class="fw-bold mb-0 text-dark">Procedimientos Realizados en esta Cita</h6>
+                    </div>
+                    <div id="det-cita-procedimientos-lista">
+                        <!-- Items de procedimientos enumerados -->
+                    </div>
+                </div>
+
+                <!-- Receta Médica de la Cita -->
+                <div class="bg-white p-3 rounded-3 border shadow-xs" id="det-cita-seccion-receta">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="fw-bold fs-4 text-teal" style="font-style: italic; font-family: serif; color: #0b7f86;">Rp.</span>
+                            <h6 class="fw-bold mb-0 text-dark">Receta Médica / Prescripción Odontológica</h6>
+                        </div>
+                        <div class="d-flex gap-1" id="det-cita-receta-acciones">
+                            <button type="button" class="btn btn-sm btn-teal text-white fw-bold shadow-xs" id="btn-det-cita-imprimir-receta" style="background-color: #0b7f86;">
+                                <i class="bi bi-printer-fill me-1"></i> Imprimir Receta Médica
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-success bg-white" id="btn-det-cita-wa-receta">
+                                <i class="bi bi-whatsapp me-1"></i> WhatsApp
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-3 rounded-3 border bg-light-subtle small" id="det-cita-receta-texto" style="line-height: 1.6; white-space: pre-line;">
+                        Sin prescripción registrada para esta cita.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top py-2.5 d-none">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE RECETA MÉDICA OFICIAL E IMPRIMIBLE -->
+<div class="modal fade" id="modal-receta-medica" tabindex="-1" aria-labelledby="receta-modal-title" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-teal text-white py-3" style="background-color: #0b7f86;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-prescription2 fs-4"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white" id="receta-modal-title">Receta Médica Odontológica</h5>
+                        <small class="text-white-50">Documento oficial de prescripción e indicaciones para el paciente</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <!-- Hoja Membretada de Receta (Área imprimible) -->
+                <div class="receta-sheet bg-white p-4 p-md-5 rounded-3 border shadow-sm mx-auto" id="receta-imprimible-sheet" style="max-width: 680px;">
+                    <!-- Cabecera de la Clínica -->
+                    <div class="d-flex justify-content-between align-items-start border-bottom pb-3 mb-3">
+                        <div class="d-flex align-items-center gap-2.5">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bolder fs-4 shadow-xs" style="width: 46px; height: 46px; background-color: #0b7f86;">
+                                <i class="bi bi-heart-pulse-fill"></i>
+                            </div>
+                            <div>
+                                <h4 class="fw-bolder mb-0 text-dark" style="color: #0b7f86 !important; letter-spacing: -0.02em;">DentIA</h4>
+                                <small class="text-secondary fw-semibold">Centro Odontológico Especializado</small><br>
+                                <small class="text-muted" style="font-size: 0.72rem;">R.U.C. 20601234567 · Av. Principal 123 · Central: (01) 765-4321</small>
+                            </div>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-light text-teal border border-teal-subtle px-2 py-1 fw-bold" style="font-size: 0.75rem;">RECETA MÉDICA</span>
+                            <div class="small text-secondary mt-1" id="receta-fecha-emision">Fecha: --/--/----</div>
+                        </div>
+                    </div>
+
+                    <!-- Datos del Paciente -->
+                    <div class="row g-2 p-2.5 rounded-2 bg-light border mb-4" style="font-size: 0.85rem;">
+                        <div class="col-sm-7">
+                            <span class="text-secondary">Paciente:</span> <strong class="text-dark" id="receta-paciente-nombre">Paciente</strong>
+                        </div>
+                        <div class="col-sm-5 text-sm-end">
+                            <span class="text-secondary">DNI:</span> <strong class="text-dark" id="receta-paciente-dni">--------</strong>
+                        </div>
+                        <div class="col-sm-7">
+                            <span class="text-secondary">Procedimiento / Pieza:</span> <span class="text-dark fw-medium" id="receta-procedimiento">General</span>
+                        </div>
+                        <div class="col-sm-5 text-sm-end">
+                            <span class="text-secondary">Odontólogo:</span> <strong class="text-dark" id="receta-doctor-nombre">Especialista</strong>
+                        </div>
+                    </div>
+
+                    <!-- Rp. / Prescripción -->
+                    <div class="mb-4">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="fw-bold fs-3 text-teal" style="font-style: italic; font-family: serif; color: #0b7f86;">Rp.</span>
+                            <span class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em;">Prescripción Farmacológica</span>
+                        </div>
+                        <div class="p-3 rounded-3 border bg-light-subtle" id="receta-contenido-texto" style="font-size: 0.92rem; line-height: 1.65; min-height: 140px; white-space: pre-line;">
+                            Indicaciones médicas...
+                        </div>
+                    </div>
+
+                    <!-- Recomendaciones adicionales -->
+                    <div class="mb-4 text-secondary small p-2 rounded-2 bg-light border" style="font-size: 0.78rem;">
+                        <i class="bi bi-info-circle me-1 text-teal"></i> Cumplir con la posología, dosis y horarios indicados. En caso de reacción alérgica o inflamación persistente, comuníquese de inmediato con la clínica.
+                    </div>
+
+                    <!-- Pie de firma y sello -->
+                    <div class="row pt-4 border-top mt-4 text-center">
+                        <div class="col-6 text-start">
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">Emitido por Sistema Clínico DentIA</small>
+                            <small class="text-muted d-block" style="font-size: 0.68rem;" id="receta-timestamp"></small>
+                        </div>
+                        <div class="col-6">
+                            <div class="mx-auto border-top border-dark pt-1" style="max-width: 220px;">
+                                <strong class="d-block small text-dark" id="receta-firma-doctor">Firma y Sello del Odontólogo</strong>
+                                <small class="text-secondary" style="font-size: 0.72rem;">C.O.P. Odontólogo Colegiado</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cerrar</button>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-outline-success btn-sm fw-bold d-inline-flex align-items-center gap-1" id="btn-copiar-receta-wa">
+                        <i class="bi bi-whatsapp"></i> Copiar para WhatsApp
+                    </button>
+                    <button type="button" class="btn btn-teal btn-sm fw-bold text-white d-inline-flex align-items-center gap-1 shadow-sm" id="btn-imprimir-receta" style="background-color: #0b7f86;">
+                        <i class="bi bi-printer-fill"></i> Imprimir Receta
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL ASISTENTE DE RADIOGRAFÍA PANORÁMICA & MODELADO 3D -->
+<div class="modal fade" id="modal-asistente-panoramica" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header bg-dark text-white py-3 border-bottom border-secondary">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-teal text-white p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                        <i class="bi bi-file-earmark-medical-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold mb-0 text-white">Asistente de Radiografía Panorámica & Odontograma 3D</h5>
+                        <small class="text-white-50">Usa la imagen como referencia y registra manualmente lo observado. La vista 3D es ilustrativa.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <div class="row g-4">
+                    <!-- Columna Izquierda: Radiografía y Visor -->
+                    <div class="col-lg-7">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white text-center">
+                            <div id="dropzone-panoramica" class="panoramica-dropzone border border-2 border-dashed rounded-4 p-4 mb-2 bg-light">
+                                <i class="bi bi-cloud-arrow-up-fill text-teal display-4 mb-2 d-block"></i>
+                                <h6 class="fw-bold text-dark mb-1">Arrastra la radiografía panorámica aquí o haz clic</h6>
+                                <p class="text-secondary small mb-3">Formatos compatibles: JPG, PNG, WEBP (Ortopantomografía)</p>
+                                <input type="file" id="input-file-panoramica" accept="image/jpeg,image/png,image/webp" class="d-none">
+                                <div class="d-flex justify-content-center gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-outline-primary btn-sm fw-bold px-3" id="btn-trigger-file-panoramica">
+                                        <i class="bi bi-folder2-open me-1"></i> Seleccionar Radiografía
+                                    </button>
+                                    <button type="button" class="btn btn-teal text-white btn-sm fw-bold px-3 shadow-sm" id="btn-cargar-muestra-panoramica">
+                                        <i class="bi bi-magic me-1"></i> Cargar Radiografía Demo (Muestra)
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Contenedor de visualización de la placa con superposición de arcada -->
+                            <div id="contenedor-preview-panoramica" class="position-relative d-none overflow-hidden rounded-3 border bg-black">
+                                <div id="panoramica-laser-scan" class="laser-scanner-beam d-none"></div>
+                                <img id="img-panoramica-preview" src="" alt="Radiografía Panorámica" class="img-fluid w-100" style="max-height: 360px; object-fit: contain; filter: contrast(115%) brightness(95%);">
+                                <div id="overlay-panoramica-ai-tags" class="position-absolute top-0 start-0 w-100 h-100 pointer-events-none"></div>
+                                <div id="overlay-panoramica-grid" class="position-absolute top-0 start-0 w-100 h-100 d-flex flex-column justify-content-between p-2 pointer-events-none">
+                                    <div class="d-flex justify-content-between text-info small fw-bold px-2 py-1 bg-dark bg-opacity-75 rounded">
+                                        <span>Cuadrante 1 (Sup. Der.)</span>
+                                        <span class="text-white">Arcada Maxilar Superior</span>
+                                        <span>Cuadrante 2 (Sup. Izq.)</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between text-warning small fw-bold px-2 py-1 bg-dark bg-opacity-75 rounded">
+                                        <span>Cuadrante 4 (Inf. Der.)</span>
+                                        <span class="text-white">Arcada Mandibular Inferior</span>
+                                        <span>Cuadrante 3 (Inf. Izq.)</span>
+                                    </div>
+                                </div>
+                                <div class="position-absolute top-0 end-0 m-2 d-flex gap-2">
+                                    <button type="button" class="btn btn-sm btn-teal text-white fw-bold shadow-sm" id="btn-analizar-ia-panoramica">
+                                        <i class="bi bi-cpu-fill me-1"></i> Revisar piezas manualmente
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-dark bg-opacity-75 border border-secondary text-white" id="btn-cambiar-panoramica">
+                                        <i class="bi bi-arrow-repeat me-1"></i> Cambiar
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="mt-2 d-flex justify-content-between align-items-center flex-wrap gap-2 small text-secondary">
+                                <span><i class="bi bi-info-circle me-1"></i> Revisión manual. La imagen solo se muestra en esta sesión; no se guarda en el expediente.</span>
+                                <span class="badge bg-teal-soft text-teal border" id="badge-panoramica-status">Esperando imagen</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Columna Derecha: Grilla de Calibración Rápida de Dientes (FDI) -->
+                    <div class="col-lg-5">
+                        <div class="card border-0 shadow-sm rounded-4 p-3 bg-white h-100 d-flex flex-column">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-grid-3x3-gap-fill text-teal me-1"></i> Piezas Dentales (FDI)</h6>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary py-0" id="btn-preset-terceros-molares" title="Ocultar cordales 18, 28, 38, 48">Sin cordales</button>
+                                    <button type="button" class="btn btn-outline-secondary py-0" id="btn-preset-todos-presentes">Todos presentes</button>
+                                </div>
+                            </div>
+                            <p class="text-secondary small mb-2">Configura piezas ausentes, retenidas o inclinaciones observadas en la radiografía.</p>
+
+                            <!-- Lista de cuadrantes con controles rápidos -->
+                            <div class="overflow-auto flex-grow-1 pe-1" style="max-height: 330px;" id="lista-calibracion-dientes">
+                                <!-- Generado dinámicamente por JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top py-3">
+                <button type="button" class="btn btn-light fw-semibold" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary fw-bold px-4" id="btn-aplicar-panoramica-3d">
+                    <i class="bi bi-box-fill me-1"></i> Guardar revisión en el odontograma
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Presupuesto (acciones directas sin salir de la vista)
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalPresupuestoClinica" tabindex="-1" aria-labelledby="modalPresTitle" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="modalPresTitle">Presupuesto</h5>
+                    <p class="text-secondary small mb-0" id="modalPresSubtitle"></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="modalPresBody">
+                <div class="text-center py-4"><div class="spinner-border text-success"></div></div>
+            </div>
+            <div class="modal-footer border-0 pt-0 flex-wrap gap-2" id="modalPresFooter">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+            <div class="alert alert-danger mx-3 mb-2 py-2 px-3" id="modalPresError" style="display:none;font-size:.85rem;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: Cobro Rápido en Clínica (Yape, Plin, Efectivo, Tarjeta)
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modal-cobro-clinica" tabindex="-1" aria-labelledby="modalCobroTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header text-white py-3" style="background-color: #0b7f86;">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="rounded-circle bg-white p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px; color: #0b7f86;">
+                        <i class="bi bi-wallet2 fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="modalCobroTitle">Registrar Cobro / Abono</h5>
+                        <small class="text-white-50" id="modalCobroSubtitle">Presupuesto dental del paciente</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="form-cobro-clinica">
+                <input type="hidden" id="cobro-presupuesto-id">
+                <input type="hidden" id="cobro-plan-id">
+                <div class="modal-body p-4 bg-light">
+                    <!-- Tarjeta de Saldo Pendiente -->
+                    <div class="p-3 rounded-3 bg-white border shadow-sm mb-3 text-center">
+                        <small class="text-secondary text-uppercase fw-bold" style="font-size: .72rem; letter-spacing: .05em;">Saldo Pendiente por Cobrar</small>
+                        <div class="fs-2 fw-bolder text-danger my-1" id="cobro-saldo-display">S/ 0.00</div>
+                        <small class="text-muted" id="cobro-paciente-display">Paciente: —</small>
+                    </div>
+
+                    <!-- Métodos de Pago Rápidos con Pills -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark mb-2">Método de Pago</label>
+                        <div class="d-flex gap-2 flex-wrap" id="cobro-metodos-selector">
+                            <button type="button" class="btn btn-sm btn-outline-teal active cobro-metodo-btn px-2.5 py-1.5 fw-bold flex-fill" data-metodo="YAPE">
+                                <span class="badge rounded-circle p-1 me-1 text-white" style="background-color: #742284;">Y</span> Yape
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-teal cobro-metodo-btn px-2.5 py-1.5 fw-bold flex-fill" data-metodo="PLIN">
+                                <span class="badge rounded-circle p-1 me-1 text-white" style="background-color: #00b4d8;">P</span> Plin
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-teal cobro-metodo-btn px-2.5 py-1.5 fw-bold flex-fill" data-metodo="EFECTIVO">
+                                <i class="bi bi-cash me-1 text-success"></i> Efectivo
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-teal cobro-metodo-btn px-2.5 py-1.5 fw-bold flex-fill" data-metodo="TARJETA">
+                                <i class="bi bi-credit-card me-1 text-primary"></i> Tarjeta / POS
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-teal cobro-metodo-btn px-2.5 py-1.5 fw-bold flex-fill" data-metodo="TRANSFERENCIA">
+                                <i class="bi bi-bank me-1 text-secondary"></i> Transferencia
+                            </button>
+                        </div>
+                        <input type="hidden" id="cobro-metodo-input" value="YAPE">
+                    </div>
+
+                    <!-- Monto a Cobrar -->
+                    <div class="row g-2 mb-3">
+                        <div class="col-sm-7">
+                            <label class="form-label small fw-bold text-dark">Monto a Cobrar (S/)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white fw-bold">S/</span>
+                                <input type="number" step="0.01" min="0.10" id="cobro-monto-input" class="form-control fw-bold fs-5 text-success" required>
+                            </div>
+                            <small class="text-secondary" style="font-size: .75rem;">Puedes cobrar el saldo total o un abono inicial.</small>
+                        </div>
+                        <div class="col-sm-5">
+                            <label class="form-label small fw-bold text-dark">Fecha del Cobro</label>
+                            <input type="date" id="cobro-fecha-input" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <!-- Referencia / N° Operación -->
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold text-dark">N° Operación / Celular / Referencia</label>
+                        <input type="text" id="cobro-referencia-input" class="form-control" placeholder="Ej: Celular Yape 987654321 / Op. #459201" maxlength="120">
+                        <small class="text-muted" style="font-size: .75rem;">Obligatorio para Yape, Plin, Tarjeta o Transferencia.</small>
+                    </div>
+
+                    <div class="alert alert-danger py-2 px-3 mt-3 mb-0" id="cobro-error-msg" style="display: none; font-size: .85rem;"></div>
+                </div>
+                <div class="modal-footer bg-white border-top py-3">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success fw-bold px-4 shadow-sm" id="btn-confirmar-cobro" style="background-color: #0b7f86; border-color: #0b7f86;">
+                        <i class="bi bi-check2-circle me-1"></i> Confirmar y Registrar Cobro
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/vendor/three/three.min.js"></script>
+<script src="/vendor/three/OrbitControls.js"></script>
+<script src="/vendor/three/GLTFLoader.js"></script>
+<script src="/js/dentia/dental-viewer.js?v=4.0"></script>
+<script src="/js/dentia/atencion-session.js?v=4.2" defer></script>
+<script th:src="@{/js/dentia/clinica.js(v='4.7')}" defer></script>
+</body>
+</html>

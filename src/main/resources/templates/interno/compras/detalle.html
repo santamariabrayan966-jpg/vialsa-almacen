@@ -1,0 +1,856 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Detalle de Compra | DentIA</title>
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/compras.css}">
+</head>
+
+<body class="bg-light panel-interno compras-module compras-detalle-page">
+
+<main class="container-fluid dentia-form-shell"
+      th:with="simbolo=${compra.moneda == 'USD' ? '$' : 'S/'}">
+
+    <!-- ENCABEZADO -->
+    <section class="dentia-detail-header">
+        <div class="dentia-detail-icon">
+            <i class="bi bi-receipt"></i>
+        </div>
+
+        <div>
+            <h1 class="dentia-detail-title">Detalle de compra</h1>
+            <p class="dentia-detail-subtitle">
+                Consulta el comprobante, productos, pagos, recepciones, guías y ajustes realizados.
+            </p>
+        </div>
+    </section>
+
+    <!-- RESUMEN SUPERIOR -->
+    <section class="row g-3 mb-3">
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dentia-detail-item">
+                <span class="dentia-detail-label">ID Compra</span>
+                <span class="dentia-detail-value" th:text="${compra.idCompra}">0</span>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dentia-detail-item">
+                <span class="dentia-detail-label">Fecha de compra</span>
+
+                <span class="dentia-detail-value"
+                      th:if="${compra.fechaCompra != null}"
+                      th:text="${#temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm')}">
+                    00/00/0000 00:00
+                </span>
+
+                <span class="dentia-detail-value"
+                      th:if="${compra.fechaCompra == null and compra.fechaEmision != null}"
+                      th:text="${#temporals.format(compra.fechaEmision, 'dd/MM/yyyy')}">
+                    00/00/0000
+                </span>
+
+                <span class="dentia-detail-value"
+                      th:if="${compra.fechaCompra == null and compra.fechaEmision == null}">
+                    Sin fecha
+                </span>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dentia-detail-item">
+                <span class="dentia-detail-label">Estado</span>
+                <span class="badge rounded-pill"
+                      th:classappend="
+                        ${compra.estado == 'BORRADOR'} ? ' text-bg-secondary' :
+                        (${compra.estado == 'REGISTRADA'} ? ' text-bg-primary' :
+                        (${compra.estado == 'RECIBIDA_PARCIAL'} ? ' text-bg-info' :
+                        (${compra.estado == 'RECIBIDA_COMPLETA'} ? ' text-bg-success' :
+                        (${compra.estado == 'CERRADA_CON_DIFERENCIA'} ? ' text-bg-dark' :
+                        (${compra.estado == 'PAGADA'} ? ' text-bg-success' :
+                        (${compra.estado == 'ANULADA'} ? ' text-bg-danger' : ' text-bg-dark'))))))
+                      "
+                      th:text="${compra.estado == 'BORRADOR' ? 'PROFORMA' : compra.estado}">
+                    ESTADO
+                </span>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dentia-detail-item">
+                <span class="dentia-detail-label">Total neto real</span>
+                <span class="dentia-detail-value text-success"
+                      th:text="${simbolo + ' ' + #numbers.formatDecimal(totalNeto != null ? totalNeto : compra.totalCompra, 1, 2)}">
+                    S/ 0.00
+                </span>
+
+                <small class="text-muted d-block mt-1"
+                       th:if="${saldoFavor != null and saldoFavor > 0}">
+                    Comprobante:
+                    <span th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.totalCompra, 1, 2)}">
+                        S/ 0.00
+                    </span>
+                </small>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- RESUMEN FINANCIERO -->
+    <section class="card dentia-form-card mb-3">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-calculator"></i>
+                        Resumen financiero de la compra
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Total original, ajustes por faltantes y total neto real de la compra.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                    <i class="bi bi-currency-exchange me-1"></i>
+                    <span th:text="${compra.moneda}">PEN</span>
+                </span>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Total comprobante</span>
+                        <span class="dentia-detail-value"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.totalCompra, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Ajuste / saldo por diferencia</span>
+                        <span class="dentia-detail-value text-warning"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(saldoFavor != null ? saldoFavor : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Total neto real</span>
+                        <span class="dentia-detail-value text-success"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(totalNeto != null ? totalNeto : compra.totalCompra, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INFORMACIÓN PRINCIPAL -->
+    <section class="card dentia-form-card mb-3">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Información del comprobante
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Datos generales de la compra registrada en el sistema.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                    <i class="bi bi-receipt-cutoff me-1"></i>
+                    <span th:text="${compra.tipoComprobante}">FACTURA</span>
+                </span>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Proveedor</span>
+                        <span class="dentia-detail-value" th:text="${compra.nombreProveedor}">
+                            Proveedor
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Comprobante</span>
+                        <span class="dentia-detail-value">
+                            <span th:text="${compra.tipoComprobante}">FACTURA</span>
+                            <span th:text="${' ' + compra.serie + '-' + compra.numero}">F001-000001</span>
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Usuario</span>
+                        <span class="dentia-detail-value" th:text="${compra.nombreUsuario}">
+                            admin
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Sede de ingreso</span>
+                        <span class="dentia-detail-value"
+                              th:text="${compra.nombreSede != null ? compra.nombreSede : 'Sin sede'}">
+                            Almacén 1
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Forma de pago</span>
+                        <span class="badge rounded-pill"
+                              th:classappend="
+                                ${compra.formaPago == 'CREDITO'} ? ' text-bg-warning' :
+                                (${compra.formaPago == 'CONTADO'} ? ' text-bg-info' :
+                                (${compra.formaPago == 'TRANSFERENCIA'} ? ' text-bg-primary' : ' text-bg-secondary'))
+                              "
+                              th:text="${compra.formaPago}">
+                            CONTADO
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Tipo de recepción</span>
+                        <span class="badge rounded-pill"
+                              th:classappend="
+                                ${compra.tipoRecepcion == 'INMEDIATA'} ? ' text-bg-success' :
+                                (${compra.tipoRecepcion == 'PENDIENTE_GUIA'} ? ' text-bg-warning' : ' text-bg-secondary')
+                              "
+                              th:text="${compra.tipoRecepcion == 'INMEDIATA' ? 'INMEDIATA' :
+                                      (compra.tipoRecepcion == 'PENDIENTE_GUIA' ? 'PENDIENTE / GUÍA' : 'NO DEFINIDO')}">
+                            PENDIENTE / GUÍA
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Moneda</span>
+                        <span class="dentia-detail-value" th:text="${compra.moneda}">
+                            PEN
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4" th:if="${compra.moneda == 'USD'}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Tipo de cambio</span>
+                        <span class="dentia-detail-value"
+                              th:text="${#numbers.formatDecimal(compra.tipoCambio, 1, 3)}">
+                            0.000
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4"
+                     th:if="${compra.fechaEmision != null}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Fecha emisión</span>
+                        <span class="dentia-detail-value"
+                              th:text="${#temporals.format(compra.fechaEmision, 'dd/MM/yyyy')}">
+                            00/00/0000
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-xl-4"
+                     th:if="${compra.fechaVencimiento != null}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Fecha vencimiento</span>
+                        <span class="dentia-detail-value"
+                              th:text="${#temporals.format(compra.fechaVencimiento, 'dd/MM/yyyy')}">
+                            00/00/0000
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12"
+                     th:if="${compra.observaciones != null && !#strings.isEmpty(compra.observaciones)}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Observaciones</span>
+                        <span class="dentia-detail-value" th:text="${compra.observaciones}">
+                            Observaciones
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- CRÉDITO Y PAGOS -->
+    <section class="card dentia-form-card mb-3"
+             th:if="${cuotas != null and !#lists.isEmpty(cuotas)}">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        Crédito y pagos
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Cronograma de cuotas y estado de pagos realizados.
+                    </p>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge rounded-pill text-bg-success">
+                        Pagado:
+                        <span th:text="${simbolo + ' ' + #numbers.formatDecimal(totalPagado != null ? totalPagado : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </span>
+
+                    <span class="badge rounded-pill text-bg-danger">
+                        Pendiente:
+                        <span th:text="${simbolo + ' ' + #numbers.formatDecimal(totalPendiente != null ? totalPendiente : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </span>
+                </div>
+            </div>
+
+            <div class="table-responsive rounded border">
+                <table class="table table-hover align-middle mb-0 dentia-table">
+                    <thead>
+                    <tr>
+                        <th>Cuota</th>
+                        <th>Fecha vencimiento</th>
+                        <th class="text-end">Monto</th>
+                        <th class="text-center">Estado</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="cuota : ${cuotas}">
+                        <td class="fw-bold" th:text="${cuota.numeroCuota}">1</td>
+
+                        <td th:text="${cuota.fechaVencimiento != null ? #temporals.format(cuota.fechaVencimiento, 'dd/MM/yyyy') : 'Sin fecha'}">
+                            00/00/0000
+                        </td>
+
+                        <td class="text-end fw-semibold"
+                            th:text="${simbolo + ' ' + #numbers.formatDecimal(cuota.montoCuota, 1, 2)}">
+                            S/ 0.00
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge rounded-pill"
+                                  th:classappend="${cuota.estado == 'PAGADA'} ? ' text-bg-success' : ' text-bg-warning'"
+                                  th:text="${cuota.estado}">
+                                PENDIENTE
+                            </span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PRODUCTOS COMPRADOS -->
+    <section class="card dentia-form-card mb-3">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-box-seam"></i>
+                        Productos comprados
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Detalle original del comprobante: cantidades, precios, descuentos y subtotales.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                    <i class="bi bi-list-check me-1"></i>
+                    <span th:text="${#lists.size(detalles)}">0</span> productos
+                </span>
+            </div>
+
+            <div class="table-responsive rounded border">
+                <table class="table table-hover align-middle mb-0 dentia-table tabla-detalle-compra">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Unidad</th>
+                        <th class="text-end">Cantidad</th>
+                        <th class="text-end">Precio unitario</th>
+                        <th class="text-end">Descuento</th>
+                        <th class="text-end">Subtotal</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="detalle, stat : ${detalles}">
+                        <td class="fw-bold" th:text="${stat.index + 1}">1</td>
+
+                        <td>
+                            <span class="fw-semibold" th:text="${detalle.nombreProducto}">
+                                Producto
+                            </span>
+                        </td>
+
+                        <td>
+                            <span class="badge rounded-pill text-bg-light border"
+                                  th:text="${detalle.nombreUnidad}">
+                                Unidad
+                            </span>
+                        </td>
+
+                        <td class="text-end"
+                            th:text="${#numbers.formatDecimal(detalle.cantidad, 1, 0)}">
+                            0
+                        </td>
+
+                        <td class="text-end"
+                            th:text="${simbolo + ' ' + #numbers.formatDecimal(detalle.precioUnitario, 1, 2)}">
+                            S/ 0.00
+                        </td>
+
+                        <td class="text-end"
+                            th:text="${simbolo + ' ' + #numbers.formatDecimal(detalle.descuento, 1, 2)}">
+                            S/ 0.00
+                        </td>
+
+                        <td class="text-end fw-bold"
+                            th:text="${simbolo + ' ' + #numbers.formatDecimal((detalle.cantidad * detalle.precioUnitario) - detalle.descuento, 1, 2)}">
+                            S/ 0.00
+                        </td>
+                    </tr>
+
+                    <tr th:if="${#lists.isEmpty(detalles)}">
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox d-block fs-3 mb-2"></i>
+                            No hay productos registrados en esta compra.
+                        </td>
+                    </tr>
+                    </tbody>
+
+                    <tfoot>
+                    <tr>
+                        <td colspan="6" class="text-end fw-bold">TOTAL COMPROBANTE:</td>
+                        <td class="text-end fw-bold text-success"
+                            th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.totalCompra, 1, 2)}">
+                            S/ 0.00
+                        </td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- RECEPCIONES / GUÍAS -->
+    <section class="card dentia-form-card mb-3"
+             th:if="${recepciones != null and !#lists.isEmpty(recepciones)}">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-truck"></i>
+                        Recepciones y guías
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Historial de mercadería recibida y guías registradas.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                    <span th:text="${#lists.size(recepciones)}">0</span>
+                    recepciones
+                </span>
+            </div>
+
+            <div class="accordion" id="accordionRecepciones">
+
+                <div class="accordion-item mb-2 border rounded-3 overflow-hidden"
+                     th:each="recepcion : ${recepciones}">
+
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                th:attr="data-bs-target=${'#recepcion' + recepcion.idRecepcion}">
+                            <strong class="me-2">
+                                Guía:
+                                <span th:text="${recepcion.nroGuiaRemision}">G001</span>
+                            </strong>
+
+                            <span class="text-muted small"
+                                  th:text="${recepcion.fechaRecepcion != null ? #temporals.format(recepcion.fechaRecepcion, 'dd/MM/yyyy') : 'Sin fecha'}">
+                                00/00/0000
+                            </span>
+                        </button>
+                    </h2>
+
+                    <div class="accordion-collapse collapse"
+                         th:id="${'recepcion' + recepcion.idRecepcion}"
+                         data-bs-parent="#accordionRecepciones">
+
+                        <div class="accordion-body">
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-12 col-md-4">
+                                    <div class="dentia-detail-item">
+                                        <span class="dentia-detail-label">Fecha recepción</span>
+                                        <span class="dentia-detail-value"
+                                              th:text="${recepcion.fechaRecepcion != null ? #temporals.format(recepcion.fechaRecepcion, 'dd/MM/yyyy') : 'Sin fecha'}">
+                                            00/00/0000
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <div class="dentia-detail-item">
+                                        <span class="dentia-detail-label">Estado</span>
+                                        <span class="badge rounded-pill text-bg-success"
+                                              th:text="${recepcion.estado}">
+                                            REGISTRADA
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-md-4">
+                                    <div class="dentia-detail-item">
+                                        <span class="dentia-detail-label">Observación</span>
+                                        <span class="dentia-detail-value"
+                                              th:text="${recepcion.observacion != null ? recepcion.observacion : 'Sin observación'}">
+                                            Sin observación
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive rounded border">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th>Unidad</th>
+                                        <th class="text-end">Cantidad recibida</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr th:each="dr : ${detallesRecepcion[recepcion.idRecepcion]}">
+                                        <td th:text="${dr.nombreProducto}">Producto</td>
+                                        <td th:text="${dr.nombreUnidad}">Unidad</td>
+                                        <td class="text-end fw-bold"
+                                            th:text="${#numbers.formatDecimal(dr.cantidadRecibida, 1, 0)}">
+                                            0
+                                        </td>
+                                    </tr>
+
+                                    <tr th:if="${detallesRecepcion[recepcion.idRecepcion] == null
+                                                or #lists.isEmpty(detallesRecepcion[recepcion.idRecepcion])}">
+                                        <td colspan="3" class="text-center text-muted py-3">
+                                            No hay detalle de productos recibidos.
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- PENDIENTES / FALTANTES -->
+    <section class="card dentia-form-card mb-3"
+             th:if="${pendientesRecepcion != null and !#lists.isEmpty(pendientesRecepcion)}">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-hourglass-split"></i>
+                        Pendientes o faltantes de recepción
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Productos que aún no han sido recibidos completamente.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-warning px-3 py-2">
+                    Pendientes
+                </span>
+            </div>
+
+            <div class="table-responsive rounded border">
+                <table class="table table-hover align-middle mb-0 dentia-table">
+                    <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Unidad</th>
+                        <th class="text-end">Cantidad pendiente</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="p : ${pendientesRecepcion}">
+                        <td th:text="${p.nombreProducto}">Producto</td>
+                        <td th:text="${p.nombreUnidad}">Unidad</td>
+                        <td class="text-end fw-bold text-warning"
+                            th:text="${#numbers.formatDecimal(p.cantidadPendiente, 1, 0)}">
+                            0
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CIERRE CON DIFERENCIA / DEVOLUCIÓN -->
+    <section class="card dentia-form-card mb-3"
+             th:if="${compra.estado == 'CERRADA_CON_DIFERENCIA'}">
+        <div class="card-body">
+
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h6 class="dentia-section-box-title mb-1">
+                        <i class="bi bi-exclamation-diamond"></i>
+                        Cierre con diferencia
+                    </h6>
+                    <p class="dentia-section-subtitle mb-0">
+                        Información del faltante, ajuste económico y devolución del proveedor.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill"
+                      th:classappend="
+                        ${compra.estadoDevolucion == 'PENDIENTE_DEVOLUCION'} ? ' text-bg-warning' :
+                        (${compra.estadoDevolucion == 'DEVUELTO_AJUSTADO'} ? ' text-bg-success' :
+                        (${compra.estadoDevolucion == 'NO_APLICA'} ? ' text-bg-secondary' : ' text-bg-light'))
+                      "
+                      th:text="${compra.estadoDevolucion != null ? compra.estadoDevolucion : 'SIN REGISTRO'}">
+                    ESTADO
+                </span>
+            </div>
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Valor faltante</span>
+                        <span class="dentia-detail-value text-danger"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.valorFaltante != null ? compra.valorFaltante : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Monto ajustado / reconocido</span>
+                        <span class="dentia-detail-value text-warning"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.montoAjustadoFaltante != null ? compra.montoAjustadoFaltante : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Saldo a favor generado</span>
+                        <span class="dentia-detail-value text-success"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(saldoFavor != null ? saldoFavor : 0, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4"
+                     th:if="${compra.montoDevolucionPendiente != null and compra.montoDevolucionPendiente > 0}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Pendiente de devolución</span>
+                        <span class="dentia-detail-value text-danger"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.montoDevolucionPendiente, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4"
+                     th:if="${compra.fechaDevolucion != null}">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Fecha devolución / ajuste</span>
+                        <span class="dentia-detail-value"
+                              th:text="${#temporals.format(compra.fechaDevolucion, 'dd/MM/yyyy')}">
+                            00/00/0000
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- TOTALES DEL COMPROBANTE -->
+    <section class="row g-3 mb-3">
+
+        <div class="col-12 col-lg-7">
+            <div class="alert alert-light border mb-0 h-100">
+                <div class="d-flex gap-2">
+                    <i class="bi bi-info-circle text-primary mt-1"></i>
+                    <div>
+                        <strong>Vista de consulta completa.</strong>
+                        <div class="small text-muted">
+                            El total del comprobante se conserva como historial. El total neto muestra el resultado real luego de ajustes o devoluciones.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-5">
+            <div class="card card-totales-compra">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between mb-2 dentia-total-line">
+                        <span>Subtotal comprobante:</span>
+                        <span th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.subtotal, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 dentia-total-line">
+                        <span>IGV:</span>
+                        <span th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.montoIgv, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2 dentia-total-line"
+                         th:if="${saldoFavor != null and saldoFavor > 0}">
+                        <span>Ajuste por diferencia:</span>
+                        <span class="text-warning"
+                              th:text="${'- ' + simbolo + ' ' + #numbers.formatDecimal(saldoFavor, 1, 2)}">
+                            - S/ 0.00
+                        </span>
+                    </div>
+
+                    <hr class="my-2">
+
+                    <div class="d-flex justify-content-between fw-bold dentia-total-final">
+                        <span>Total neto real:</span>
+                        <span class="text-success"
+                              th:text="${simbolo + ' ' + #numbers.formatDecimal(totalNeto != null ? totalNeto : compra.totalCompra, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+
+                    <div class="small text-muted mt-2"
+                         th:if="${saldoFavor != null and saldoFavor > 0}">
+                        Total comprobante original:
+                        <span th:text="${simbolo + ' ' + #numbers.formatDecimal(compra.totalCompra, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+    <!-- EQUIVALENTE EN SOLES -->
+    <section class="card card-totales-compra mb-3"
+             th:if="${compra.moneda == 'USD'}">
+        <div class="card-body">
+
+            <h6 class="text-primary fw-bold mb-3">
+                <i class="bi bi-currency-exchange me-1"></i>
+                Equivalente en soles
+            </h6>
+
+            <div class="row g-3">
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Subtotal PEN</span>
+                        <span class="dentia-detail-value"
+                              th:text="${'S/ ' + #numbers.formatDecimal(compra.subtotal * compra.tipoCambio, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">IGV PEN</span>
+                        <span class="dentia-detail-value"
+                              th:text="${'S/ ' + #numbers.formatDecimal(compra.montoIgv * compra.tipoCambio, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4">
+                    <div class="dentia-detail-item">
+                        <span class="dentia-detail-label">Total neto PEN</span>
+                        <span class="dentia-detail-value text-success"
+                              th:text="${'S/ ' + #numbers.formatDecimal((totalNeto != null ? totalNeto : compra.totalCompra) * compra.tipoCambio, 1, 2)}">
+                            S/ 0.00
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/compras.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+</body>
+</html>

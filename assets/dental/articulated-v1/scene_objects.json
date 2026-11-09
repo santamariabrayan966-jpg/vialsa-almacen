@@ -1,0 +1,62 @@
+[
+  {
+    "name": "arcada_inferior",
+    "center": [
+      -0.0,
+      0.0,
+      0.48
+    ],
+    "size": [
+      1.27,
+      0.56,
+      0.93
+    ],
+    "verts": 124842,
+    "faces": 219463
+  },
+  {
+    "name": "arcada_superior",
+    "center": [
+      -0.0,
+      0.01,
+      -0.5
+    ],
+    "size": [
+      1.27,
+      0.55,
+      0.91
+    ],
+    "verts": 106717,
+    "faces": 188687
+  },
+  {
+    "name": "cerrada_arcada_inferior",
+    "center": [
+      -0.0,
+      0.0,
+      0.48
+    ],
+    "size": [
+      1.27,
+      0.56,
+      0.93
+    ],
+    "verts": 124842,
+    "faces": 219463
+  },
+  {
+    "name": "cerrada_arcada_superior",
+    "center": [
+      -0.0,
+      0.01,
+      -0.5
+    ],
+    "size": [
+      1.27,
+      0.55,
+      0.91
+    ],
+    "verts": 106717,
+    "faces": 188687
+  }
+]

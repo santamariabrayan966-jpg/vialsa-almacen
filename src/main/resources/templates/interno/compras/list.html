@@ -1,0 +1,849 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}">
+    <title th:text="${titulo}">Compras | DentIA</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Estilos del proyecto -->
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/compras.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+</head>
+
+<body class="dentia-page d-flex flex-column min-vh-100">
+
+<!-- Encabezado interno -->
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="container-fluid dentia-main flex-grow-1">
+
+    <!-- ENCABEZADO -->
+    <section class="dentia-page-header mb-4">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div class="d-flex align-items-start gap-3">
+                <div class="dentia-page-icon">
+                    <i class="bi bi-card-checklist"></i>
+                </div>
+
+                <div>
+                    <h1 class="dentia-page-title mb-1">Compras</h1>
+                    <p class="dentia-page-subtitle mb-0">
+                        Gestiona compras, proveedores, comprobantes, estados y pagos desde un solo panel.
+                    </p>
+                </div>
+            </div>
+
+            <button type="button"
+                    class="btn btn-primary btn-lg dentia-main-action"
+                    th:onclick="|openCompraModal('@{/interno/compras/nueva}', 'Registrar nueva compra')|">
+                <i class="bi bi-plus-lg me-1"></i>
+                Nueva Compra
+            </button>
+        </div>
+    </section>
+
+    <!-- MENSAJES -->
+    <section class="mb-3">
+        <div th:if="${param.borrador}" class="alert alert-info alert-dismissible fade show dentia-alert">
+            <i class="bi bi-info-circle me-2"></i> Compra guardada como borrador.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.borradorEditado}" class="alert alert-info alert-dismissible fade show dentia-alert">
+            <i class="bi bi-pencil-square me-2"></i> Borrador actualizado correctamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.confirmada}" class="alert alert-success alert-dismissible fade show dentia-alert">
+            <i class="bi bi-check-circle me-2"></i> Compra confirmada.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.success}" class="alert alert-success alert-dismissible fade show dentia-alert">
+            <i class="bi bi-check-circle me-2"></i> Compra registrada exitosamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.error}" class="alert alert-danger alert-dismissible fade show dentia-alert">
+            <i class="bi bi-exclamation-triangle me-2"></i> Error al registrar compra.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.anulada}" class="alert alert-warning alert-dismissible fade show dentia-alert">
+            <i class="bi bi-slash-circle me-2"></i> Compra anulada.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div th:if="${param.eliminada}" class="alert alert-secondary alert-dismissible fade show dentia-alert">
+            <i class="bi bi-trash me-2"></i> Compra eliminada.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </section>
+
+    <!-- SEDE ACTIVA DEL LISTADO -->
+    <section class="mb-4">
+        <div class="card border-0 shadow-sm dentia-card">
+            <div class="card-body py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="dentia-kpi-icon kpi-blue">
+                        <i class="bi bi-geo-alt-fill"></i>
+                    </div>
+
+                    <div>
+                        <p class="dentia-kpi-label mb-1">Mostrando compras de</p>
+                        <h5 class="mb-0 fw-bold"
+                            th:text="${sedeListadoNombre != null ? sedeListadoNombre : sedeActivaNombre}">
+                            Almacen 1
+                        </h5>
+                        <small class="text-muted">
+                            El listado se filtra según la sede activa seleccionada en tu perfil.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="text-end" th:if="${puedeCambiarSede == true}">
+                <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                    <i class="bi bi-person-gear me-1"></i>
+                    Puedes cambiar la sede desde el perfil
+                </span>
+                </div>
+
+            </div>
+        </div>
+
+        <div th:if="${errorSedeActiva != null}"
+             class="alert alert-warning mt-3 mb-0"
+             th:text="${errorSedeActiva}">
+        </div>
+    </section>
+
+    <!-- KPI -->
+    <section class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card dentia-kpi-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dentia-kpi-icon kpi-blue">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                        <div>
+                            <p class="dentia-kpi-label mb-1">Total compras</p>
+                            <h3 class="dentia-kpi-value mb-0" th:text="${#lists.size(compras)}">0</h3>
+                            <small class="text-muted">Registros actuales</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card dentia-kpi-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dentia-kpi-icon kpi-green">
+                            <i class="bi bi-check2-circle"></i>
+                        </div>
+                        <div>
+                            <p class="dentia-kpi-label mb-1">Pagadas</p>
+                            <h3 class="dentia-kpi-value mb-0" th:text="${compras.?[estado == 'PAGADA'].size()}">0</h3>
+                            <small class="text-muted">Compras finalizadas</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card dentia-kpi-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dentia-kpi-icon kpi-orange">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div>
+                            <p class="dentia-kpi-label mb-1">Borradores</p>
+                            <h3 class="dentia-kpi-value mb-0" th:text="${compras.?[estado == 'BORRADOR'].size()}">0</h3>
+                            <small class="text-muted">Pendientes de confirmar</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card dentia-kpi-card border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="dentia-kpi-icon kpi-red">
+                            <i class="bi bi-slash-circle"></i>
+                        </div>
+                        <div>
+                            <p class="dentia-kpi-label mb-1">Anuladas</p>
+                            <h3 class="dentia-kpi-value mb-0" th:text="${compras.?[estado == 'ANULADA'].size()}">0</h3>
+                            <small class="text-muted">Sin efecto operativo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FILTROS -->
+    <section class="card dentia-card border-0 mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <h5 class="dentia-section-title mb-1">Filtros de búsqueda</h5>
+                    <p class="dentia-section-subtitle mb-0">
+                        Encuentra compras por comprobante, proveedor, usuario, estado o forma de pago.
+                    </p>
+                </div>
+
+                <button type="button" id="btnLimpiarFiltrosCompras" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Limpiar filtros
+                </button>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-lg-6">
+                    <label for="buscadorCompras" class="form-label dentia-label">Buscar compra</label>
+                    <div class="input-group dentia-input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input id="buscadorCompras"
+                               type="text"
+                               class="form-control"
+                               placeholder="Buscar por comprobante, proveedor, usuario o estado...">
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="filtroEstadoCompra" class="form-label dentia-label">Estado</label>
+                    <select id="filtroEstadoCompra" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="BORRADOR">Proforma</option>
+                        <option value="REGISTRADA">Registrada</option>
+                        <option value="RECIBIDA_PARCIAL">Recibida parcial</option>
+                        <option value="RECIBIDA_COMPLETA">Recibida completa</option>
+                        <option value="CERRADA_CON_DIFERENCIA">Cerrada con diferencia</option>
+                        <option value="PAGADA">Pagada</option>
+                        <option value="ANULADA">Anulada</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-6 col-lg-3">
+                    <label for="filtroPagoCompra" class="form-label dentia-label">Forma de pago</label>
+                    <select id="filtroPagoCompra" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="CONTADO">Contado</option>
+                        <option value="CREDITO">Crédito</option>
+                        <option value="TRANSFERENCIA">Transferencia</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TABLA -->
+    <section class="card dentia-card dentia-table-card border-0">
+        <div class="card-header bg-white border-0">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <h5 class="dentia-section-title mb-1">Listado de compras</h5>
+                    <p class="dentia-section-subtitle mb-0">
+                        Control de comprobantes registrados y acciones disponibles.
+                    </p>
+                </div>
+
+                <span class="badge rounded-pill text-bg-light border dentia-total-badge">
+                    <i class="bi bi-database me-1"></i>
+                    <span th:text="${#lists.size(compras)}">0</span> registros
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table id="tablaCompras"
+                   class="table table-hover align-middle mb-0 dentia-table">
+
+                <thead>
+                <tr>
+                    <th>Operación</th>
+                    <th>Comprobante</th>
+                    <th>Proveedor</th>
+                    <th>Responsable</th>
+                    <th>Pago</th>
+                    <th>Importe</th>
+                    <th>Estado</th>
+                    <th class="text-center">Acciones</th>
+                </tr>
+                </thead>
+
+                <tbody>
+
+                <tr th:each="c : ${compras}"
+                    class="fila-compra"
+                    th:data-id="${c.idCompra}"
+                    th:data-comprobante="${(c.tipoComprobante ?: '') + ' ' + (c.serie ?: '') + '-' + (c.numero ?: '')}"
+                    th:data-proveedor="${c.nombreProveedor}"
+                    th:data-usuario="${c.nombreUsuario}"
+                    th:data-estado="${c.estado}"
+                    th:data-pago="${c.formaPago}">
+
+                    <td data-label="Operación">
+                        <div class="fw-bold text-dark">
+                            #<span th:text="${c.idCompra}"></span>
+                        </div>
+                        <div class="small text-muted"
+                             th:text="${#temporals.format(c.fechaCompra, 'dd/MM/yyyy')}"></div>
+                        <div class="small text-muted"
+                             th:text="${#temporals.format(c.fechaCompra, 'HH:mm')}"></div>
+                    </td>
+
+                    <td data-label="Comprobante">
+                        <div class="fw-semibold" th:text="${c.tipoComprobante}"></div>
+                        <div class="small text-muted" th:text="${c.serie + '-' + c.numero}"></div>
+                    </td>
+
+                    <td data-label="Proveedor">
+                        <div class="fw-semibold" th:text="${c.nombreProveedor}"></div>
+                    </td>
+
+                    <td data-label="Responsable">
+                        <div th:text="${c.nombreUsuario}"></div>
+                        <div class="small text-muted">
+                            Moneda:
+                            <span class="badge rounded-pill text-bg-light border" th:text="${c.moneda}"></span>
+                        </div>
+                    </td>
+
+                    <td data-label="Pago">
+                        <div class="mb-1">
+            <span class="badge rounded-pill"
+                  th:classappend="
+                    ${c.formaPago == 'CREDITO'} ? ' text-bg-warning' :
+                    (${c.formaPago == 'CONTADO'} ? ' text-bg-info' :
+                    (${c.formaPago == 'TRANSFERENCIA'} ? ' text-bg-primary' : ' text-bg-secondary'))
+                  "
+                  th:text="${c.formaPago}">
+            </span>
+                        </div>
+
+                        <div>
+            <span class="badge rounded-pill"
+                  th:classappend="
+                    ${c.tipoRecepcion == 'INMEDIATA'} ? ' text-bg-success' :
+                    (${c.tipoRecepcion == 'PENDIENTE_GUIA'} ? ' text-bg-warning' : ' text-bg-secondary')
+                  "
+                  th:text="${
+                    c.tipoRecepcion == 'INMEDIATA' ? 'Inmediata' :
+                    (c.tipoRecepcion == 'PENDIENTE_GUIA' ? 'Pendiente / guía' : 'No definido')
+                  }">
+            </span>
+                        </div>
+                    </td>
+
+                    <td data-label="Importe" class="text-end">
+                        <div class="fw-bold"
+                             th:text="${(c.moneda == 'USD' ? '$ ' : 'S/ ')
+                + #numbers.formatDecimal(
+                    (c.saldoFavor != null and c.saldoFavor > 0)
+                        ? (c.totalCompra - c.saldoFavor)
+                        : c.totalCompra,
+                    1,2
+                )}">
+                        </div>
+
+                        <div th:if="${c.formaPago == 'CREDITO'}" class="small mt-1">
+                            Deuda:
+                            <span class="fw-bold"
+                                  th:classappend="${c.deuda != null and c.deuda > 0} ? 'text-danger' : 'text-success'"
+                                  th:text="${(c.moneda == 'USD' ? '$ ' : 'S/ ') + #numbers.formatDecimal(c.deuda != null ? c.deuda : 0,1,2)}">
+            </span>
+                        </div>
+
+                        <div th:if="${c.formaPago != 'CREDITO'}" class="small text-muted mt-1">
+                            Sin deuda
+                        </div>
+
+                        <div th:if="${c.estadoDevolucion == 'PENDIENTE_DEVOLUCION'
+            and c.montoDevolucionPendiente != null
+            and c.montoDevolucionPendiente > 0}" class="mt-1">
+            <span class="badge rounded-pill text-bg-warning">
+                <i class="bi bi-hourglass-split me-1"></i>
+                Pendiente:
+                <span th:text="${(c.moneda == 'USD' ? '$ ' : 'S/ ') + #numbers.formatDecimal(c.montoDevolucionPendiente,1,2)}"></span>
+            </span>
+                        </div>
+                    </td>
+
+                    <td data-label="Estado">
+        <span class="badge rounded-pill"
+              th:classappend="
+                ${c.estado == 'BORRADOR'} ? ' text-bg-secondary' :
+                (${c.estado == 'REGISTRADA'} ? ' text-bg-primary' :
+                (${c.estado == 'RECIBIDA_PARCIAL'} ? ' text-bg-info' :
+                (${c.estado == 'RECIBIDA_COMPLETA'} ? ' text-bg-success' :
+                (${c.estado == 'CERRADA_CON_DIFERENCIA'} ? ' text-bg-dark' :
+                (${c.estado == 'PAGADA'} ? ' text-bg-success' :
+                (${c.estado == 'ANULADA'} ? ' text-bg-danger' : ' text-bg-dark'))))))
+              "
+              th:text="${
+                c.estado == 'BORRADOR' ? 'PROFORMA' :
+                (c.estado == 'REGISTRADA' ? 'REGISTRADA' :
+                (c.estado == 'RECIBIDA_PARCIAL' ? 'RECIBIDA PARCIAL' :
+                (c.estado == 'RECIBIDA_COMPLETA' ? 'RECIBIDA COMPLETA' :
+                (c.estado == 'CERRADA_CON_DIFERENCIA' ? 'CERRADA CON DIFERENCIA' :
+                (c.estado == 'PAGADA' ? 'PAGADA' :
+                (c.estado == 'ANULADA' ? 'ANULADA' : c.estado))))))
+              }">
+        </span>
+
+                        <div th:if="${c.estado == 'CERRADA_CON_DIFERENCIA'
+            and c.estadoDevolucion == 'PENDIENTE_DEVOLUCION'}"
+                             class="mt-1">
+            <span class="badge rounded-pill text-bg-warning">
+                <i class="bi bi-clock-history me-1"></i>
+                Devolución pendiente
+            </span>
+                        </div>
+                    </td>
+
+                    <td data-label="Acciones">
+                        <div class="acciones-compra">
+
+                            <button class="btn btn-outline-info btn-sm"
+                                    th:onclick="|openCompraModal('@{/interno/compras/detalle/{id}(id=${c.idCompra})}','Detalle de compra')|"
+                                    title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                            <button class="btn btn-outline-success btn-sm"
+                                    th:if="${c.estado == 'REGISTRADA' or c.estado == 'RECIBIDA_PARCIAL'}"
+                                    th:onclick="|window.location.href='@{/interno/compras/recepcion/{id}(id=${c.idCompra})}'|"
+                                    title="Recepcionar mercadería">
+                                <i class="bi bi-box-seam"></i>
+                            </button>
+
+                            <button class="btn btn-outline-warning btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|openCompraModal('@{/interno/compras/editar/{id}(id=${c.idCompra})}','Editar compra')|"
+                                    title="Editar compra">
+                                <i class="bi bi-pencil-square"></i>
+                            </button>
+
+                            <button class="btn btn-outline-danger btn-sm"
+                                    th:if="${c.estado == 'BORRADOR' or c.estado == 'REGISTRADA'}"
+                                    th:onclick="|submitProtectedAction('@{/interno/compras/anular/{id}(id=${c.idCompra})}', '¿Anular compra?')|"
+                                    title="Anular compra">
+                                <i class="bi bi-slash-circle"></i>
+                            </button>
+
+                            <button class="btn btn-outline-danger btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|submitProtectedAction('@{/interno/compras/eliminar/{id}(id=${c.idCompra})}', '¿Eliminar compra?')|"
+                                    title="Eliminar compra">
+                                <i class="bi bi-trash"></i>
+                            </button>
+
+                            <button class="btn btn-outline-success btn-sm"
+                                    th:if="${c.estado=='BORRADOR'}"
+                                    th:onclick="|submitProtectedAction('@{/interno/compras/confirmar/{id}(id=${c.idCompra})}', '¿Confirmar compra?')|"
+                                    title="Confirmar compra">
+                                <i class="bi bi-check2-circle"></i>
+                            </button>
+
+                            <button class="btn btn-outline-warning btn-sm"
+                                    th:if="${c.numeroCuotas != null and c.numeroCuotas > 0}"
+                                    th:attr="data-idcompra=${c.idCompra}, data-moneda=${c.moneda}"
+                                    onclick="abrirModalCuotas(this.dataset.idcompra, this.dataset.moneda)"
+                                    title="Ver cuotas">
+                                <i class="bi bi-cash-stack"></i>
+                            </button>
+
+                            <button class="btn btn-outline-success btn-sm"
+                                    th:if="${c.estado == 'CERRADA_CON_DIFERENCIA'
+                        and c.estadoDevolucion == 'PENDIENTE_DEVOLUCION'
+                        and c.montoDevolucionPendiente != null
+                        and c.montoDevolucionPendiente > 0}"
+                                    th:attr="data-idcompra=${c.idCompra},
+                             data-moneda=${c.moneda},
+                             data-monto=${c.montoDevolucionPendiente}"
+                                    onclick="abrirModalConfirmarDevolucion(this.dataset.idcompra, this.dataset.moneda, this.dataset.monto)"
+                                    title="Confirmar devolución del proveedor">
+                                <i class="bi bi-cash-coin"></i>
+                            </button>
+
+                            <button class="btn btn-outline-primary btn-sm"
+                                    th:onclick="|window.location.reload()|"
+                                    title="Recargar listado">
+                                <i class="bi bi-arrow-clockwise"></i>
+                            </button>
+
+                            <button class="btn btn-outline-secondary btn-sm"
+                                    th:onclick="|abrirModalImprimir(${c.idCompra})|"
+                                    title="Imprimir compra">
+                                <i class="bi bi-printer"></i>
+                            </button>
+
+                        </div>
+                    </td>
+                </tr>
+
+                <tr th:if="${#lists.isEmpty(compras)}">
+                    <td colspan="8" class="text-center py-5">
+                        <div class="dentia-empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <h6 class="fw-bold mt-2 mb-1">No hay compras registradas</h6>
+                            <p class="mb-0">Cuando registres una compra, aparecerá en este listado.</p>
+                        </div>
+                    </td>
+                </tr>
+
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card-footer bg-white border-0">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                <small class="text-muted" id="contadorComprasListado">
+                    Mostrando 0 compras
+                </small>
+
+                <nav aria-label="Paginación compras">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item">
+                            <button type="button"
+                                    class="page-link"
+                                    id="btnComprasAnterior">
+                                Anterior
+                            </button>
+                        </li>
+
+                        <li class="page-item active">
+                    <span class="page-link">
+                        <span id="paginaComprasActual">1</span>
+                        /
+                        <span id="paginaComprasTotal">1</span>
+                    </span>
+                        </li>
+
+                        <li class="page-item">
+                            <button type="button"
+                                    class="page-link"
+                                    id="btnComprasSiguiente">
+                                Siguiente
+                            </button>
+                        </li>
+                    </ul>
+                </nav>
+
+                <button type="button" class="btn btn-light btn-sm border" onclick="window.location.reload()">
+                    <i class="bi bi-arrow-clockwise me-1"></i> Actualizar
+                </button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- MODAL IFRAME: NUEVA / EDITAR / DETALLE -->
+<div class="modal fade" id="compraModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content dentia-modal-content">
+
+            <div class="modal-header dentia-modal-header">
+                <div>
+                    <h5 id="compraModalTitle" class="modal-title">Compras</h5>
+                    <small class="opacity-75">Gestión interna DentIA</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                <iframe id="compraModalIframe"></iframe>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CUOTAS COMPRA -->
+<div class="modal fade" id="modalCuotas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content dentia-modal-content">
+
+            <div class="modal-header dentia-modal-header">
+                <div>
+                    <h5 class="modal-title">
+                        <i class="bi bi-credit-card-2-front me-1"></i>
+                        Gestión de pagos de compra
+                    </h5>
+                    <small class="opacity-75">
+                        Cronograma de pagos al proveedor
+                    </small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="infoCuotas"></div>
+
+                <div class="card border-0 shadow-sm rounded-4 mt-3">
+                    <div class="card-body">
+
+                        <h6 class="fw-bold mb-3">
+                            <i class="bi bi-list-check me-1"></i>
+                            Cronograma de cuotas
+                        </h6>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0 tabla-cuotas-compra">
+                                <thead class="table-light">
+                                <tr>
+                                    <th>Cuota</th>
+                                    <th>Fecha vencimiento</th>
+                                    <th class="text-end">Monto</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                                </thead>
+
+                                <tbody id="tablaCuotas"></tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="mt-3 p-3 rounded-4 border bg-light" id="resumenCuotasCompra">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-bar-chart-line me-1"></i>
+                        Resumen financiero
+                    </h6>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Total crédito</span>
+                        <strong id="resumenTotalCredito">S/ 0.00</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Pagado</span>
+                        <strong class="text-success" id="resumenTotalPagado">S/ 0.00</strong>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Pendiente</span>
+                        <strong class="text-danger" id="resumenTotalPendiente">S/ 0.00</strong>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMPRIMIR -->
+<div class="modal fade" id="modalImprimir" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content dentia-modal-content">
+
+            <div class="modal-header dentia-modal-header">
+                <div>
+                    <h5 class="modal-title">Imprimir Compra</h5>
+                    <small class="opacity-75">Selecciona el formato de descarga</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="d-grid gap-3">
+                    <button id="btnPdf" type="button" class="btn btn-danger">
+                        <i class="bi bi-file-earmark-pdf me-1"></i> Descargar PDF
+                    </button>
+
+                    <button id="btnExcel" type="button" class="btn btn-success">
+                        <i class="bi bi-file-earmark-excel me-1"></i> Descargar Excel
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMAR DEVOLUCIÓN PROVEEDOR -->
+<div class="modal fade" id="modalConfirmarDevolucion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content dentia-modal-content">
+
+            <form th:action="@{/interno/compras/recepcion/confirmar-devolucion}"
+                  method="post"
+                  id="formConfirmarDevolucion">
+
+                <div class="modal-header dentia-modal-header">
+                    <div>
+                        <h5 class="modal-title">
+                            <i class="bi bi-cash-coin me-1"></i>
+                            Confirmar devolución
+                        </h5>
+                        <small class="opacity-75">
+                            Marca que el proveedor ya regularizó el saldo pendiente.
+                        </small>
+                    </div>
+
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" name="idCompra" id="devolucionIdCompra">
+
+                    <div class="alert alert-success border-0 rounded-4">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta acción cambiará la devolución pendiente a <strong>Devuelto / ajustado</strong>.
+                    </div>
+
+                    <div id="erroresConfirmarDevolucion" class="alert alert-danger d-none">
+                        <strong>Corrige lo siguiente:</strong>
+                        <ul class="mb-0 mt-2" id="listaErroresConfirmarDevolucion"></ul>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Monto pendiente</label>
+                        <input type="text"
+                               id="devolucionMontoTexto"
+                               class="form-control fw-bold"
+                               readonly>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Fecha devolución / ajuste</label>
+                        <input type="date"
+                               name="fechaDevolucion"
+                               id="devolucionFecha"
+                               class="form-control"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Observación</label>
+                        <textarea name="observacionDevolucion"
+                                  id="devolucionObservacion"
+                                  class="form-control"
+                                  rows="3"
+                                  maxlength="500"
+                                  placeholder="Opcional. Ej. Proveedor devolvió el dinero mediante transferencia bancaria."></textarea>
+                        <div class="form-text">
+                            Opcional. Si escribes una observación, usa mínimo 10 caracteres y evita símbolos extraños.
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button"
+                            class="btn btn-outline-secondary rounded-pill px-4"
+                            data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit"
+                            class="btn btn-success rounded-pill px-4">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Confirmar devolución
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CONFIRMACIÓN GLOBAL -->
+<div class="modal fade" id="modalConfirmacionGlobal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow-lg">
+
+            <div class="modal-header border-0 bg-light rounded-top-4">
+                <div>
+                    <h5 class="modal-title fw-bold" id="modalConfirmacionTitulo">
+                        Confirmar acción
+                    </h5>
+                    <small class="text-muted" id="modalConfirmacionSubtitulo">
+                        DentIA ERP
+                    </small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="d-flex gap-3 align-items-start">
+                    <div class="rounded-circle bg-warning-subtle text-warning d-flex align-items-center justify-content-center"
+                         style="width: 48px; height: 48px; min-width: 48px;">
+                        <i class="bi bi-question-circle fs-3"></i>
+                    </div>
+
+                    <div>
+                        <p class="mb-1 fw-semibold" id="modalConfirmacionMensaje">
+                            ¿Deseas continuar?
+                        </p>
+                        <small class="text-muted">
+                            Esta acción se aplicará al registro seleccionado.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button" class="btn btn-success rounded-pill px-4" id="btnConfirmarAccionGlobal">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Confirmar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- TOAST GLOBAL -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 2000;">
+    <div id="toastGlobal" class="toast border-0 shadow-lg rounded-4" role="alert">
+        <div class="toast-header border-0">
+            <i id="toastGlobalIcon" class="bi bi-check-circle-fill text-success me-2"></i>
+            <strong class="me-auto" id="toastGlobalTitulo">Correcto</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+        </div>
+        <div class="toast-body" id="toastGlobalMensaje">
+            Operación realizada correctamente.
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/shared/post-action.js}"></script>
+<script th:src="@{/js/interno/compras.js}"></script>
+
+<!-- Pie de página global -->
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+</body>
+</html>

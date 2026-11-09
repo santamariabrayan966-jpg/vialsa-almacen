@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0b7f86">
+    <title th:text="${(marcaConfig != null and !#strings.isEmpty(marcaConfig.nombreComercial) ? marcaConfig.nombreComercial : 'DentIA') + ' | Clínica Odontológica'}">DentIA | Clínica Odontológica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/landing.css}">
+    <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script defer th:src="@{/js/dentia/landing.js(v='4.5')}"></script>
+</head>
+<body th:with="nombreEmpresa=${marcaConfig != null and !#strings.isEmpty(marcaConfig.nombreComercial) ? marcaConfig.nombreComercial : 'DentIA'},
+               rucEmpresa=${marcaConfig != null and marcaConfig.ruc != null ? marcaConfig.ruc : ''},
+               direccionEmpresa=${marcaConfig != null and marcaConfig.direccionPrincipal != null ? marcaConfig.direccionPrincipal : ''},
+               celularEmpresa=${marcaConfig != null and marcaConfig.whatsappPrincipal != null ? marcaConfig.whatsappPrincipal : ''}">
+
+<!-- Navbar -->
+<header class="dentia-header">
+    <div class="container py-2">
+        <div class="d-flex align-items-center justify-content-between">
+            <a class="dentia-nav-brand" th:href="@{/}" id="dentiaBrandTrigger" th:title="${nombreEmpresa + ' · Clínica Odontológica'}">
+                <div class="brand-icon-box overflow-hidden" th:classappend="${!#strings.isEmpty(logoPrincipalUrl)} ? ' has-custom-logo' : ''">
+                    <img th:if="${!#strings.isEmpty(logoPrincipalUrl)}"
+                         th:src="${logoPrincipalUrl}"
+                         th:alt="${'Logo de ' + nombreEmpresa}"
+                         style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: auto;">
+                    <i th:if="${#strings.isEmpty(logoPrincipalUrl)}" class="bi bi-heart-pulse-fill"></i>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="brand-title" th:text="${nombreEmpresa}">DentIA</span>
+                    <span class="brand-subtitle-badge d-none d-sm-inline">Clínica odontológica</span>
+                </div>
+            </a>
+
+            <!-- Navegación desktop -->
+            <nav class="d-none d-lg-flex align-items-center gap-2">
+                <a href="#inicio" class="nav-link-custom">Inicio</a>
+                <a href="#sobre-nosotros" class="nav-link-custom">Nosotros</a>
+                <a href="#especialidades" class="nav-link-custom">Tratamientos</a>
+                <a href="#especialistas" class="nav-link-custom">Especialistas</a>
+                <a href="#reservar-cita" class="nav-link-custom text-primary fw-bold"><i class="bi bi-calendar-heart me-1"></i>Reserva tu Cita</a>
+                <a href="#contacto" class="nav-link-custom">Contacto</a>
+            </nav>
+
+            <!-- Acciones de cabecera -->
+            <div class="d-flex align-items-center gap-2">
+                <!-- Si ya está autenticado como paciente con Google -->
+                <div th:if="${esPaciente}" class="d-flex align-items-center gap-2">
+                    <a href="#reservar-cita" class="btn-dentia-primary">
+                        <i class="bi bi-calendar2-check"></i>
+                        <span>Mi Cita</span>
+                    </a>
+                    <form th:action="@{/paciente/logout}" method="post" class="d-inline m-0">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" title="Cerrar sesión">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span class="d-none d-md-inline">Salir</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Si ya está autenticado como interno (staff) -->
+                <a th:if="${esInterno}" th:href="@{/interno/dashboard}" class="btn-dentia-primary">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Panel Interno</span>
+                </a>
+
+                <!-- Si es visitante: botón directo para agendar cita o entrar con Google -->
+                <div th:unless="${estaAutenticado}" class="d-flex align-items-center gap-2">
+                    <a href="#reservar-cita" class="btn-dentia-primary">
+                        <i class="bi bi-calendar-plus"></i>
+                        <span>Agendar Cita</span>
+                    </a>
+                    <a th:if="${googleOAuthDisponible}" th:href="@{/oauth2/authorization/google}" class="btn-dentia-google d-none d-sm-flex" title="Iniciar sesión con tu cuenta Google">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                        </svg>
+                        <span>Google</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main>
+    <!-- Alertas informativas -->
+    <div th:if="${param.logout}" class="container mt-3">
+        <div class="alert alert-info alert-dismissible fade show rounded-4 py-3" role="status">
+            <i class="bi bi-check-circle-fill me-2"></i> Tu sesión ha sido cerrada correctamente. ¡Gracias por confiar en <span th:text="${nombreEmpresa}">DentIA</span>!
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    </div>
+
+    <div th:if="${param.staffLogout}" class="container mt-3">
+        <div class="alert alert-info alert-dismissible fade show rounded-4 py-3" role="status">
+            <i class="bi bi-shield-check me-2"></i> Sesión del personal administrativo cerrada correctamente.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    </div>
+
+    <div th:if="${param.oauthNoDisponible}" class="container mt-3">
+        <div class="alert alert-warning alert-dismissible fade show rounded-4 py-3" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i> El acceso con Google todavía no está configurado para este entorno.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="hero-section">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-7">
+                    <div class="hero-badge">
+                        <span class="pulse-dot"></span>
+                        <span>Odontología de Vanguardia e Inteligencia Clínica</span>
+                    </div>
+
+                    <h1 class="hero-title">
+                        Cuidamos tu sonrisa con <span class="gradient-text">precisión y calidez</span>.
+                    </h1>
+
+                    <p class="hero-description">
+                        Reserva tu cita médica dental en segundos directamente desde aquí. Sin llamadas, sin esperas y con confirmación inmediata mediante tu cuenta Google.
+                    </p>
+
+                    <!-- Acciones principales -->
+                    <div class="hero-actions">
+                        <a href="#reservar-cita" class="btn-dentia-primary btn-lg px-4 py-3">
+                            <i class="bi bi-calendar2-check-fill me-2"></i>
+                            <span>Reservar Cita Ahora</span>
+                        </a>
+
+                        <a th:if="${not esPaciente and googleOAuthDisponible}" th:href="@{/oauth2/authorization/google}" class="btn-dentia-google btn-lg px-4 py-3">
+                            <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                            </svg>
+                            <span>Ingreso con Google</span>
+                        </a>
+                    </div>
+
+                    <!-- Insignias de confianza -->
+                    <div class="d-flex flex-wrap align-items-center gap-4 pt-2 text-muted small">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-5"></i>
+                            <span>Atención 100% segura</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-check text-info fs-5"></i>
+                            <span>Disponibilidad en tiempo real</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-star-fill text-warning fs-5"></i>
+                            <span>4.9 / 5 Satisfacción médica</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tarjeta interactiva derecha -->
+                <div class="col-lg-5">
+                    <div class="hero-card-preview">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill">Reserva Inmediata</span>
+                            <span class="text-success fw-bold small"><i class="bi bi-circle-fill" style="font-size: .55rem;"></i> Agenda Abierta</span>
+                        </div>
+
+                        <h3 class="h4 fw-bold text-dark mb-2">Agenda tu Cita Dental</h3>
+                        <p class="text-muted small mb-3">
+                            Selecciona tu atención, elige a tu doctor y asegura tu espacio con tu cuenta Google.
+                        </p>
+
+                        <a href="#reservar-cita" class="btn-dentia-primary w-100 justify-content-center py-3 mb-3">
+                            <i class="bi bi-calendar-check-fill me-2"></i>
+                            <span>Ir al Formulario de Reserva</span>
+                        </a>
+
+                        <!-- Acceso mediante el proveedor Google -->
+                        <div th:if="${googleOAuthDisponible}" class="quick-google-box">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="badge text-bg-teal fw-bold" style="background: #0d9488; color: white;">Cuenta Google</span>
+                                <span class="small text-muted">Verificación de identidad</span>
+                            </div>
+                            <p class="small text-muted mb-2">Inicia sesión con tu cuenta de Google para reservar:</p>
+                            <a th:href="@{/oauth2/authorization/google}" class="btn btn-sm btn-outline-dark w-100 justify-content-center py-1 fw-semibold">Continuar con Google</a>
+                        </div>
+                        <div th:unless="${googleOAuthDisponible}" class="alert alert-warning small mb-0" role="status">
+                            Las reservas con Google estarán disponibles cuando el consultorio termine de configurar el acceso.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Banner -->
+    <div class="container">
+        <div class="stats-banner">
+            <div class="row g-4 text-center">
+                <div class="col-6 col-md-3 stat-item">
+                    <h3>+10,000</h3>
+                    <p>Sonrisas Atendidas</p>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <h3>15+</h3>
+                    <p>Años de Experiencia</p>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <h3>99.4%</h3>
+                    <p>Satisfacción Clínica</p>
+                </div>
+                <div class="col-6 col-md-3 stat-item">
+                    <h3>100%</h3>
+                    <p>Esterilización Certificada</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECCIÓN INTERACTIVA DE RESERVA DE CITAS EN LA MISMA PÁGINA -->
+    <section id="reservar-cita" class="section-padding bg-light border-top border-bottom">
+        <div class="container">
+            <div class="text-center max-w-xl mx-auto mb-5">
+                <span class="section-tag">Agenda tu Consulta</span>
+                <h2 class="section-title">Reserva tu Cita Dental en 3 Pasos</h2>
+                <p class="text-muted">Elige el servicio, tu especialista preferido y el horario disponible que más te convenga.</p>
+            </div>
+
+            <!-- Notificaciones del proceso de reserva -->
+            <div th:if="${param.citaReservada}" class="alert alert-success alert-dismissible fade show rounded-4 p-4 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-check-circle-fill text-success fs-1"></i>
+                    <div>
+                        <h4 class="alert-heading fw-bold mb-1">¡Cita reservada con éxito!</h4>
+                        <p class="mb-0">Tu turno ha sido registrado en nuestra agenda clínica. Te esperamos en <span th:text="${nombreEmpresa}">DentIA</span>.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+
+            <div th:if="${param.errorReserva}" class="alert alert-danger alert-dismissible fade show rounded-4 p-4 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-exclamation-triangle-fill text-danger fs-1"></i>
+                    <div>
+                        <h4 class="alert-heading fw-bold mb-1">No se pudo completar la reserva</h4>
+                        <p class="mb-0" th:text="${param.errorReserva}"></p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+
+            <div th:if="${param.loginGoogleRequerido}" class="alert alert-warning alert-dismissible fade show rounded-4 p-4 shadow-sm mb-4" role="alert">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-info-circle-fill text-warning fs-1"></i>
+                    <div>
+                        <h4 class="alert-heading fw-bold mb-1">Ingreso requerido</h4>
+                        <p class="mb-0">Para confirmar tu cita dental, debes identificarte con tu cuenta de Google.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+
+            <div th:if="${param.googleSuccess}" class="alert alert-info alert-dismissible fade show rounded-4 p-4 shadow-sm mb-4" role="status">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-google text-primary fs-1"></i>
+                    <div>
+                        <h4 class="alert-heading fw-bold mb-1">¡Cuenta de Google conectada!</h4>
+                        <p class="mb-0">Selecciona tu turno y confirma tu reserva. La atención será por orden de llegada dentro del turno.</p>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Formulario interactivo de reserva -->
+            <div class="card border-0 rounded-4 shadow-sm p-4 p-md-5 mb-5 bg-white">
+                <form th:action="@{/reservar-cita}" method="post" id="formReservaCita">
+                    <input type="hidden" name="idHorario" id="inputHorario">
+                    <input type="hidden" name="idProfesional" id="inputIdProfesional">
+
+                    <div class="row g-4 mb-4">
+                        <!-- Paso 1: Servicio previsto -->
+                        <div class="col-md-4">
+                            <label for="selectTipoAtencion" class="form-label fw-bold text-dark">
+                                <span class="badge bg-teal rounded-circle me-1" style="background:#0d9488; color:white;">1</span>
+                                Servicio previsto
+                            </label>
+                            <select id="selectTipoAtencion" name="idTipoAtencion" class="form-select form-select-lg rounded-3" required>
+                                <option value="" disabled selected>Selecciona el servicio</option>
+                                <option th:each="servicio : ${servicios}"
+                                        th:value="${servicio.id}"
+                                        th:text="${servicio.categoria + ' › ' + servicio.subcategoria + ' › ' + servicio.nombre + ' · ' + (servicio.precio != null and servicio.precio.doubleValue() > 0 ? 'referencial S/ ' + #numbers.formatDecimal(servicio.precio,1,2) : 'precio por confirmar')}">
+                                </option>
+                            </select>
+                            <small class="text-secondary">El precio final se confirma en el consultorio.</small>
+                        </div>
+
+                        <!-- Paso 2: Profesional / Doctor -->
+                        <div class="col-md-4">
+                            <label for="selectProfesional" class="form-label fw-bold text-dark">
+                                <span class="badge bg-teal rounded-circle me-1" style="background:#0d9488; color:white;">2</span>
+                                Especialista
+                            </label>
+                            <select id="selectProfesional" class="form-select form-select-lg rounded-3">
+                                <option value="">Cualquier especialista disponible</option>
+                                <option th:each="prof : ${profesionales}"
+                                        th:value="${prof.idProfesional}"
+                                        th:text="${prof.nombreCompleto}">
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Paso 3: Fecha deseada -->
+                        <div class="col-md-4">
+                            <label for="inputFecha" class="form-label fw-bold text-dark">
+                                <span class="badge bg-teal rounded-circle me-1" style="background:#0d9488; color:white;">3</span>
+                                Fecha de Consulta
+                            </label>
+                            <input type="date" id="inputFecha" name="fecha" class="form-control form-control-lg rounded-3" th:min="${fechaMinima}" th:value="${fechaMinima}" required>
+                        </div>
+                    </div>
+
+                    <!-- Turnos de atención disponibles -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark d-flex align-items-center justify-content-between">
+                            <span><i class="bi bi-clock-history text-primary me-2"></i>Turnos disponibles para esta fecha · orden de llegada</span>
+                            <span id="slotStatusText" class="small text-muted">Selecciona un servicio y fecha</span>
+                        </label>
+
+                        <div id="contenedorSlots" class="slots-grid p-3 rounded-4 border bg-light min-h-120 d-flex flex-wrap gap-2 align-items-center justify-content-center text-center">
+                            <div class="text-muted small py-3">
+                                <i class="bi bi-calendar-event fs-3 d-block mb-2 text-secondary"></i>
+                                Selecciona un servicio para ver los turnos disponibles.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Motivo de consulta -->
+                    <div class="mb-4">
+                        <label for="inputMotivo" class="form-label fw-bold text-dark">Motivo de tu consulta (opcional)</label>
+                        <input type="text" id="inputMotivo" name="motivoConsulta" class="form-control rounded-3" placeholder="Ej: Revisión dental, dolor de muela, valoración de ortodoncia...">
+                    </div>
+
+                    <!-- Confirmación según estado de sesión -->
+                    <div class="pt-2">
+                        <!-- Si YA está logueado con Google -->
+                        <div th:if="${esPaciente}" class="p-3 bg-light rounded-4 border mb-3">
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-success text-white d-flex align-items-center justify-content-center" style="width: 2.5rem; height: 2.5rem;">
+                                        <i class="bi bi-person-check-fill fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Paciente identificado con Google</div>
+                                        <div class="small text-muted" th:text="${correoUsuario}"></div>
+                                    </div>
+                                </div>
+                                <button type="submit" id="btnConfirmarCita" class="btn-dentia-primary btn-lg px-5 py-3" disabled>
+                                    <i class="bi bi-calendar-check-fill me-2"></i>
+                                    <span>Confirmar Mi Cita</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Si NO está logueado -->
+                        <div th:unless="${esPaciente}" class="p-4 rounded-4 border text-center" style="background: #f8fafc;">
+                            <p class="fw-bold text-dark mb-2">Para completar tu reserva, identifícate en un solo clic con Google:</p>
+                            <div class="d-flex flex-wrap align-items-center justify-content-center gap-3">
+                                <a th:if="${googleOAuthDisponible}" th:href="@{/oauth2/authorization/google}" class="btn-dentia-google btn-lg px-4 py-3">
+                                    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+                                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                                    </svg>
+                                    <span>Continuar con Google para Confirmar</span>
+                                </a>
+                                <div th:unless="${googleOAuthDisponible}" class="alert alert-warning mb-0" role="status">
+                                    La reserva en línea está temporalmente deshabilitada mientras se configura el acceso con Google.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- MIS CITAS RESERVADAS (Directamente en la misma página) -->
+            <div th:if="${esPaciente and not #lists.isEmpty(misCitas)}" class="mt-4">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h3 class="h4 fw-bold text-dark mb-0">
+                        <i class="bi bi-calendar2-heart text-primary me-2"></i>Tus Citas Programadas
+                    </h3>
+                    <span class="badge text-bg-primary rounded-pill px-3 py-2" th:text="${#lists.size(misCitas) + ' Cita(s)'}"></span>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-4" th:each="cita : ${misCitas}">
+                        <div class="card border-0 rounded-4 shadow-sm p-3 bg-white h-100">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="badge bg-success-subtle text-success fw-bold px-3 py-1 rounded-pill" th:text="${cita.estado}">RESERVADA</span>
+                                <small class="text-muted" th:text="${#temporals.format(cita.inicio, 'dd/MM/yyyy')}"></small>
+                            </div>
+                            <h5 class="fw-bold mb-1" th:text="${cita.tipoAtencion}">Consulta General</h5>
+                            <p class="small text-muted mb-2">
+                                <i class="bi bi-person-fill me-1"></i><span th:text="${cita.profesional}">Dr. Especialista</span>
+                            </p>
+                            <div class="d-flex align-items-center gap-2 text-primary fw-bold small">
+                                <i class="bi bi-clock-fill"></i>
+                                <span th:text="${#temporals.format(cita.inicio, 'hh:mm a')}"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sobre DentIA -->
+    <section id="sobre-nosotros" class="section-padding">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="section-tag">Sobre Nuestra Empresa</span>
+                    <h2 class="section-title">Innovación, precisión médica y cercanía humana.</h2>
+                    <p class="lead text-muted mb-4">
+                        En <strong th:text="${nombreEmpresa}">DentIA</strong> rediseñamos la experiencia odontológica para que acudir al dentista sea un momento de tranquilidad, confianza y bienestar.
+                    </p>
+                    <p class="text-muted mb-4">
+                        Integramos tecnologías de escaneo tridimensional y asistencia por algoritmos de diagnóstico para detectar patologías en etapas tempranas, permitiendo tratamientos mínimamente invasivos que conservan al máximo tus piezas naturales.
+                    </p>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <div class="d-flex align-items-center gap-2 mb-1 text-primary fw-bold">
+                                    <i class="bi bi-cpu-fill fs-5"></i>
+                                    <span>Diagnóstico Asistido</span>
+                                </div>
+                                <p class="small text-muted mb-0">Imágenes digitales de alta resolución para un análisis certero.</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="p-3 bg-white rounded-4 border shadow-sm h-100">
+                                <div class="d-flex align-items-center gap-2 mb-1 text-primary fw-bold">
+                                    <i class="bi bi-shield-shaded fs-5"></i>
+                                    <span>Protocolo Quirúrgico</span>
+                                </div>
+                                <p class="small text-muted mb-0">Cabinas de esterilización hospitalaria y ambiente controlado.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <div class="bento-card">
+                                <div class="bento-icon icon-teal">
+                                    <i class="bi bi-calendar2-range"></i>
+                                </div>
+                                <h4>Agenda Inteligente en Tiempo Real</h4>
+                                <p>Tus citas se gestionan al segundo. Recibe recordatorios preventivos y consulta tus citas pasadas desde tu portal sin esperas.</p>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="bento-card">
+                                <div class="bento-icon icon-cyan">
+                                    <i class="bi bi-emoji-smile"></i>
+                                </div>
+                                <h4>Tratamientos 100% Sin Dolor</h4>
+                                <p>Anestesia computarizada y técnicas ergonómicas para que tu visita sea cómoda y sin ningún tipo de molestia o ansiedad.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Especialidades y Servicios Médicos -->
+    <section id="especialidades" class="section-padding bg-white border-top border-bottom">
+        <div class="container">
+            <div class="text-center max-w-xl mx-auto mb-5">
+                <span class="section-tag">Nuestras Especialidades</span>
+                <h2 class="section-title">Tratamientos odontológicos de excelencia</h2>
+                <p class="text-muted">Cubrimos cada necesidad dental con profesionales certificados en cada rama.</p>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-teal"><i class="bi bi-gem"></i></div>
+                        <h4>Ortodoncia Invisible &amp; Brackets</h4>
+                        <p>Alineadores transparentes modernos y brackets estéticos de autoligado para corregir tu mordida de forma discreta y en menos tiempo.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-emerald"><i class="bi bi-shield-plus"></i></div>
+                        <h4>Implantes &amp; Cirugía Oral</h4>
+                        <p>Recupera la función y estética de tus dientes con implantes de titanio biocompatible de máxima fijación y estética natural.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-cyan"><i class="bi bi-stars"></i></div>
+                        <h4>Estética &amp; Blanqueamiento</h4>
+                        <p>Diseño de sonrisa digital, carillas cerámicas ultrafinas y blanqueamiento dental láser de última generación en una sola sesión.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-indigo"><i class="bi bi-bandaid"></i></div>
+                        <h4>Endodoncia Microscópica</h4>
+                        <p>Salvamos tus dientes naturales mediante tratamiento de conductos asistido por microscopía óptica, sin dolor y con sellado hermético.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-amber"><i class="bi bi-balloon-heart"></i></div>
+                        <h4>Odontopediatría Integral</h4>
+                        <p>Atención especializada y amigable para bebés, niños y adolescentes, creando experiencias agradables desde su primera visita.</p>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-lg-4">
+                    <div class="bento-card">
+                        <div class="bento-icon icon-rose"><i class="bi bi-heart-pulse"></i></div>
+                        <h4>Periodoncia &amp; Limpieza Profunda</h4>
+                        <p>Cuidado de encías, eliminación de sarro mediante ultrasonido y prevención de sangrado para una salud gingival duradera.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Equipo de Especialistas -->
+    <section id="especialistas" class="section-padding">
+        <div class="container">
+            <div class="text-center mb-5">
+                <span class="section-tag">Equipo Médico</span>
+                <h2 class="section-title">Especialistas comprometidos con tu salud</h2>
+                <p class="text-muted">Profesionales dentales certificados con amplia trayectoria clínica y formación continua.</p>
+            </div>
+
+            <div class="row g-4 justify-content-center">
+                <div class="col-md-6 col-lg-4" th:each="p : ${profesionales}">
+                    <div class="doctor-card text-center h-100 d-flex flex-column">
+                        <div class="doctor-avatar-circle mx-auto mb-3" style="width: 80px; height: 80px; overflow: hidden; border-radius: 50%;">
+                            <img th:if="${p.foto != null and not #strings.isEmpty(p.foto)}" 
+                                 th:src="@{'/uploads/profesionales/' + ${p.foto}}" 
+                                 alt="Doctor" style="width: 100%; height: 100%; object-fit: cover;">
+                            <div th:unless="${p.foto != null and not #strings.isEmpty(p.foto)}" 
+                                 class="d-flex align-items-center justify-content-center w-100 h-100 bg-teal text-white fw-bold fs-3"
+                                 style="background: linear-gradient(135deg, #0d9488, #0284c7);"
+                                 th:text="${#strings.substring(p.nombres, 0, 1)}">
+                            </div>
+                        </div>
+
+                        <span class="doctor-specialty d-block mb-1" 
+                              th:text="${not #lists.isEmpty(p.especialidades) ? #strings.listJoin(p.especialidades.![nombre], ' · ') : 'Odontología Integral'}">
+                        </span>
+
+                        <h4 class="h5 fw-bold mb-1 text-dark" th:text="${p.nombreCompleto}"></h4>
+
+
+                        <p class="small text-secondary flex-grow-1 mb-3" th:text="${#strings.isEmpty(p.correo) ? 'Especialista clínico certificado con atención personalizada en ' + nombreEmpresa + '.' : p.correo}"></p>
+
+                        <a th:href="@{/#reservar-cita}" class="btn btn-sm btn-outline-success rounded-pill px-4 mt-auto">
+                            <i class="bi bi-calendar2-plus me-1"></i> Agendar cita
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-12 text-center text-muted py-4" th:if="${#lists.isEmpty(profesionales)}">
+                    <p>Consultando el equipo médico de <span th:text="${nombreEmpresa}">DentIA</span>...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Horarios y Contacto -->
+    <section id="contacto" class="section-padding bg-white border-top">
+        <div class="container">
+            <div class="row g-5">
+                <div class="col-lg-6">
+                    <span class="section-tag">Información del consultorio</span>
+                    <h2 class="section-title">Estamos para atenderte</h2>
+                    <p class="text-muted mb-4">Encuentra nuestra ubicación o comunícate directamente con el consultorio.</p>
+
+                    <div class="d-flex flex-column gap-3 mb-4">
+                        <div class="d-flex align-items-start gap-3" th:if="${!#strings.isEmpty(direccionEmpresa)}">
+                            <div class="brand-icon-box text-white flex-shrink-0" style="width: 2.5rem; height: 2.5rem; font-size: 1.1rem;">
+                                <i class="bi bi-geo-alt-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">Dirección Central</strong>
+                                <a class="text-muted" target="_blank" rel="noopener" th:href="${'https://www.google.com/maps/search/?api=1&amp;query=' + direccionEmpresa}" th:text="${direccionEmpresa}">Dirección del consultorio</a>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3" th:if="${!#strings.isEmpty(rucEmpresa)}">
+                            <div class="brand-icon-box text-white flex-shrink-0" style="width: 2.5rem; height: 2.5rem; font-size: 1.1rem;">
+                                <i class="bi bi-building-check"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">RUC</strong>
+                                <span class="text-muted" th:text="${rucEmpresa}">RUC</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3" th:if="${!#strings.isEmpty(celularEmpresa)}">
+                            <div class="brand-icon-box text-white flex-shrink-0" style="width: 2.5rem; height: 2.5rem; font-size: 1.1rem;">
+                                <i class="bi bi-phone-fill"></i>
+                            </div>
+                            <div>
+                                <strong class="d-block text-dark">Celular</strong>
+                                <a class="text-muted" th:href="${'tel:' + celularEmpresa}" th:text="${celularEmpresa}">Celular del consultorio</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preguntas Frecuentes -->
+                <div class="col-lg-6">
+                    <span class="section-tag">Preguntas Frecuentes</span>
+                    <h3 class="h4 fw-bold mb-3">Respuestas rápidas para ti</h3>
+
+                    <div class="accordion accordion-dentia" id="faqDentia">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    ¿Cómo reservo mi cita?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqDentia">
+                                <div class="accordion-body text-muted">
+                                    Directamente desde esta página. Selecciona el servicio, el profesional y la fecha. Luego elige tu horario y confirma con tu cuenta Google en un solo clic.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    ¿Necesito crear una cuenta o contraseña?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqDentia">
+                                <div class="accordion-body text-muted">
+                                    No. No tienes que recordar ninguna contraseña ni registrarte manualmente. Todo se valida de forma inmediata y segura con tu cuenta de Google.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="dentia-footer">
+    <div class="container">
+        <div class="row g-4 justify-content-between">
+            <div class="col-lg-4">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <div class="brand-icon-box overflow-hidden" th:classappend="${!#strings.isEmpty(logoPrincipalUrl)} ? ' has-custom-logo' : ''" style="width: 2.5rem; height: 2.5rem; font-size: 1.1rem;">
+                        <img th:if="${!#strings.isEmpty(logoPrincipalUrl)}"
+                             th:src="${logoPrincipalUrl}"
+                             th:alt="${'Logo de ' + nombreEmpresa}"
+                             style="max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; display: block; margin: auto;">
+                        <i th:if="${#strings.isEmpty(logoPrincipalUrl)}" class="bi bi-heart-pulse-fill"></i>
+                    </div>
+                    <span class="footer-brand" th:text="${nombreEmpresa}">DentIA</span>
+                </div>
+                <p class="small text-secondary mb-3">
+                    Clínica odontológica. Cuidado dental avanzado con calidez humana y respaldo tecnológico.
+                </p>
+                <p class="small text-secondary" th:if="${!#strings.isEmpty(rucEmpresa)}" th:text="${'RUC ' + rucEmpresa}">RUC</p>
+                <div class="d-flex gap-3 fs-5 text-secondary">
+                    <a href="#" class="text-secondary"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-secondary"><i class="bi bi-instagram"></i></a>
+                    <a th:if="${!#strings.isEmpty(celularEmpresa)}" th:href="${'tel:' + celularEmpresa}" class="text-secondary" th:aria-label="${'Llamar a ' + nombreEmpresa}"><i class="bi bi-phone"></i></a>
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <h5 class="text-white h6 fw-bold mb-3">Citas &amp; Pacientes</h5>
+                <a href="#reservar-cita" class="footer-link">Reservar Cita</a>
+                <a th:if="${googleOAuthDisponible}" th:href="@{/oauth2/authorization/google}" class="footer-link">Ingreso con Google</a>
+                <a href="#especialidades" class="footer-link">Tratamientos Dentales</a>
+            </div>
+
+            <div class="col-6 col-lg-2">
+                <h5 class="text-white h6 fw-bold mb-3">Tratamientos</h5>
+                <a href="#especialidades" class="footer-link">Ortodoncia</a>
+                <a href="#especialidades" class="footer-link">Implantes</a>
+                <a href="#especialidades" class="footer-link">Estética Dental</a>
+                <a href="#especialidades" class="footer-link">Endodoncia</a>
+            </div>
+
+            <div class="col-lg-3" th:if="${!#strings.isEmpty(celularEmpresa)}">
+                <h5 class="text-white h6 fw-bold mb-3">Emergencias Dentales</h5>
+                <p class="small text-secondary mb-2">Línea directa para atención odontológica de urgencia:</p>
+                <a th:href="${'tel:' + celularEmpresa}" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1">
+                    <i class="bi bi-telephone-outbound me-1"></i> <span th:text="${celularEmpresa}">Celular</span>
+                </a>
+            </div>
+        </div>
+
+        <hr class="footer-divider">
+
+        <div class="d-flex flex-column flex-sm-row align-items-center justify-content-between gap-3 small text-secondary">
+            <div>
+                © 2026 <span th:text="${nombreEmpresa}">DentIA</span> · Todos los derechos reservados.
+            </div>
+
+            <!-- BOTÓN DISCRETO / OCULTO PARA EL PANEL ADMINISTRATIVO -->
+            <div class="d-flex align-items-center gap-3">
+                <span class="d-none d-md-inline" style="font-size: .72rem; opacity: .45;" title="Atajo para colaboradores: Ctrl+Shift+A">Atajo: Ctrl+Shift+A</span>
+                <a href="#" id="btnStaffFooter" class="staff-discrete-btn" title="Acceso exclusivo para personal autorizado">
+                    <i class="bi bi-shield-lock-fill"></i>
+                    <span>Portal Colaboradores</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- MODAL DE ACCESO ADMINISTRATIVO DISCRETO (ÚNICO ACCESO AL PANEL) -->
+<div class="modal fade modal-dentia" id="modalAccesoStaff" tabindex="-1" aria-labelledby="modalStaffTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-lock-fill fs-4"></i>
+                    <div>
+                        <h5 class="modal-title fw-bold h6 mb-0" id="modalStaffTitle">Panel Clínico &amp; Administrativo</h5>
+                        <span class="small opacity-75">Acceso exclusivo de colaboradores <span th:text="${nombreEmpresa}">DentIA</span></span>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Alertas de login interno dentro del modal -->
+                <div th:if="${param.staffError}" class="alert alert-danger py-2 small rounded-3 mb-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-1"></i> Usuario o contraseña incorrectos.
+                </div>
+                <div th:if="${param.staffBloqueado}" class="alert alert-warning py-2 small rounded-3 mb-3" role="alert">
+                    <i class="bi bi-lock-fill me-1"></i> La cuenta está bloqueada temporalmente por intentos fallidos.
+                </div>
+                <div th:if="${param.staffDisabled}" class="alert alert-warning py-2 small rounded-3 mb-3" role="alert">
+                    <i class="bi bi-person-x-fill me-1"></i> La cuenta no está activa. Contacta al administrador.
+                </div>
+                <div th:if="${param.staffLogout}" class="alert alert-info py-2 small rounded-3 mb-3" role="status">
+                    <i class="bi bi-check-circle-fill me-1"></i> Sesión administrativa cerrada correctamente.
+                </div>
+
+                <form th:action="@{/interno/login}" method="post">
+                    <div class="mb-3">
+                        <label for="staffUserField" class="form-label small fw-bold text-dark">Usuario o correo interno</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-person"></i></span>
+                            <input type="text" id="staffUserField" name="username" class="form-control" placeholder="adminDentia" required autocomplete="username">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="staffPassField" class="form-label small fw-bold text-dark">Contraseña</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-key"></i></span>
+                            <input type="password" id="staffPassField" name="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                            <button type="button" class="btn btn-outline-secondary" id="btnToggleStaffPassword" title="Mostrar/ocultar contraseña" tabindex="-1" style="border-color: #cbd5e1; background: #f8fafc;">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember-device" value="true" id="staffRemember">
+                        <label class="form-check-label small text-muted" for="staffRemember">
+                            Recordarme
+                        </label>
+                    </div>
+                    <p class="small text-muted mb-3">Tu usuario se recordará aquí. El navegador puede guardar y autocompletar la contraseña si aceptas su aviso.</p>
+
+                    <button type="submit" class="btn-dentia-primary w-100 justify-content-center mb-3">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        <span>Ingresar al Panel Administrativo</span>
+                    </button>
+
+                    <div class="text-center small text-muted">
+                        <i class="bi bi-shield-check text-success me-1"></i> Acceso seguro, auditado y cifrado.
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

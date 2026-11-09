@@ -1,0 +1,63 @@
+.pwa-install-banner[hidden] { display: none !important; }
+
+.pwa-install-banner {
+    position: fixed;
+    z-index: 10050;
+    right: max(1rem, env(safe-area-inset-right));
+    bottom: max(1rem, env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 3.5rem minmax(0, 1fr);
+    gap: .8rem 1rem;
+    width: min(calc(100vw - 2rem), 27rem);
+    padding: 1rem;
+    border: 1px solid #cce2df;
+    border-radius: 1rem;
+    color: #15343b;
+    background: rgba(255, 255, 255, .98);
+    box-shadow: 0 18px 55px rgba(10, 54, 57, .22);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.pwa-install-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    border-radius: .9rem;
+    object-fit: cover;
+    box-shadow: 0 5px 14px rgba(7, 93, 99, .2);
+}
+
+.pwa-install-copy { display: grid; align-content: center; gap: .2rem; min-width: 0; }
+.pwa-install-copy strong { font-size: .98rem; line-height: 1.25; }
+.pwa-install-copy span { color: #60777b; font-size: .82rem; line-height: 1.4; }
+
+.pwa-install-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: flex-end;
+    gap: .55rem;
+}
+
+.pwa-install-actions button {
+    min-height: 2.75rem;
+    padding: .65rem .9rem;
+    border-radius: .7rem;
+    font: inherit;
+    font-size: .82rem;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.pwa-install-primary { border: 0; color: #fff; background: #087c78; }
+.pwa-install-dismiss { border: 1px solid #d5e4e2; color: #526a6e; background: #fff; }
+.pwa-install-actions button:focus-visible { outline: 3px solid rgba(8, 124, 120, .28); outline-offset: 2px; }
+
+@media (max-width: 520px) {
+    .pwa-install-banner {
+        right: max(.75rem, env(safe-area-inset-right));
+        bottom: max(.75rem, env(safe-area-inset-bottom));
+        left: max(.75rem, env(safe-area-inset-left));
+        width: auto;
+        padding: .9rem;
+    }
+    .pwa-install-actions { display: grid; grid-template-columns: 1fr auto; }
+}

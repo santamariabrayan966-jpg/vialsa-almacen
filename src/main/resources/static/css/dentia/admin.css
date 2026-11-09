@@ -1,0 +1,718 @@
+.admin-page {
+    max-width: 1500px;
+}
+
+.admin-page .dentia-card {
+    border-radius: 1rem;
+    box-shadow: 0 0.5rem 1.5rem rgba(15, 118, 110, 0.08);
+}
+
+.admin-page .form-label {
+    font-weight: 600;
+    color: #334155;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+.btn-action-icon {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    line-height: 1;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+.btn-action-icon:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+.btn-outline-teal {
+    color: #0b7f86;
+    border-color: #0b7f86;
+    background: transparent;
+}
+.btn-outline-teal:hover {
+    color: #fff;
+    background: #0b7f86;
+    border-color: #0b7f86;
+}
+
+.admin-filter {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+}
+
+.admin-mobile-card {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .admin-page {
+        padding-inline: 0.35rem !important;
+    }
+    .admin-page:has(.admin-mobile-card) .table-responsive table {
+        display: none;
+    }
+    .admin-mobile-card {
+        display: block;
+        padding: 0.65rem 0.75rem !important;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .admin-filter {
+        padding: 0.65rem 0.75rem !important;
+        margin-bottom: 0.55rem !important;
+        border-radius: 0.65rem !important;
+    }
+    .admin-filter .row > * {
+        width: 100%;
+    }
+    .admin-actions {
+        justify-content: flex-start;
+        gap: 0.25rem;
+    }
+}
+
+/* User Avatars */
+.user-avatar-sm {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #e2e8f0;
+}
+
+.user-avatar-initials-sm {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d9488, #0284c7);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.95rem;
+    box-shadow: 0 2px 6px rgba(13, 148, 136, 0.2);
+    flex-shrink: 0;
+}
+
+.user-avatar-lg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #0d9488;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+}
+
+.user-avatar-initials-lg {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d9488, #0284c7);
+    color: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.75rem;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.25);
+    margin: 0 auto;
+}
+
+/* User Card in Grid View */
+.user-card-item {
+    border: 1px solid #e2e8f0;
+    border-radius: 1.25rem;
+    background: #ffffff;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
+}
+
+.user-card-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 14px 28px -6px rgba(15, 118, 110, 0.16);
+    border-color: #cbd5e1;
+}
+
+.user-card-item .card-header-clean {
+    padding: 1.25rem 1.25rem 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.user-card-item .card-body-clean {
+    padding: 1rem 1.25rem 1.5rem;
+    flex: 1 1 auto;
+    text-align: center;
+}
+
+.user-card-item .card-footer-clean {
+    padding: 1rem 1.25rem;
+    background: #f8fafc;
+    border-top: 1px solid #f1f5f9;
+}
+
+/* View Switcher */
+.view-switcher .btn {
+    padding: 0.4rem 0.95rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.view-switcher .btn.active {
+    background-color: #0d9488 !important;
+    color: #ffffff !important;
+    border-color: #0d9488 !important;
+}
+
+/* Modal Avatar Box */
+.avatar-upload-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+}
+
+.avatar-preview-box {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    overflow: hidden;
+    position: relative;
+    border: 3px solid #0d9488;
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.2);
+    transition: transform 0.2s;
+}
+
+.avatar-preview-box:hover {
+    transform: scale(1.03);
+}
+
+.avatar-preview-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.avatar-upload-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.75);
+    color: white;
+    font-size: 0.7rem;
+    text-align: center;
+    padding: 4px 0;
+    transition: all 0.2s;
+}
+
+/* Password eye button */
+.input-password-group {
+    position: relative;
+    display: flex;
+}
+
+.input-password-group input {
+    border-top-right-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.input-password-group .btn-eye {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #64748b;
+    border-left: none;
+}
+
+.input-password-group .btn-eye:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
+.bg-teal-subtle { background-color: #e6f7f5 !important; }
+.border-teal-subtle { border-color: #b2e7e1 !important; }
+.shadow-xs { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.hover-shadow { transition: box-shadow 0.15s ease, transform 0.15s ease; }
+.hover-shadow:hover { box-shadow: 0 4px 12px rgba(11, 127, 134, 0.08) !important; }
+
+/* Custom sleek scrollbar */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #cbd5e1 #f8fafc;
+}
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #f8fafc;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   AGENDA PROFESIONAL - ESTILOS ADAPTABLES Y CONFORTABLES
+   ══════════════════════════════════════════════════════════════ */
+.agenda-modal-shell {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* Diálogo centrado y con ancho compacto/cómodo para la Agenda (estilo Registrar Abono) */
+.agenda-modal-dialog {
+    max-width: 660px !important;
+    width: min(660px, 95vw) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Nav Pills (Pestañas superiores perfectamente equilibradas al 50%/50%) */
+.agenda-nav-pills {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 5px;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+@media (max-width: 575.98px) {
+    .agenda-nav-pills {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.agenda-nav-pills .nav-item {
+    width: 100%;
+}
+
+.agenda-nav-pills .nav-link {
+    width: 100%;
+    color: #475569 !important;
+    font-weight: 600;
+    font-size: 0.875rem;
+    border-radius: 0.65rem;
+    padding: 0.65rem 1rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.agenda-nav-pills .nav-link:hover:not(.active) {
+    color: #0f172a !important;
+    background: rgba(255, 255, 255, 0.85) !important;
+}
+
+.agenda-nav-pills .nav-link.active {
+    background: #0d9488 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(13, 148, 136, 0.28);
+}
+
+.agenda-nav-pills .nav-link.active .badge {
+    background: rgba(255, 255, 255, 0.25) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.agenda-nav-pills .nav-link#tab-bloqueos-btn.active {
+    background: #e11d48 !important;
+    box-shadow: 0 4px 12px rgba(225, 29, 72, 0.28);
+}
+
+/* Encabezado elegante de Día */
+.agenda-day-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 3.5px solid #0d9488;
+    border-radius: 0.55rem;
+    padding: 0.45rem 0.85rem;
+    margin-top: 1rem;
+    margin-bottom: 0.55rem;
+    font-size: 0.775rem;
+    font-weight: 700;
+    color: #1e293b;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Fila de Turno de Atención */
+.agenda-turn-row {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.55rem 0.85rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.agenda-turn-row:hover {
+    border-color: #0d9488;
+    box-shadow: 0 4px 14px rgba(13, 148, 136, 0.09);
+    background: #fbfdfd;
+}
+
+.agenda-turn-row .form-select,
+.agenda-turn-row .form-control {
+    border-color: #cbd5e1;
+    font-size: 0.8125rem;
+}
+
+.agenda-turn-row .form-select:focus,
+.agenda-turn-row .form-control:focus {
+    border-color: #0d9488;
+    box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.15);
+}
+
+/* Tarjetas de Bloqueos y Vacaciones */
+.agenda-block-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.85rem;
+    padding: 1.15rem;
+    height: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+
+
+/* Foto y requisitos del formulario de usuarios */
+#modalUsuario .user-photo {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border: 4px solid #fff;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 8px 24px #0f172a26;
+}
+#modalUsuario .user-photo img,
+#modalUsuario .user-photo-placeholder {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+}
+#modalUsuario .user-photo img { object-fit: cover; }
+#modalUsuario .user-photo-placeholder {
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #0b7f86, #0284c7);
+    color: #fff;
+    font-size: 2.8rem;
+}
+#modalUsuario .user-photo-camera,
+#modalUsuario .user-photo-remove {
+    position: absolute;
+    bottom: 2px;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 4px 10px #143c3c30;
+}
+#modalUsuario .user-photo-camera { right: 2px; background: #0284c7; color: #fff; }
+#modalUsuario .user-photo-remove { left: 2px; background: #fff; color: #b33c48; }
+#modalUsuario .user-password-requirements {
+    display: grid;
+    gap: .3rem;
+    padding: 0;
+    margin: .75rem 0 0;
+    list-style: none;
+    color: #667785;
+    font-size: .82rem;
+}
+#modalUsuario .user-password-requirements li::before { content: "○"; margin-right: .5rem; }
+#modalUsuario .user-password-requirements li.is-met { color: #087a55; }
+#modalUsuario .user-password-requirements li.is-met::before { content: "✓"; font-weight: 800; }
+
+
+/* ==============================================================
+   DISEÑO MÓVIL OPTIMIZADO: CERO TABLAS, SIN ESPACIOS VACÍOS
+   ============================================================== */
+@media (max-width: 991.98px) {
+    /* Modales 100% Pantalla Completa en Celular */
+    div.modal {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    div.modal .modal-dialog,
+    div.modal.show .modal-dialog,
+    div.modal .modal-dialog-centered,
+    div.modal .agenda-modal-dialog,
+    div.modal .modal-lg,
+    div.modal .modal-xl,
+    #modalUsuario .modal-dialog,
+    #modalProfesional .modal-dialog,
+    #modalGestionEspecialidades .modal-dialog,
+    #modalAgendaProfesional .modal-dialog,
+    #modalPermisos .modal-dialog {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    div.modal .modal-content,
+    div.modal .modal-content.rounded-4,
+    div.modal .modal-content.rounded-3,
+    div.modal .modal-content.rounded-2,
+    #modalUsuario .modal-content,
+    #modalProfesional .modal-content,
+    #modalGestionEspecialidades .modal-content,
+    #modalAgendaProfesional .modal-content,
+    #modalPermisos .modal-content {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: none !important;
+    }
+    div.modal .modal-content > form,
+    div.modal form,
+    #modalUsuario form,
+    #modalProfesional form {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+    }
+    div.modal .modal-header {
+        flex-shrink: 0 !important;
+        border-radius: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1055 !important;
+        background: #ffffff !important;
+        padding: 0.85rem 1rem !important;
+    }
+    div.modal .modal-body {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 1rem !important;
+    }
+    div.modal .modal-footer {
+        flex-shrink: 0 !important;
+        border-radius: 0 !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 1055 !important;
+        background: #ffffff !important;
+        padding: 0.75rem 1rem !important;
+    }
+
+    /* Ocultar barra de navegación inferior y cabecera en módulos de configuración móvil */
+    body.mobile-settings-module,
+    body.profile-edit-mode {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    body.mobile-settings-module .dentia-topbar,
+    body.profile-edit-mode .dentia-topbar {
+        display: none !important;
+    }
+    body.mobile-settings-module .dentia-mobile-nav,
+    body.profile-edit-mode .dentia-mobile-nav {
+        display: none !important;
+    }
+    body.mobile-settings-module .footer-interno,
+    body.profile-edit-mode .footer-interno {
+        display: none !important;
+    }
+    .mobile-settings-module .mobile-settings-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 54px !important;
+        z-index: 1040 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: .85rem !important;
+        padding: 0 1rem !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #dceae6 !important;
+        box-shadow: 0 2px 8px rgba(18, 50, 50, 0.05) !important;
+    }
+    .mobile-settings-header a {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 1px solid #d0e5df;
+        border-radius: .75rem;
+        background: #f8fafc;
+        color: #075d63;
+        font-size: 1.15rem;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+    .mobile-settings-header span {
+        font-size: 1.05rem;
+        font-weight: 750;
+        color: #134e4a;
+    }
+    body.mobile-settings-module main.dentia-page,
+    body.profile-edit-mode main.dentia-page {
+        margin-top: 0 !important;
+        padding-top: 66px !important;
+        padding-bottom: 1.5rem !important;
+        padding-left: 0.85rem !important;
+        padding-right: 0.85rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Forzar vista de tarjetas y ocultar tablas en administración */
+    .view-switcher,
+    #vistaTablaProfContainer,
+    #vistaTablaContainer {
+        display: none !important;
+    }
+    #vistaCardsProfContainer,
+    #vistaCardsContainer {
+        display: block !important;
+    }
+
+    /* Reducir espacios y títulos de cabecera en móvil */
+    .admin-page {
+        padding: 0.65rem 0.5rem 1.5rem !important;
+    }
+    .admin-page h1.h2 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    .admin-page p.text-secondary {
+        display: none !important;
+    }
+    .admin-page span.text-success {
+        font-size: 0.72rem !important;
+    }
+
+    /* Botones de acción en fila completa */
+    .admin-page .d-flex.align-items-center.gap-3:has(#btnGestionEspecialidades) {
+        width: 100% !important;
+        gap: 0.45rem !important;
+        margin-top: 0.4rem !important;
+    }
+    #btnGestionEspecialidades,
+    #btnNuevoProfModal {
+        flex: 1 1 0 !important;
+        padding: 0.45rem 0.55rem !important;
+        font-size: 0.8rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 0.65rem !important;
+    }
+
+    /* Filtros compactos */
+    .admin-filter {
+        padding: 0.65rem 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .admin-filter .row {
+        --bs-gutter-x: 0.4rem !important;
+        --bs-gutter-y: 0.4rem !important;
+    }
+    .admin-filter .form-control,
+    .admin-filter .form-select,
+    .admin-filter .btn {
+        height: 38px !important;
+        font-size: 0.82rem !important;
+    }
+
+    /* Tarjetas de profesionales compactas y elegantes */
+    .user-card-item {
+        background: #fff;
+        border: 1px solid #dce8e6;
+        border-radius: 14px;
+        padding: 12px 14px;
+        box-shadow: 0 2px 8px rgba(18, 50, 50, 0.04);
+        margin-bottom: 10px;
+    }
+    .user-avatar-lg,
+    .user-avatar-initials-lg {
+        width: 54px !important;
+        height: 54px !important;
+        font-size: 1.3rem !important;
+    }
+    .card-footer-clean .admin-actions {
+        display: flex;
+        gap: 6px;
+        width: 100%;
+    }
+    .card-footer-clean .btn {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+}

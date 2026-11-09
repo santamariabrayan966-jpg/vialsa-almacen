@@ -9,8 +9,14 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-# Limita memoria para instancias pequeñas de Render
+# Mantiene los archivos subidos fuera de la capa efímera del contenedor.
+VOLUME ["/app/uploads"]
+
+# Valores portables; cada plataforma puede sobrescribirlos.
+ENV PORT=8080
+ENV SPRING_PROFILES_ACTIVE=prod
 ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75"
 
-# Render usa variable de entorno $PORT
-CMD ["sh", "-c", "java -Dserver.port=$PORT -jar app.jar"]
+EXPOSE 8080
+
+CMD ["sh", "-c", "java -Dserver.port=${PORT:-8080} -jar app.jar"]

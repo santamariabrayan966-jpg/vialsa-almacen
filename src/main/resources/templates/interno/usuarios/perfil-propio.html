@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mi Perfil Profesional | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/panel.css(v='20261109-2')}">
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css(v='20261109-2')}">
+    <style>
+        .profile-hero-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.25rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+            margin-bottom: 1.5rem;
+        }
+        .profile-header-content {
+            padding: 1.5rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: .75rem;
+            text-align: center;
+        }
+        .profile-avatar-wrapper {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 4px solid #ffffff;
+            background: #ffffff;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+            flex-shrink: 0;
+        }
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+        }
+        .profile-avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0b7f86, #0284c7);
+            color: #ffffff;
+            display: grid;
+            place-items: center;
+            font-size: 2.8rem;
+        }
+        .avatar-camera-btn {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #0284c7;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+            display: grid;
+            place-items: center;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.4);
+            transition: all 0.2s;
+        }
+        .avatar-camera-btn:hover {
+            background: #0369a1;
+            transform: scale(1.1);
+        }
+        .profile-info-block {
+            min-width: 0;
+            width: 100%;
+        }
+        .profile-info-block > .d-flex,
+        .profile-meta-chips { justify-content: center; }
+        .profile-name {
+            font-size: 1.45rem;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 0.2rem;
+        }
+        .profile-meta-chips {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .pro-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 1.15rem;
+            box-shadow: 0 6px 20px rgba(15, 23, 42, 0.03);
+            padding: 1.5rem;
+        }
+        .pro-card-title {
+            font-size: 1.05rem;
+            font-weight: 750;
+            color: #0f172a;
+            margin-bottom: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .pro-card-title i {
+            color: #0b7f86;
+        }
+        .field-label {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 0.35rem;
+        }
+     .password-requirements { list-style:none; padding:0; margin:.75rem 0 1rem; display:grid; gap:.3rem; color:#667785; font-size:.82rem; } .password-requirements li::before { content:"○"; margin-right:.5rem; } .password-requirements li.is-met { color:#087a55; } .password-requirements li.is-met::before { content:"✓"; font-weight:800; }
+.profile-top { display:flex; align-items:center; gap:.85rem; margin-bottom:1.1rem; }
+.profile-top div { display:flex; flex-direction:column; line-height:1.25; }
+.profile-top span { color:#66817f; font-size:.75rem; }
+.profile-top strong { color:#153b3d; font-size:1.05rem; }
+.profile-back { display:grid; place-items:center; width:2.6rem; height:2.6rem; border:1px solid #d0e5df; border-radius:.8rem; background:#fff; color:#075d63; font-size:1.2rem; text-decoration:none; }
+.profile-hero-card { background:linear-gradient(160deg,#fff 55%,#eaf8f4); border-color:#dbece7; }
+.profile-name { overflow-wrap:anywhere; }
+.profile-photo-hint { font-size:.75rem; color:#6b8581; }
+.profile-meta-chips .badge { max-width:100%; overflow-wrap:anywhere; white-space:normal; padding:.45rem .65rem !important; }
+.avatar-remove-btn { position:absolute; bottom:2px; left:2px; display:grid; place-items:center; width:36px; height:36px; border:2px solid white; border-radius:50%; background:#fff; color:#b33c48; box-shadow:0 4px 12px #193c3c30; cursor:pointer; }
+.avatar-remove-btn:hover { background:#fff1f1; }
+@media (max-width:991.98px) {
+ body.profile-page { padding-top:0 !important; }
+ body.profile-page .dentia-topbar, body.profile-page .dentia-mobile-nav { display:none !important; }
+ body.profile-page main.dentia-page { padding:0 .8rem 2rem !important; margin-top:0 !important; }
+ .profile-top { position:sticky; top:0; z-index:10; margin:0 -.8rem 1rem; padding:.8rem; background:#f5f8f8; border-bottom:1px solid #dceae6; }
+ .profile-header-content { padding:1.35rem 1rem; }
+ .profile-hero-card { margin-bottom:1rem; }
+ .pro-card { padding:1.1rem; }
+}
+@media (max-width:991.98px) {
+ .profile-overview-mode .profile-edit-sections, .profile-overview-mode .avatar-camera-btn, .profile-overview-mode .avatar-remove-btn, .profile-overview-mode .profile-photo-hint { display:none !important; }
+ .profile-edit-mode .profile-overview, .profile-edit-mode .profile-logout { display:none !important; }
+ .profile-edit-mode .dentia-mobile-nav { display:none !important; }
+ .profile-edit-mode { padding-bottom: 0 !important; }
+ .profile-summary, .profile-settings { background:#fff; border:1px solid #dcebe7; border-radius:1rem; padding:1rem; }
+ .profile-summary h2, .profile-settings-title { font-size:1rem; font-weight:750; color:#163a3b; margin:0 0 .8rem; }
+ .profile-summary dl { margin:0; display:grid; gap:.65rem; }
+ .profile-summary dl div { display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; }
+ .profile-summary dt { color:#718482; font-weight:500; }
+ .profile-summary dd { margin:0; color:#173d3d; text-align:right; overflow-wrap:anywhere; }
+ .profile-settings-title { margin:1.3rem .2rem .7rem; }
+ .profile-settings { padding:.3rem .8rem; }
+ .profile-settings a { display:flex; align-items:center; gap:.8rem; padding:.8rem .25rem; color:#164449; text-decoration:none; border-bottom:1px solid #e9f0ee; }
+ .profile-settings a:last-child { border-bottom:0; }
+ .profile-settings a > i:first-child { display:grid; place-items:center; width:2.4rem; height:2.4rem; border-radius:.7rem; background:#e8f7f2; color:#087d78; flex-shrink:0; }
+ .profile-settings a span { flex:1; display:flex; flex-direction:column; min-width:0; }
+ .profile-settings a small { color:#718482; font-size:.75rem; }
+ .profile-settings a > i:last-child { color:#829a96; }
+}
+.profile-password-field input { padding-right: 3rem; }
+.profile-password-field input.profile-valid { border: 1px solid #078353 !important; background-color: #fff !important; box-shadow: none !important; }
+.profile-password-field input.profile-invalid { border: 1px solid #e12b39 !important; background-color: #fff !important; box-shadow: none !important; }
+.profile-password-feedback { display: block; margin-top: .35rem; font-size: .8rem; }
+.profile-password-feedback:empty { display: none; }
+.profile-password-feedback.profile-valid { color: #08704f; }
+.profile-password-feedback.profile-invalid, .password-requirements li.is-missing { color: #bd3238; }
+.password-requirements li.is-missing::before { content: "×"; font-weight: 700; }
+</style>
+</head>
+<body class="panel-interno profile-page profile-overview-mode"><script>if (new URLSearchParams(location.search).has("editar")) { document.body.classList.replace("profile-overview-mode", "profile-edit-mode"); document.body.classList.add("mobile-settings-module"); }</script>
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="dentia-page container-fluid admin-page">
+    <div class="profile-top"><a class="profile-back" th:href="@{/interno/dashboard}" aria-label="Volver"><i class="bi bi-arrow-left"></i></a><div><span>Tu cuenta</span><strong id="profilePageTitle">Perfil y ajustes</strong></div></div><script>if (document.body.classList.contains("profile-edit-mode")) { document.querySelector(".profile-back").href = "/interno/perfil"; document.getElementById("profilePageTitle").textContent = "Editar perfil"; }</script>
+    <!-- Alertas Flash -->
+    <div class="alert alert-success alert-dismissible fade show shadow-sm border-0 rounded-3 mb-3" th:if="${ok}">
+        <i class="bi bi-check-circle-fill me-2"></i> <span th:text="${ok}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-0 rounded-3 mb-3" th:if="${error}">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         HERO BANNER DE PERFIL PROFESIONAL (ESTILO HIGH-TECH)
+         ══════════════════════════════════════════════════════════════ -->
+    <section class="profile-hero-card">
+        <div class="profile-header-content">
+            <!-- Avatar y Botón de Cambio de Foto -->
+            <div class="profile-avatar-wrapper">
+                <img th:classappend="${#strings.isEmpty(usuario.foto)} ? 'd-none' : ''"
+                     th:src="${#strings.isEmpty(usuario.foto) ? '' : '/uploads/usuarios/' + usuario.foto}"
+                     alt="Foto de perfil"
+                     id="perfilFotoPreview"
+                     class="profile-avatar-img">
+                <div th:classappend="${!#strings.isEmpty(usuario.foto)} ? 'd-none' : ''"
+                     id="perfilFotoPlaceholder"
+                     class="profile-avatar-placeholder">
+                    <i class="bi bi-person-fill"></i>
+                </div>
+                <label for="fotoFileInput" class="avatar-camera-btn" title="Haz clic para subir o cambiar foto de perfil">
+                    <i class="bi bi-camera-fill"></i>
+                </label>
+                <button th:classappend="${#strings.isEmpty(usuario.foto)} ? 'd-none' : ''" id="removeProfilePhoto" type="button" class="avatar-remove-btn" title="Eliminar foto de perfil" aria-label="Eliminar foto de perfil"><i class="bi bi-trash3"></i></button>
+            </div>
+            <span class="profile-photo-hint">Pulsa la cámara para cambiar tu foto · Máximo 5 MB</span>
+            <span id="profilePhotoStatus" class="profile-photo-hint" role="status" aria-live="polite"></span>
+            <input type="file" id="fotoFileInput" class="d-none" accept="image/jpeg,image/png,image/webp">
+
+            <!-- Datos principales del usuario -->
+            <div class="profile-info-block">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h1 class="profile-name mb-0" th:text="${usuario.nombres + ' ' + usuario.apellidos}">Brayan Gonzales</h1>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1 small">
+                        <i class="bi bi-record-fill me-1"></i>Activo
+                    </span>
+                </div>
+                <div class="text-secondary small mt-1" th:text="${'@' + usuario.nombreUsuario}">@Brayan</div>
+
+                <div class="profile-meta-chips mt-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                        <i class="bi bi-shield-lock-fill me-1"></i><span th:text="${usuario.nombreRol != null ? usuario.nombreRol : 'ADMIN'}">ADMIN</span>
+                    </span>
+                    <span class="badge bg-light text-secondary border px-2 py-1">
+                        <i class="bi bi-hospital me-1"></i><span th:text="${usuario.nombreSedePrincipal != null ? usuario.nombreSedePrincipal : 'Consultorio DentIA'}">Consultorio DentIA</span>
+                    </span>
+                    <span class="badge bg-light text-secondary border px-2 py-1">
+                        <i class="bi bi-envelope me-1"></i><span th:text="${#strings.isEmpty(usuario.correo) ? 'Sin correo registrado' : usuario.correo}">correo@ejemplo.com</span>
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+
+    <!-- ══════════════════════════════════════════════════════════════
+         GRID DE DETALLES: INFORMACIÓN + SEGURIDAD
+         ══════════════════════════════════════════════════════════════ -->
+    <section class="profile-overview d-lg-none">
+    <div class="profile-summary"><h2>Mis datos</h2><dl>
+        <div><dt>Documento</dt><dd th:text="${#strings.isEmpty(usuario.nroDocumento) ? 'Sin registrar' : usuario.nroDocumento}">—</dd></div>
+        <div><dt>Teléfono</dt><dd th:text="${#strings.isEmpty(usuario.telefono) ? 'Sin registrar' : usuario.telefono}">—</dd></div>
+        <div><dt>Correo</dt><dd th:text="${#strings.isEmpty(usuario.correo) ? 'Sin registrar' : usuario.correo}">—</dd></div>
+    </dl></div>
+    <h2 class="profile-settings-title">Configuración</h2>
+    <nav class="profile-settings" aria-label="Configuración de la cuenta">
+        <a th:href="@{/interno/perfil(editar=1)}"><i class="bi bi-person-gear"></i><span><strong>Editar mi perfil</strong><small>Datos personales y contraseña</small></span><i class="bi bi-chevron-right"></i></a>
+        <a th:if="${permisosUsuario != null and permisosUsuario['usuarios'] == true}" th:href="@{/interno/usuarios}"><i class="bi bi-people"></i><span><strong>Usuarios</strong><small>Administrar cuentas</small></span><i class="bi bi-chevron-right"></i></a>
+        <a th:if="${permisosUsuario != null and permisosUsuario['roles'] == true}" th:href="@{/interno/roles}"><i class="bi bi-shield-check"></i><span><strong>Roles y permisos</strong><small>Administrar accesos</small></span><i class="bi bi-chevron-right"></i></a>
+        <a th:if="${permisosUsuario != null and permisosUsuario['configuracion'] == true}" th:href="@{/interno/configuracion}"><i class="bi bi-sliders"></i><span><strong>Configuración</strong><small>Datos del consultorio</small></span><i class="bi bi-chevron-right"></i></a>
+    </nav>
+</section>
+<div class="row g-4 profile-edit-sections">
+        <!-- Columna Izquierda: Información Personal y de Contacto -->
+        <div class="col-lg-7">
+            <section class="pro-card h-100">
+                <div class="pro-card-title">
+                    <i class="bi bi-person-vcard fs-5"></i>
+                    <span>Información Personal y Profesional</span>
+                </div>
+
+                <form method="post" th:action="@{/interno/perfil/editar}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    
+                    <!-- Input de Foto de Perfil Oculto vinculado al botón de la cámara -->
+
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="field-label">Nombres</label>
+                            <input type="text" class="form-control" name="nombres" th:value="${usuario.nombres}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="field-label">Apellidos</label>
+                            <input type="text" class="form-control" name="apellidos" th:value="${usuario.apellidos}" required>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="field-label">DNI / Documento de Identidad</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary"><i class="bi bi-card-text"></i></span>
+                                <input type="text" class="form-control" name="nroDocumento" th:value="${usuario.nroDocumento}" placeholder="8 dígitos">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="field-label">Teléfono / Celular</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary"><i class="bi bi-telephone"></i></span>
+                                <input type="text" class="form-control" name="telefono" th:value="${usuario.telefono}" placeholder="Ej: 987654321">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="field-label">Correo Electrónico</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary"><i class="bi bi-envelope"></i></span>
+                                <input type="email" class="form-control" name="correo" th:value="${usuario.correo}" placeholder="ejemplo@dentia.com">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="field-label">Dirección o Consultorio Asignado</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-secondary"><i class="bi bi-geo-alt"></i></span>
+                                <input type="text" class="form-control" name="direccion" th:value="${usuario.direccion}" placeholder="Ej: Sede Principal - Módulo 2">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end align-items-center mt-4 pt-3 border-top">
+                        <a class="btn btn-outline-secondary d-lg-none me-2" th:href="@{/interno/perfil}">Cancelar</a>
+                        <button type="submit" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                            <i class="bi bi-check-lg me-1"></i> Guardar Cambios
+                        </button>
+                    </div>
+                </form>
+            </section>
+        </div>
+
+        <!-- Columna Derecha: Seguridad y Rol de Sistema -->
+        <div class="col-lg-5">
+            <div class="d-flex flex-column gap-4 h-100">
+                <!-- Tarjeta 1: Seguridad y Contraseña -->
+                <section class="pro-card">
+                    <div class="pro-card-title">
+                        <i class="bi bi-key fs-5"></i>
+                        <span>Seguridad y Contraseña</span>
+                    </div>
+                    <p class="text-secondary small mb-3">
+                        Para mayor protección, usa al menos 8 caracteres con mayúscula, minúscula, número y símbolo.
+                    </p>
+
+                    <form id="profilePasswordForm" method="post" th:action="@{/interno/perfil/contrasena}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <div class="mb-3">
+                            <label class="field-label" for="contrasenaActual">Contraseña actual</label>
+                            <span class="position-relative d-block w-100 profile-password-field"><input id="contrasenaActual" type="password" class="form-control" th:classappend="${error != null and error == 'La contraseña actual no es correcta.'} ? 'profile-invalid' : ''" name="contrasenaActual" required autocomplete="current-password"><button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y" data-profile-password-toggle="contrasenaActual" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye"></i></button></span>
+                            <small class="profile-password-feedback profile-invalid" th:if="${error != null and error == 'La contraseña actual no es correcta.'}">La contraseña actual es incorrecta.</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="field-label" for="perfilNuevaContrasena">Nueva contraseña</label>
+                            <div>
+                                <span class="position-relative d-block w-100 profile-password-field"><input id="perfilNuevaContrasena" type="password" class="form-control" name="nuevaContrasena" required minlength="8" maxlength="80" autocomplete="new-password" placeholder="Mínimo 8 caracteres" aria-describedby="profilePasswordFeedback passwordRequirements"><button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y" data-profile-password-toggle="perfilNuevaContrasena" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye"></i></button></span>
+                            </div>
+                        </div>
+
+                        <small id="profilePasswordFeedback" class="profile-password-feedback" aria-live="polite"></small>
+                        <ul id="passwordRequirements" class="password-requirements"><li data-rule="length">Entre 8 y 80 caracteres</li><li data-rule="upper">Una mayúscula</li><li data-rule="lower">Una minúscula</li><li data-rule="number">Un número</li><li data-rule="symbol">Un símbolo</li></ul><button type="submit" class="btn btn-outline-primary w-100 fw-bold py-2 shadow-sm">
+                            <i class="bi bi-shield-check me-1"></i> Actualizar Contraseña
+                        </button>
+                    </form>
+<div id="profileReset" th:attr="data-email=${usuario.correo}">
+<button type="button" class="btn btn-link px-0 mt-2" id="profileResetOpen">¿Olvidaste tu contraseña actual?</button>
+<div id="profileResetSteps" hidden>
+<p class="small text-secondary">Enviaremos un código al correo registrado en tu perfil.</p>
+<button type="button" class="btn btn-outline-secondary w-100" id="profileResetSend">Enviar código al correo</button>
+<div id="profileResetVerify" hidden class="mt-3">
+<label for="profileResetCode" class="field-label">Código de 4 dígitos</label>
+<input id="profileResetCode" class="form-control" inputmode="numeric" autocomplete="one-time-code" maxlength="4">
+<button type="button" class="btn btn-outline-secondary w-100 mt-2" id="profileResetCheck">Verificar código</button></div>
+<div id="profileResetChange" hidden class="mt-3">
+<label for="profileResetPassword" class="field-label">Nueva contraseña</label>
+<span class="position-relative d-block w-100 profile-password-field"><input id="profileResetPassword" type="password" class="form-control" minlength="8" maxlength="80" autocomplete="new-password" aria-describedby="profileResetPasswordFeedback resetPasswordRequirements"><button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y" data-profile-password-toggle="profileResetPassword" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye"></i></button></span>
+<small id="profileResetPasswordFeedback" class="profile-password-feedback" aria-live="polite"></small>
+<ul id="resetPasswordRequirements" class="password-requirements"><li data-rule="length">Entre 8 y 80 caracteres</li><li data-rule="upper">Una mayúscula</li><li data-rule="lower">Una minúscula</li><li data-rule="number">Un número</li><li data-rule="symbol">Un símbolo</li></ul>
+<label for="profileResetConfirm" class="field-label">Confirmar contraseña</label>
+<span class="position-relative d-block w-100 profile-password-field"><input id="profileResetConfirm" type="password" class="form-control" maxlength="80" autocomplete="new-password" aria-describedby="profileResetConfirmFeedback"><button type="button" class="btn btn-sm position-absolute top-50 end-0 translate-middle-y" data-profile-password-toggle="profileResetConfirm" aria-label="Mostrar contraseña" aria-pressed="false"><i class="bi bi-eye"></i></button></span>
+<small id="profileResetConfirmFeedback" class="profile-password-feedback" aria-live="polite"></small>
+<button type="button" class="btn btn-primary w-100 mt-2" id="profileResetSubmit">Cambiar contraseña</button></div>
+<p id="profileResetStatus" class="small mt-2" role="status" aria-live="polite"></p>
+</div></div>
+</section>
+
+                <!-- Tarjeta 2: Credenciales y Privilegios -->
+                <section class="pro-card flex-grow-1">
+                    <div class="pro-card-title">
+                        <i class="bi bi-award fs-5"></i>
+                        <span>Privilegios y Accesos DentIA</span>
+                    </div>
+
+                    <div class="p-3 bg-light rounded-3 border mb-3">
+                        <div class="d-flex align-items-center justify-content-between mb-1">
+                            <strong class="text-dark">Nivel de Acceso</strong>
+                            <span class="badge bg-primary px-2 py-1" th:text="${usuario.nombreRol != null ? usuario.nombreRol : 'ADMIN'}">ADMIN</span>
+                        </div>
+                        <small class="text-secondary">Control integral administrativo y clínico activo.</small>
+                    </div>
+
+                    <div class="d-flex flex-column gap-2 small text-secondary">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle text-teal fs-6"></i>
+                            <span>Acceso a Estudio Odontológico 3D y Evolución</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle text-teal fs-6"></i>
+                            <span>Gestión de Pacientes, Historias y Citas</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle text-teal fs-6"></i>
+                            <span>Planes de Tratamiento y Presupuestos</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-check2-circle text-teal fs-6"></i>
+                            <span>Administración de Usuarios y Configuración</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <form th:action="@{/interno/logout}" method="post" class="profile-logout d-lg-none">
+        <button type="submit" class="btn btn-outline-danger w-100 py-3"><i class="bi bi-box-arrow-right me-2"></i>Cerrar sesión</button>
+    </form>
+</main>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script defer th:src="@{/js/dentia/perfil-password.js(v=4)}"></script>
+<script defer th:src="@{/js/dentia/perfil-foto.js(v=1)}"></script>
+</body>
+</html>

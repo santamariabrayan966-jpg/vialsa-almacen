@@ -1,0 +1,897 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Registrar Compra | DentIA</title>
+
+    <!-- CSRF -->
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Select2 + Bootstrap theme -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/compras.css}">
+</head>
+
+<body class="bg-light panel-interno compras-module compras-form-page">
+
+<main class="container-fluid dentia-form-shell">
+
+    <div class="card dentia-form-card">
+        <div class="card-body">
+
+            <!-- RESUMEN DEL FORMULARIO -->
+            <div class="alert alert-light border d-flex align-items-start gap-2 mb-3">
+                <i class="bi bi-info-circle text-primary mt-1"></i>
+                <div>
+                    <strong th:text="${compraForm.idCompra != null ? 'Editando compra existente' : 'Nueva compra'}">
+                        Nueva compra
+                    </strong>
+                    <div class="small text-muted">
+                        Completa la cabecera, condiciones de pago y productos comprados.
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL ERRORES GLOBAL -->
+            <div id="panelErrores"
+                 class="alert alert-danger d-none"
+                 th:classappend="${erroresGlobales != null} ? '' : ' d-none'">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-exclamation-triangle-fill mt-1"></i>
+                    <div>
+                        <strong>Se encontraron errores en el formulario:</strong>
+                        <ul id="listaErrores" class="mt-2 mb-0">
+                            <li th:each="err : ${erroresGlobales}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORMULARIO -->
+            <form th:action="${compraForm.idCompra} != null ?
+                  @{/interno/compras/editar/{id}(id=${compraForm.idCompra})} :
+                  @{/interno/compras/guardar}"
+                  th:object="${compraForm}"
+                  method="post"
+                  id="compraForm"
+                  target="_top">
+
+                <input type="hidden" th:field="*{idCompra}"/>
+
+                <!-- ====================== CABECERA ======================= -->
+                <section class="dentia-section-box">
+                    <h6 class="dentia-section-box-title">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Datos del comprobante
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <!-- PROVEEDOR -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">Proveedor</label>
+                            <select th:field="*{idProveedor}" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option th:each="prov : ${proveedores}"
+                                        th:value="${prov.idProveedor}"
+                                        th:text="${prov.nombreProveedor}">
+                                </option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="idProveedor"
+                                 th:text="${erroresCampos != null ? erroresCampos['idProveedor'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- SEDE ACTIVA -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">Sede activa</label>
+
+                            <div class="dentia-sede-activa-box">
+                                <div class="d-flex align-items-center gap-2">
+            <span class="dentia-sede-icon">
+                <i class="bi bi-geo-alt-fill"></i>
+            </span>
+
+                                    <div class="lh-sm">
+                                        <div class="fw-semibold"
+                                             th:text="${sedeActivaNombre != null ? sedeActivaNombre : 'Sin sede activa'}">
+                                            Almacen 1
+                                        </div>
+
+                                        <small class="text-muted"
+                                               th:if="${puedeCambiarSede == true}">
+                                            Esta compra ingresará stock en esta sede.
+                                        </small>
+
+                                        <small class="text-muted"
+                                               th:if="${puedeCambiarSede != true}">
+                                            Sede asignada a tu usuario.
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <input type="hidden" th:field="*{idSede}">
+
+                            <div class="text-danger small campo-error"
+                                 data-error-for="idSede"
+                                 th:text="${erroresCampos != null ? erroresCampos['idSede'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- TIPO COMPROBANTE -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Tipo comprobante</label>
+                            <select th:field="*{tipoComprobante}" class="form-select" id="tipoComprobante">
+                                <option value="">Seleccione...</option>
+                                <option value="FACTURA">FACTURA</option>
+                                <option value="BOLETA">BOLETA</option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="tipoComprobante"
+                                 th:text="${erroresCampos != null ? erroresCampos['tipoComprobante'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- SERIE -->
+                        <div class="col-12 col-md-3 col-xl-2">
+                            <label class="form-label">Serie</label>
+                            <input type="text"
+                                   th:field="*{serie}"
+                                   id="inputSerie"
+                                   class="form-control"
+                                   placeholder="F001"
+                                   autocomplete="off">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="serie"
+                                 th:text="${erroresCampos != null ? erroresCampos['serie'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- NÚMERO -->
+                        <div class="col-12 col-md-3 col-xl-2">
+                            <label class="form-label">Número</label>
+                            <input type="text"
+                                   th:field="*{numero}"
+                                   id="inputNumero"
+                                   class="form-control"
+                                   placeholder="000001"
+                                   autocomplete="off">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="numero"
+                                 th:text="${erroresCampos != null ? erroresCampos['numero'] : ''}">
+                            </div>
+                        </div>
+
+
+                        <!-- FECHA -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">Fecha emisión</label>
+                            <input type="date"
+                                   th:field="*{fechaEmision}"
+                                   id="fechaEmision"
+                                   class="form-control">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="fechaEmision"
+                                 th:text="${erroresCampos != null ? erroresCampos['fechaEmision'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- PERIODO MES -->
+                        <div class="col-12 col-md-3 col-xl-2">
+                            <label class="form-label">Periodo mes</label>
+                            <select th:field="*{periodoMes}" id="periodoMes" class="form-select">
+                                <option value="">Mes...</option>
+                                <option value="1">Enero</option>
+                                <option value="2">Febrero</option>
+                                <option value="3">Marzo</option>
+                                <option value="4">Abril</option>
+                                <option value="5">Mayo</option>
+                                <option value="6">Junio</option>
+                                <option value="7">Julio</option>
+                                <option value="8">Agosto</option>
+                                <option value="9">Septiembre</option>
+                                <option value="10">Octubre</option>
+                                <option value="11">Noviembre</option>
+                                <option value="12">Diciembre</option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="periodoMes"
+                                 th:text="${erroresCampos != null ? erroresCampos['periodoMes'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- PERIODO AÑO -->
+                        <div class="col-12 col-md-3 col-xl-2">
+                            <label class="form-label">Periodo año</label>
+                            <input type="number"
+                                   th:field="*{periodoAnio}"
+                                   id="periodoAnio"
+                                   class="form-control"
+                                   placeholder="2026"
+                                   min="2000"
+                                   max="2100">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="periodoAnio"
+                                 th:text="${erroresCampos != null ? erroresCampos['periodoAnio'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- ORDEN -->
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">N° Orden compra</label>
+                            <input type="text"
+                                   th:field="*{nroOrdenCompra}"
+                                   class="form-control"
+                                   readonly>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="nroOrdenCompra"
+                                 th:text="${erroresCampos != null ? erroresCampos['nroOrdenCompra'] : ''}">
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ===================== MONEDA / IGV / PAGO ===================== -->
+                <section class="dentia-section-box">
+                    <h6 class="dentia-section-box-title">
+                        <i class="bi bi-cash-coin"></i>
+                        Moneda, impuestos y forma de pago
+                    </h6>
+
+                    <div class="row g-3 align-items-start">
+
+                        <!-- MONEDA -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Moneda</label>
+                            <select th:field="*{moneda}" id="moneda" class="form-select">
+                                <option value="">Seleccione...</option>
+                                <option value="PEN">PEN - Soles</option>
+                                <option value="USD">USD - Dólares</option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="moneda"
+                                 th:text="${erroresCampos != null ? erroresCampos['moneda'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- TIPO CAMBIO -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Tipo cambio</label>
+                            <input type="number"
+                                   step="0.0001"
+                                   th:field="*{tipoCambio}"
+                                   id="tipoCambio"
+                                   class="form-control"
+                                   placeholder="Auto SUNAT">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="tipoCambio"
+                                 th:text="${erroresCampos != null ? erroresCampos['tipoCambio'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- INCLUYE IGV -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">IGV</label>
+                            <div class="dentia-check-box">
+                                <div class="form-check m-0">
+                                    <input class="form-check-input"
+                                           type="checkbox"
+                                           th:field="*{incluyeIgv}"
+                                           id="incluyeIgv">
+                                    <label class="form-check-label" for="incluyeIgv">
+                                        Incluye IGV
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="incluyeIgv"
+                                 th:text="${erroresCampos != null ? erroresCampos['incluyeIgv'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- % IGV -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">% IGV</label>
+                            <input type="number"
+                                   step="0.01"
+                                   th:field="*{porcentajeIgv}"
+                                   id="porcentajeIgv"
+                                   class="form-control"
+                                   placeholder="18.00">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="porcentajeIgv"
+                                 th:text="${erroresCampos != null ? erroresCampos['porcentajeIgv'] : ''}">
+                            </div>
+                        </div>
+
+                        <!-- FORMA PAGO -->
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Forma de pago</label>
+                            <select th:field="*{formaPago}" id="formaPago" class="form-select">
+                                <option value="">Seleccione...</option>
+                                <option value="CONTADO">CONTADO</option>
+                                <option value="CREDITO">CRÉDITO</option>
+                                <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="formaPago"
+                                 th:text="${erroresCampos != null ? erroresCampos['formaPago'] : ''}">
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">
+                                ¿Cómo será la recepción de la mercadería?
+                            </label>
+
+                            <div class="row g-2">
+
+                                <div class="col-12 col-md-6">
+                                    <label class="border rounded-3 p-3 w-100 h-100 bg-white">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="radio"
+                                                   th:field="*{tipoRecepcion}"
+                                                   value="PENDIENTE_GUIA"
+                                                   id="recepcionPendiente">
+
+                                            <label class="form-check-label fw-bold" for="recepcionPendiente">
+                                                Recepción pendiente / por guía
+                                            </label>
+                                        </div>
+
+                                        <small class="text-muted d-block mt-1">
+                                            La compra se registra, pero el stock entrará después cuando registres la guía de remisión.
+                                        </small>
+                                    </label>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <label class="border rounded-3 p-3 w-100 h-100 bg-white">
+                                        <div class="form-check">
+                                            <input class="form-check-input"
+                                                   type="radio"
+                                                   th:field="*{tipoRecepcion}"
+                                                   value="INMEDIATA"
+                                                   id="recepcionInmediata">
+
+                                            <label class="form-check-label fw-bold" for="recepcionInmediata">
+                                                Recepción inmediata
+                                            </label>
+                                        </div>
+
+                                        <small class="text-muted d-block mt-1">
+                                            La mercadería ya llegó completa. El sistema registrará la recepción y aumentará stock al guardar.
+                                        </small>
+                                    </label>
+                                </div>
+
+                            </div>
+
+                            <div class="text-danger small campo-error"
+                                 data-error-for="tipoRecepcion"
+                                 th:text="${erroresCampos != null ? erroresCampos['tipoRecepcion'] : ''}">
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- ===================== CRÉDITO ===================== -->
+                <section id="seccionCredito" class="dentia-section-box soft d-none">
+
+                    <h6 class="dentia-section-box-title mb-3">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        Compra a crédito
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">Pago inicial</label>
+                            <input type="number"
+                                   min="0"
+                                   step="0.01"
+                                   id="pagoInicial"
+                                   name="pagoInicial"
+                                   class="form-control"
+                                   placeholder="0.00">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="pagoInicial">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-3">
+                            <label class="form-label">Deuda pendiente</label>
+                            <input type="text"
+                                   readonly
+                                   id="deudaRestante"
+                                   name="deudaRestante"
+                                   class="form-control bg-white fw-bold text-danger"
+                                   value="0.00">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="deudaRestante">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">N° cuotas</label>
+                            <input type="number"
+                                   min="1"
+                                   max="36"
+                                   step="1"
+                                   id="numeroCuotasCredito"
+                                   class="form-control"
+                                   placeholder="Ej. 3">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="numeroCuotasCredito">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Frecuencia</label>
+                            <select id="frecuenciaCuotasCompra"
+                                    class="form-select">
+                                <option value="DIARIO">Diario</option>
+                                <option value="SEMANAL">Semanal</option>
+                                <option value="QUINCENAL">Quincenal</option>
+                                <option value="MENSUAL" selected>Mensual</option>
+                                <option value="PERSONALIZADO">Personalizado</option>
+                            </select>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="frecuenciaCuotasCompra">
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 col-xl-2">
+                            <label class="form-label">Primera fecha</label>
+                            <input type="date"
+                                   id="fechaPrimeraCuotaCompra"
+                                   class="form-control">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="fechaPrimeraCuotaCompra">
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-none" id="bloqueDiasPersonalizadosCompra">
+                            <label class="form-label">Días entre cuotas</label>
+                            <input type="number"
+                                   min="1"
+                                   step="1"
+                                   id="diasPersonalizadosCompra"
+                                   class="form-control"
+                                   placeholder="Ej. 10">
+                            <div class="text-danger small campo-error"
+                                 data-error-for="diasPersonalizadosCompra">
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 mb-2">
+                        <small class="text-muted fw-semibold">
+                            Vista previa de cuotas
+                        </small>
+
+                        <button type="button"
+                                id="btnGenerarCuotasCompra"
+                                class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-calendar-plus me-1"></i>
+                            Generar cuotas
+                        </button>
+                    </div>
+
+                    <div class="table-responsive rounded border bg-white">
+                        <table class="table table-sm align-middle mb-0" id="tablaCuotasPreviewCompra">
+                            <thead class="table-light">
+                            <tr>
+                                <th style="width: 90px;">Cuota</th>
+                                <th>Fecha vencimiento</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="cuotasPreviewBodyCompra">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">
+                                    Selecciona los datos del crédito y genera las cuotas.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </section>
+
+                <!-- ===================== OBSERVACIONES ===================== -->
+                <section class="dentia-section-box">
+                    <h6 class="dentia-section-box-title">
+                        <i class="bi bi-chat-left-text"></i>
+                        Información adicional
+                    </h6>
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Observaciones</label>
+                            <textarea th:field="*{observaciones}"
+                                      class="form-control"
+                                      rows="2"
+                                      placeholder="Notas adicionales, condiciones especiales, referencias internas, etc."></textarea>
+                            <div class="text-danger small campo-error"
+                                 data-error-for="observaciones"
+                                 th:text="${erroresCampos != null ? erroresCampos['observaciones'] : ''}">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===================== PRODUCTOS ===================== -->
+                <section class="dentia-section-box">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="dentia-section-box-title mb-1">
+                                <i class="bi bi-box-seam"></i>
+                                Productos comprados
+                            </h6>
+                            <p class="dentia-section-subtitle mb-0">
+                                Agrega productos, cantidades, precios y descuentos de la compra.
+                            </p>
+                        </div>
+
+                        <button type="button" id="agregarProducto" class="btn btn-success btn-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Agregar producto
+                        </button>
+                    </div>
+
+                    <div class="table-responsive rounded border">
+                        <table class="table table-hover align-middle mb-0" id="tablaProductos">
+                            <thead>
+                            <tr>
+                                <th style="min-width: 330px;">Producto</th>
+                                <th style="width: 140px;">Unidad</th>
+                                <th style="width: 110px;">Cant.</th>
+                                <th style="width: 135px;">Precio</th>
+                                <th style="width: 135px;">Desc.</th>
+                                <th style="width: 130px;">Subtotal</th>
+                                <th style="width: 70px;"></th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <!-- EDICIÓN -->
+                            <tr class="producto-item" th:each="d : ${detallesCompra}">
+                                <td>
+                                    <div class="producto-box">
+
+                                        <div class="producto-icon-mini">
+                                            <i class="bi bi-box-seam"></i>
+                                        </div>
+
+                                        <img src=""
+                                             class="producto-img-mini d-none"
+                                             alt="Producto">
+
+                                        <div class="flex-grow-1">
+                                            <select name="idProducto"
+                                                    class="form-select seleccionar-producto"
+                                                    required>
+                                                <option value="">Seleccione...</option>
+
+                                                <option th:each="p : ${productos}"
+                                                        th:value="${p.idProducto}"
+                                                        th:text="${p.codigoInterno + ' - ' + p.nombreProducto}"
+                                                        th:selected="${p.idProducto} == ${d.idProducto}"
+                                                        th:attr="data-unidad-id=${p.idUnidad},
+         data-categoria=${p.idCategoria},
+data-tipo-medida=${p.tipoMedidaBase},
+         data-precio=${p.precioUnitario},
+         data-codigo=${p.codigoInterno},
+         data-nombre=${p.nombreProducto},
+         data-stock=${p.stockActual != null ? p.stockActual : 0},
+         data-foto=${p.foto}">
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="idProducto">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="unidad-fija-box">
+                                        <i class="bi bi-check-circle text-success me-1"></i>
+                                        Unidad
+                                    </div>
+
+                                    <input type="hidden"
+                                           name="idUnidad"
+                                           class="unidad-hidden"
+                                           th:value="${d.idUnidad != null ? d.idUnidad : idUnidadUnidad}">
+
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="idUnidad">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="cantidad"
+                                           step="1"
+                                           min="1"
+                                           class="form-control cantidad"
+                                           value="1">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="cantidad">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="precioUnitario"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control precio"
+                                           th:value="${d.precioUnitario}">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="precioUnitario">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="descuento"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control descuento"
+                                           th:value="${d.descuento}">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="descuento">
+                                    </div>
+                                </td>
+
+                                <td class="subtotal text-end">0.00</td>
+
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+
+                            <!-- NUEVA COMPRA -->
+                            <tr class="producto-item"
+                                th:if="${detallesCompra == null or #lists.isEmpty(detallesCompra)}">
+                                <td>
+                                    <div class="producto-box">
+
+                                        <div class="producto-icon-mini">
+                                            <i class="bi bi-box-seam"></i>
+                                        </div>
+
+                                        <img src=""
+                                             class="producto-img-mini d-none"
+                                             alt="Producto">
+
+                                        <div class="flex-grow-1">
+                                            <select name="idProducto"
+                                                    class="form-select seleccionar-producto"
+                                                    required>
+                                                <option value="">Seleccione...</option>
+
+                                                <option th:each="p : ${productos}"
+                                                        th:value="${p.idProducto}"
+                                                        th:text="${p.codigoInterno + ' - ' + p.nombreProducto}"
+                                                        th:attr="data-unidad-id=${p.idUnidad},
+        data-categoria=${p.idCategoria},
+data-tipo-medida=${p.tipoMedidaBase},
+         data-precio=${p.precioUnitario},
+         data-codigo=${p.codigoInterno},
+         data-nombre=${p.nombreProducto},
+        data-stock=${p.stockActual != null ? p.stockActual : 0},
+         data-foto=${p.foto}">
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                    </div>
+
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="idProducto">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="unidad-fija-box">
+                                        <i class="bi bi-check-circle text-success me-1"></i>
+                                        Unidad
+                                    </div>
+
+                                    <input type="hidden"
+                                           name="idUnidad"
+                                           class="unidad-hidden"
+                                           th:value="${idUnidadUnidad}">
+
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="idUnidad">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="cantidad"
+                                           step="1"
+                                           min="1"
+                                           class="form-control cantidad"
+                                           value="1">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="cantidad">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="precioUnitario"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control precio"
+                                           value="0.00">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="precioUnitario">
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           name="descuento"
+                                           step="0.01"
+                                           min="0"
+                                           class="form-control descuento"
+                                           value="0.00">
+                                    <div class="text-danger small campo-error"
+                                         data-error-for="descuento">
+                                    </div>
+                                </td>
+
+                                <td class="subtotal text-end">0.00</td>
+
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-outline-danger btn-sm eliminar">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="text-danger small campo-error mt-2"
+                         data-error-for="idProducto">
+                    </div>
+                </section>
+
+                <!-- ====================== TOTALES ======================= -->
+                <section class="row g-3 align-items-start mt-1">
+                    <div class="col-12 col-lg-7">
+                        <div class="alert alert-light border mb-0">
+                            <div class="d-flex gap-2">
+                                <i class="bi bi-info-circle text-primary mt-1"></i>
+                                <div>
+                                    <strong>Nota:</strong>
+                                    Verifica cantidades, descuentos y moneda antes de registrar la compra.
+                                    Si la compra está en dólares, el sistema mostrará el equivalente en soles.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-5">
+
+                        <!-- CARD DE TOTALES -->
+                        <div class="card card-totales-compra">
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between mb-2 dentia-total-line">
+                                    <span>Subtotal:</span>
+                                    <span id="lblSubtotal">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-2 dentia-total-line">
+                                    <span>IGV:</span>
+                                    <span id="lblIgv">S/ 0.00</span>
+                                </div>
+
+                                <hr class="my-2">
+
+                                <div class="d-flex justify-content-between fw-bold dentia-total-final">
+                                    <span>Total:</span>
+                                    <span id="lblTotal" class="text-success">S/ 0.00</span>
+                                </div>
+
+                                <input type="hidden" th:field="*{subtotal}" id="subtotalInput">
+                                <input type="hidden" th:field="*{montoIgv}" id="montoIgvInput">
+                                <input type="hidden" th:field="*{totalCompra}" id="totalInput">
+
+                                <div class="text-danger small campo-error mt-1"
+                                     data-error-for="totales">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- EQUIVALENTE EN SOLES -->
+                        <div id="equivalenteSoles" class="card card-totales-compra mt-2 d-none">
+                            <div class="card-body py-3">
+                                <h6 class="text-primary fw-bold mb-2">
+                                    <i class="bi bi-currency-exchange me-1"></i>
+                                    Equivalente en Soles (PEN)
+                                </h6>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>Subtotal PEN:</span>
+                                    <span id="lblSubtotalPen">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span>IGV PEN:</span>
+                                    <span id="lblIgvPen">S/ 0.00</span>
+                                </div>
+
+                                <div class="d-flex justify-content-between fw-bold">
+                                    <span>Total PEN:</span>
+                                    <span id="lblTotalPen" class="text-success">S/ 0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </section>
+
+                <!-- BOTONES -->
+                <div class="d-flex justify-content-end flex-wrap gap-2 mt-4">
+
+                    <button type="submit" name="accion" value="BORRADOR" class="btn btn-outline-secondary">
+                        <i class="bi bi-file-earmark me-1"></i>
+                        Guardar como borrador
+                    </button>
+
+                    <button type="submit" name="accion" value="REGISTRAR" class="btn btn-primary">
+                        <i class="bi bi-save me-1"></i>
+                        <span th:text="${compraForm.idCompra != null ? 'Guardar cambios' : 'Registrar compra'}">
+                            Registrar compra
+                        </span>
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+</main>
+
+<!-- JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:src="@{/js/interno/compras.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+</body>
+</html>

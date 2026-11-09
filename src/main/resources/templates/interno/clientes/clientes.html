@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Clientes | Panel PRO</title>
+
+
+    <!-- BOOTSTRAP -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- ICONOS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+<link rel="stylesheet" th:href="@{/css/interno/clientes.css}">
+    <style>
+        body {
+            background-color: #f3f4f6;
+        }
+
+        .card {
+            border-radius: 14px;
+        }
+
+      .btn-action {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    border-width: 2px;
+    font-size: 1rem;
+    transition: all .2s ease;
+}
+
+.btn-action:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.18);
+}
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .bg-ruc{
+    background: #5b21b6;
+    color: white;
+}
+    </style>
+
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+</head>
+
+<body class="clientes-module">
+
+<!-- Encabezado interno -->
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="container py-4">
+
+    <!-- TÍTULO + ACCIONES -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <h3 class="fw-bold m-0">
+            <i class="bi bi-people-fill me-2"></i> Clientes PRO
+        </h3>
+
+        <div class="d-flex flex-wrap gap-2">
+
+            <!-- IMPORTAR -->
+            <button class="btn btn-success shadow-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalImportar">
+                <i class="bi bi-upload"></i> Importar
+            </button>
+
+            <!-- EXPORTAR -->
+            <button class="btn btn-secondary shadow-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalExportar">
+                <i class="bi bi-download"></i> Exportar
+            </button>
+
+            <button class="btn btn-outline-primary shadow-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalRanking">
+                <i class="bi bi-trophy"></i> Ranking
+            </button>
+
+            <!-- NUEVO CLIENTE -->
+            <button class="btn btn-primary shadow-sm"
+                    onclick="abrirModalNuevoCliente()">
+                <i class="bi bi-person-plus"></i> Nuevo Cliente
+            </button>
+
+        </div>
+    </div>
+
+    <div class="clientes-clasificacion-resumen mb-4" aria-label="Clasificación comercial de clientes">
+        <button type="button" class="cliente-clasificacion-chip cliente-clasificacion-online" onclick="filtrar('online')">
+            <span>Online</span><strong th:text="${clientesOnline}">0</strong>
+        </button>
+        <button type="button" class="cliente-clasificacion-chip cliente-clasificacion-presencial" onclick="filtrar('presencial')">
+            <span>Presenciales</span><strong th:text="${clientesPresenciales}">0</strong>
+        </button>
+        <button type="button" class="cliente-clasificacion-chip cliente-clasificacion-mixto" onclick="filtrar('mixto')">
+            <span>Mixtos</span><strong th:text="${clientesMixtos}">0</strong>
+        </button>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <h6>Total</h6>
+                <div class="fw-bold fs-4" th:text="${totalClientes}">0</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <h6>Nuevos este mes</h6>
+                <div class="fw-bold fs-4" th:text="${clientesNuevos}">0</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <h6>Inactivos</h6>
+                <div class="fw-bold fs-4" th:text="${clientesInactivos}">0</div>
+            </div>
+        </div>
+
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm p-3 text-center">
+                <h6>VIP</h6>
+                <div class="fw-bold fs-4" th:text="${clientesVip}">0</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BUSQUEDA + FILTROS -->
+    <div class="card shadow-sm mb-3">
+        <div class="card-body row g-3">
+
+            <!-- BÚSQUEDA -->
+            <div class="col-12 col-md-5">
+                <input type="text"
+                       id="buscarCliente"
+                       class="form-control"
+                       th:value="${busquedaActual}"
+                       placeholder="Buscar cliente por nombre, DNI, correo, teléfono...">
+            </div>
+
+            <div class="col-5 col-md-2">
+                <select id="tamanoPaginaClientes" class="form-select" aria-label="Clientes por página">
+                    <option value="10" th:selected="${tamanoPagina == 10}">10 por página</option>
+                    <option value="20" th:selected="${tamanoPagina == 20}">20 por página</option>
+                    <option value="50" th:selected="${tamanoPagina == 50}">50 por página</option>
+                </select>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="col-7 col-md-5 d-flex gap-2">
+
+                <!-- FILTROS -->
+                <button class="btn btn-outline-primary flex-fill"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalFiltros">
+                    <i class="bi bi-funnel"></i> Filtros
+                </button>
+
+                <!-- VISTA -->
+                <button class="btn btn-outline-dark flex-fill"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalVista">
+                    <i class="bi bi-grid"></i> Vista
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLA / CARDS -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <!-- FRAGMENTO PAGINADO -->
+            <div id="listadoClientes" th:fragment="listadoClientes"
+                 th:attr="data-pagina=${paginaActual}, data-tamano=${tamanoPagina}, data-total-paginas=${totalPaginas}, data-filtro=${filtroActual}, data-vista=${vistaActual}">
+
+                <div class="table-responsive" th:if="${vistaActual == null or vistaActual == 'tabla'}">
+
+                <table class="table table-striped table-hover align-middle">
+                    <thead class="table-dark">
+                    <tr>
+                        <th>ID</th>
+                        <th>Foto</th>
+                        <th>Nombres</th>
+                        <th>Documento</th>
+                        <th>Correo</th>
+                        <th>Teléfono</th>
+                        <th>Estado</th>
+                        <th>Tipo cliente</th>
+                        <th>Etiquetas</th>
+                        <th class="text-center">Acciones</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    <tr th:each="c : ${clientes}"
+                        th:with="resumen=${resumenesClientes != null ? resumenesClientes.get(c.idClientes) : null}">
+
+                        <!-- ID -->
+                        <td data-label="ID" th:text="${c.idClientes}"></td>
+
+                        <!-- FOTO -->
+                        <td data-label="Foto">
+
+                            <div th:if="${c.foto == null or #strings.isEmpty(c.foto)}"
+                                 class="rounded-circle bg-light border d-flex align-items-center justify-content-center"
+                                 style="width:45px;height:45px;">
+
+                                <i class="bi bi-person text-secondary"></i>
+
+                            </div>
+
+                            <img th:if="${c.foto != null and !#strings.isEmpty(c.foto)}"
+
+                                 th:src="${#strings.startsWith(c.foto,'http')
+? c.foto
+: '/uploads/clientes/' + c.foto}"
+
+                                 style="width:45px;
+            height:45px;
+            object-fit:cover;
+            border-radius:50%;"
+
+                                 alt="Foto cliente">
+
+                        </td>
+
+                        <td data-label="Cliente">
+
+    <span th:if="${c.idTipoDocumento == 1}"
+          th:text="${c.nombres + ' ' + c.apellidos}">
+    </span>
+
+                            <span th:if="${c.idTipoDocumento == 2}"
+                                  th:text="${c.razonSocial}">
+    </span>
+
+                        </td>
+
+                        <td data-label="Documento">
+
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle me-1"
+          th:if="${c.idTipoDocumento == 1}">
+        DNI
+    </span>
+
+                            <span class="badge bg-ruc me-1"
+                                  th:if="${c.idTipoDocumento == 2}">
+        RUC
+    </span>
+
+                            <span th:text="${c.nro_documento}"></span>
+
+                        </td>
+
+                        <!-- CORREO -->
+                        <td data-label="Correo" th:text="${c.correo}"></td>
+
+                        <!-- TELÉFONO -->
+                        <td data-label="Teléfono" th:text="${c.telefono}"></td>
+
+                        <!-- ESTADO -->
+                        <td data-label="Estado">
+                            <span class="badge bg-success" th:if="${c.activo}">Activo</span>
+                            <span class="badge bg-secondary" th:if="${!c.activo}">Inactivo</span>
+                        </td>
+
+                        <td data-label="Tipo de cliente">
+                            <span class="badge cliente-tipo-badge"
+                                  th:classappend="${resumen == null or resumen.clasificacion == 'SIN COMPRAS'} ? ' text-bg-secondary' : (${resumen.clasificacion == 'ONLINE'} ? ' text-bg-primary' : (${resumen.clasificacion == 'PRESENCIAL'} ? ' text-bg-success' : ' text-bg-info'))"
+                                  th:text="${resumen != null ? resumen.clasificacion : 'SIN COMPRAS'}">SIN COMPRAS</span>
+                        </td>
+
+                        <!-- ETIQUETAS -->
+                        <td data-label="Etiquetas">
+                <span class="badge bg-warning text-dark" th:if="${c.vip}">
+                    <i class="bi bi-star-fill"></i> VIP
+                </span>
+
+                            <span class="badge bg-danger" th:if="${c.moroso}">
+                    <i class="bi bi-exclamation-octagon-fill"></i> Moroso
+                </span>
+                        </td>
+
+                        <!-- ACCIONES -->
+                        <td class="text-center" data-label="Acciones">
+                            <div class="d-flex justify-content-center gap-1">
+
+                                <!-- PERFIL -->
+                                <button class="btn btn-info btn-action rounded-circle"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalPerfil"
+                                        th:attr="data-id=${c.idClientes}"
+                                        title="Ver detalle" aria-label="Ver detalle del cliente">
+                                    <i class="bi bi-person-vcard"></i>
+                                </button>
+
+                                <!-- OBSERVACIONES ADMINISTRATIVAS -->
+                                <button class="btn btn-secondary btn-action rounded-circle"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalNotas"
+                                        th:attr="data-id=${c.idClientes}, data-cliente=${c.idTipoDocumento == 2 ? c.razonSocial : c.nombres + ' ' + c.apellidos}"
+                                        title="Observaciones administrativas" aria-label="Ver observaciones administrativas">
+                                    <i class="bi bi-journal-text"></i>
+                                </button>
+
+                                <!-- HISTORIAL -->
+                                <button class="btn btn-warning btn-action rounded-circle"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalHistorial"
+                                        th:attr="data-id=${c.idClientes}, data-cliente=${c.idTipoDocumento == 2 ? c.razonSocial : c.nombres + ' ' + c.apellidos}"
+                                        title="Historial de compras" aria-label="Ver historial de compras">
+                                    <i class="bi bi-clock-history"></i>
+                                </button>
+
+                                <!-- VIP -->
+                                <button class="btn btn-outline-warning btn-action rounded-circle"
+                                        th:if="${!c.vip}"
+                                        onclick="marcarVip(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.vip}"
+                                        title="Marcar VIP" aria-label="Marcar cliente como VIP">
+                                    <i class="bi bi-star"></i>
+                                </button>
+
+                                <button class="btn btn-warning btn-action rounded-circle"
+                                        th:if="${c.vip}"
+                                        onclick="quitarVip(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.vip}"
+                                        title="Quitar VIP" aria-label="Quitar condición VIP">
+                                    <i class="bi bi-star-fill"></i>
+                                </button>
+
+                                <!-- MOROSO -->
+                                <button class="btn btn-outline-danger btn-action rounded-circle"
+                                        th:if="${!c.moroso}"
+                                        onclick="marcarMoroso(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.moroso}"
+                                        title="Marcar moroso" aria-label="Marcar cliente como moroso">
+                                    <i class="bi bi-exclamation-octagon"></i>
+                                </button>
+
+                                <button class="btn btn-danger btn-action rounded-circle"
+                                        th:if="${c.moroso}"
+                                        onclick="quitarMoroso(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.moroso}"
+                                        title="Quitar moroso" aria-label="Quitar condición de moroso">
+                                    <i class="bi bi-exclamation-octagon-fill"></i>
+                                </button>
+
+                                <!-- ACTUALIZACIÓN DE ESTADO -->
+                                <button class="btn btn-outline-secondary btn-action rounded-circle"
+                                        th:if="${c.activo}"
+                                        onclick="desactivarCliente(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.activo}"
+                                        title="Desactivar" aria-label="Desactivar cliente">
+                                    <i class="bi bi-slash-circle"></i>
+                                </button>
+
+                                <button class="btn btn-success btn-action rounded-circle"
+                                        th:if="${!c.activo}"
+                                        onclick="activarCliente(this)"
+                                        th:attr="data-id=${c.idClientes}, aria-pressed=${c.activo}"
+                                        title="Activar" aria-label="Activar cliente">
+                                    <i class="bi bi-check-circle"></i>
+                                </button>
+
+                                <!-- EDITAR -->
+                                <button class="btn btn-primary btn-action rounded-circle"
+                                        th:attr="onclick=|abrirModalEditarCliente(${c.idClientes})|"
+                                        title="Editar" aria-label="Editar cliente">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+
+                            </div>
+                        </td>
+
+                    </tr>
+
+                    <!-- SIN CLIENTES -->
+                    <tr th:if="${#lists.isEmpty(clientes)}">
+                        <td colspan="10" class="text-center py-3 text-muted">
+                            <i class="bi bi-info-circle"></i> No hay clientes registrados.
+                        </td>
+                    </tr>
+
+                    </tbody>
+                </table>
+
+                </div>
+
+                <div th:if="${vistaActual == 'cards'}">
+                    <div th:replace="~{interno/clientes/cards :: cardsContenido}"></div>
+                    <div class="cliente-vacio" th:if="${#lists.isEmpty(clientes)}">
+                        <i class="bi bi-people"></i><span>No hay clientes para estos filtros.</span>
+                    </div>
+                </div>
+
+                <div class="cliente-listado-pie">
+                    <p class="cliente-listado-rango mb-0"
+                       th:text="|Mostrando ${elementoDesde} a ${elementoHasta} de ${totalElementos} clientes|">Mostrando 0 a 0 de 0 clientes</p>
+                    <nav aria-label="Paginación de clientes" th:if="${totalPaginas > 0}">
+                        <ul class="pagination pagination-sm flex-wrap mb-0" id="paginacionClientes">
+                            <li class="page-item" th:classappend="${paginaActual == 0} ? ' disabled'">
+                                <button class="page-link" type="button" th:attr="data-pagina=${paginaActual - 1}" aria-label="Página anterior">Anterior</button>
+                            </li>
+                            <li class="page-item" th:each="p : ${#numbers.sequence(paginaInicio, paginaFin)}"
+                                th:classappend="${p == paginaActual} ? ' active'">
+                                <button class="page-link" type="button" th:attr="data-pagina=${p}, aria-label=|Página ${p + 1}|" th:text="${p + 1}">1</button>
+                            </li>
+                            <li class="page-item" th:classappend="${paginaActual + 1 >= totalPaginas} ? ' disabled'">
+                                <button class="page-link" type="button" th:attr="data-pagina=${paginaActual + 1}" aria-label="Página siguiente">Siguiente</button>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div> <!-- /card tabla -->
+
+</main> <!-- 👈 CIERRE CORRECTO DEL MAIN ANTES DE LOS MODALES -->
+<!-- ============================== -->
+<!-- MODAL PERFIL DEL CLIENTE -->
+<!-- ============================== -->
+<div class="modal fade" id="modalPerfil" tabindex="-1" aria-labelledby="modalPerfilTitulo">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="modalPerfilTitulo"><i class="bi bi-person-vcard"></i> Detalle del cliente</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body" id="perfilContenido">
+                <div class="text-center py-3 text-muted">
+                    <i class="bi bi-hourglass-split"></i> Cargando...
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL NOTAS INTERNAS -->
+<!-- ============================== -->
+<div class="modal fade" id="modalNotas" tabindex="-1" aria-labelledby="modalNotasTitulo">
+    <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-secondary text-white">
+                <div>
+                    <h5 class="modal-title" id="modalNotasTitulo"><i class="bi bi-journal-text"></i> Observaciones administrativas</h5>
+                    <small id="notasClienteNombre">Cliente</small>
+                </div>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body cliente-notas-body">
+                <p class="cliente-modal-ayuda">Información interna para dar contexto administrativo al equipo. Estas observaciones quedan asociadas al cliente.</p>
+                <div id="listaNotas" class="cliente-notas-lista mb-3" aria-live="polite">
+                </div>
+
+                <label class="form-label fw-semibold" for="nuevaNota">Nueva observación</label>
+                <textarea id="nuevaNota" class="form-control" rows="3" maxlength="1000"
+                          placeholder="Escribe una observación breve y objetiva..." aria-describedby="contadorNota"></textarea>
+                <small id="contadorNota" class="cliente-contador-nota">0 / 1000</small>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button class="btn btn-primary" id="btnGuardarNota" onclick="guardarNota()"><i class="bi bi-save"></i> Guardar observación</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL HISTORIAL -->
+<!-- ============================== -->
+<div class="modal fade" id="modalHistorial" tabindex="-1" aria-labelledby="modalHistorialTitulo">
+    <div class="modal-dialog modal-xl cliente-historial-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <div>
+                    <h5 class="modal-title" id="modalHistorialTitulo"><i class="bi bi-clock-history"></i> Historial de compras</h5>
+                    <small id="historialClienteNombre">Cliente</small>
+                </div>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body cliente-historial-modal-body">
+                <form id="filtroHistorialClientes" class="cliente-historial-filtros mb-3">
+                    <input type="search" class="form-control" name="buscar" placeholder="Comprobante, ticket o ID">
+                    <select class="form-select" name="canal" aria-label="Canal">
+                        <option value="TODOS">Todos los canales</option>
+                        <option value="ONLINE">Online</option>
+                        <option value="PRESENCIAL">Presencial</option>
+                    </select>
+                    <select class="form-select" name="estado" aria-label="Estado de venta">
+                        <option value="TODOS">Todos los estados</option>
+                        <option value="PAGADO">Pagado</option>
+                        <option value="CREDITO">Crédito</option>
+                    </select>
+                    <select class="form-select" name="sede" aria-label="Sede">
+                        <option value="">Todas las sedes</option>
+                        <option th:each="s : ${sedes}" th:value="${s.idSede}" th:text="${s.nombre}"></option>
+                    </select>
+                    <div class="cliente-fecha-exacta">
+                        <label class="form-label" for="historialFechaExacta">Fecha exacta</label>
+                        <input id="historialFechaExacta" type="date" class="form-control" name="fecha" aria-describedby="historialFechaExactaTexto">
+                        <small id="historialFechaExactaTexto">Selecciona un día</small>
+                    </div>
+                    <select class="form-select" name="mes" aria-label="Mes">
+                        <option value="">Todos los meses</option>
+                        <option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option>
+                        <option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option>
+                        <option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option>
+                        <option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option>
+                    </select>
+                    <select class="form-select" name="anio" aria-label="Año">
+                        <option value="">Todos los años</option>
+                        <option th:each="a : ${aniosCompras}" th:value="${a}" th:text="${a}"></option>
+                    </select>
+                    <div class="cliente-filtros-avanzados">
+                        <button class="cliente-filtros-avanzados-toggle" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#fechasAvanzadasHistorial" aria-expanded="false" aria-controls="fechasAvanzadasHistorial">
+                            <span><i class="bi bi-calendar-range"></i> Filtros avanzados de fecha</span>
+                            <i class="bi bi-chevron-down" aria-hidden="true"></i>
+                        </button>
+                        <div class="collapse" id="fechasAvanzadasHistorial">
+                            <div class="cliente-fechas-grid">
+                                <div><label class="form-label" for="historialDesde">Desde</label><input id="historialDesde" type="date" class="form-control" name="desde"></div>
+                                <div><label class="form-label" for="historialHasta">Hasta</label><input id="historialHasta" type="date" class="form-control" name="hasta"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Aplicar</button>
+                    <button type="button" class="btn btn-outline-secondary" id="limpiarFechasHistorial"><i class="bi bi-eraser"></i> Limpiar fechas</button>
+                </form>
+
+                <div class="cliente-historial-resumen mb-3">
+                    <div><small>Compras</small><strong id="historialTotalCompras">0</strong></div>
+                    <div><small>Total</small><strong id="historialTotalMonto">S/ 0.00</strong></div>
+                    <div><small>Ticket promedio</small><strong id="historialTicketPromedio">S/ 0.00</strong></div>
+                    <div><small>Última compra</small><strong id="historialUltimaCompra">—</strong></div>
+                    <div><small>Canales</small><strong id="historialCanales">0</strong></div>
+                    <div><small>Sedes</small><strong id="historialSedes">0</strong></div>
+                </div>
+
+                <div id="historialContenido" class="cliente-compras-lista" aria-live="polite">
+                    <div class="text-center py-4 text-muted">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Cargando compras...
+                    </div>
+                </div>
+
+                <div class="cliente-historial-pie mt-3">
+                    <div>
+                        <p class="mb-0" id="historialRangoPagina">Mostrando 0 a 0 de 0 compras</p>
+                        <small id="historialPaginaActual">Página 0 de 0</small>
+                    </div>
+                <nav aria-label="Paginación del historial">
+                    <ul class="pagination pagination-sm justify-content-center flex-wrap mb-0" id="historialPaginacion"></ul>
+                </nav>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalRanking" tabindex="-1" aria-labelledby="modalRankingTitulo">
+    <div class="modal-dialog modal-dialog-centered modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="modalRankingTitulo"><i class="bi bi-trophy"></i> Ranking de clientes</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filtroRankingClientes" class="cliente-ranking-filtros mb-3">
+                    <select class="form-select" name="mes" aria-label="Mes"><option value="">Todos los meses</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select>
+                    <select class="form-select" name="anio" aria-label="Año"><option value="">Todos los años</option><option th:each="a : ${aniosCompras}" th:value="${a}" th:text="${a}"></option></select>
+                    <select class="form-select" name="canal" aria-label="Canal"><option value="TODOS">Todos los canales</option><option value="ONLINE">Online</option><option value="PRESENCIAL">Presencial</option><option value="MIXTO">Clientes mixtos</option></select>
+                    <select class="form-select" name="sede" aria-label="Sede"><option value="">Todas las sedes</option><option th:each="s : ${sedes}" th:value="${s.idSede}" th:text="${s.nombre}"></option></select>
+                    <select class="form-select" name="criterio" aria-label="Criterio del ranking"><option value="MONTO">Mayor monto comprado</option><option value="COMPRAS">Mayor cantidad de compras</option></select>
+                    <select class="form-select" name="limite" aria-label="Cantidad de clientes"><option value="10">Top 10 clientes</option><option value="20">Top 20 clientes</option><option value="50">Top 50 clientes</option></select>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-funnel"></i> Aplicar</button>
+                </form>
+                <div id="rankingClientesContenido" class="cliente-ranking-lista" aria-live="polite">
+                    <div class="text-center py-4 text-muted">Abre el ranking para cargar los resultados.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast-container position-fixed bottom-0 end-0 p-3 cliente-toast-container" aria-live="polite" aria-atomic="true">
+    <div id="avisoClientes" class="toast border-0" role="status" aria-labelledby="avisoClientesTitulo" aria-describedby="avisoClientesTexto">
+        <div class="toast-header">
+            <span class="cliente-toast-icono me-2"><i class="bi bi-info-circle"></i></span>
+            <strong class="me-auto" id="avisoClientesTitulo">Clientes</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+        </div>
+        <div class="toast-body" id="avisoClientesTexto"></div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL IMPORTAR -->
+<!-- ============================== -->
+<div class="modal fade" id="modalImportar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-upload"></i> Importar clientes</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <label class="form-label">Archivo CSV o Excel:</label>
+                <input type="file" id="archivoImportar" name="archivo" class="form-control"
+                       accept=".csv,.xlsx" aria-describedby="ayudaImportarClientes">
+                <small id="ayudaImportarClientes" class="text-muted">CSV o XLSX, máximo 5 MB. No sobrescribe clientes existentes.</small>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button class="btn btn-success" id="btnImportarClientes" onclick="importarClientes()">Importar</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL EXPORTAR -->
+<!-- ============================== -->
+<div class="modal fade" id="modalExportar" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title"><i class="bi bi-download"></i> Exportar clientes</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <button class="btn btn-outline-dark w-100 mb-2" onclick="exportar('excel')">
+                    <i class="bi bi-file-earmark-excel"></i> Exportar Excel
+                </button>
+
+                <button class="btn btn-outline-dark w-100 mb-2" onclick="exportar('csv')">
+                    <i class="bi bi-filetype-csv"></i> Exportar CSV
+                </button>
+
+                <button class="btn btn-outline-dark w-100" onclick="exportar('pdf')">
+                    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL FILTROS -->
+<!-- ============================== -->
+<div class="modal fade" id="modalFiltros" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-funnel"></i> Filtros del listado</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="filtrar('vip')">
+                    <i class="bi bi-star-fill"></i> VIP
+                </button>
+
+                <button class="btn btn-outline-danger w-100 mb-2" onclick="filtrar('moroso')">
+                    <i class="bi bi-exclamation-octagon-fill"></i> Morosos
+                </button>
+
+                <button class="btn btn-outline-secondary w-100 mb-2" onclick="filtrar('inactivo')">
+                    <i class="bi bi-slash-circle-fill"></i> Inactivos
+                </button>
+
+                <button class="btn btn-outline-success w-100 mb-2" onclick="filtrar('nuevo')">
+                    <i class="bi bi-clock-history"></i> Nuevos este mes
+                </button>
+
+                <hr>
+                <button class="btn btn-outline-primary w-100 mb-2" onclick="filtrar('online')">Clientes online</button>
+                <button class="btn btn-outline-success w-100 mb-2" onclick="filtrar('presencial')">Clientes presenciales</button>
+                <button class="btn btn-outline-info w-100 mb-2" onclick="filtrar('mixto')">Clientes mixtos</button>
+                <button class="btn btn-outline-secondary w-100 mb-2" onclick="filtrar('sin_compras')">Sin compras</button>
+
+                <button class="btn btn-dark w-100" onclick="filtrar('todos')">
+                    <i class="bi bi-list"></i> Mostrar Todos
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL CAMBIAR VISTA -->
+<!-- ============================== -->
+<div class="modal fade" id="modalVista" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content">
+
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title"><i class="bi bi-layout-split"></i> Cambiar vista</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body">
+                <button class="btn btn-outline-dark w-100 mb-2" onclick="vistaTabla()">
+                    <i class="bi bi-table"></i> Vista Tabla
+                </button>
+
+                <button class="btn btn-outline-dark w-100" onclick="vistaCards()">
+                    <i class="bi bi-grid-3x3-gap"></i> Vista Cards
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ============================== -->
+<!-- MODAL ELIMINAR PRO -->
+<!-- ============================== -->
+<!-- MODAL FORMULARIO CLIENTE -->
+<div class="modal fade" id="modalFormCliente" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="tituloModalCliente">Nuevo Cliente</h5>
+                <button class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <div class="modal-body" id="contenidoFormCliente">
+                <div class="text-center py-3 text-muted">
+                    <i class="bi bi-hourglass-split"></i> Cargando formulario...
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- ============================== -->
+<!-- SCRIPTS FINALES -->
+<!-- ============================== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/clientes.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+<script th:if="${abrirModalCliente}">
+    const modal = new bootstrap.Modal(document.getElementById('modalFormCliente'));
+    modal.show();
+</script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        // Si volvimos por error del servidor, cargar el formulario en el modal
+        const flag = /*[[${abrirModalCliente}]]*/ false;
+
+        if (flag) {
+            fetch('/interno/clientes/nuevo?fragmento=true') // o editar, según los datos del cliente
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('contenidoFormCliente').innerHTML = html;
+
+                    const modal = new bootstrap.Modal(document.getElementById('modalFormCliente'));
+                    modal.show();
+                });
+        }
+
+    });
+</script>
+
+<footer th:replace="~{fragments/interno/footer :: footerInterno}"></footer>
+
+</body>
+</html>

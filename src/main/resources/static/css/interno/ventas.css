@@ -1,0 +1,1359 @@
+/* ============================================================
+   ESTILOS GENERALES DEL MÓDULO DE VENTAS
+============================================================ */
+
+body {
+    background-color: #f8f9fa;
+}
+
+/* ------------------------------------------------------------
+   TABLA DE PRODUCTOS
+------------------------------------------------------------ */
+
+#tablaProductos .form-control,
+#tablaProductos .form-select {
+    padding: 4px 6px;
+    font-size: 0.85rem;
+}
+
+#tablaProductos td input {
+    height: 32px;
+    font-size: 0.85rem;
+}
+
+.subtotal-cell {
+    font-weight: bold;
+}
+
+#tablaProductos .btn-sm i {
+    font-size: 0.95rem;
+}
+
+/* RESPONSIVE: tabla scroll en pantallas pequeñas */
+@media (max-width: 768px) {
+    #tablaProductos {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   TARJETA DE TOTALES
+------------------------------------------------------------ */
+.card-totales-venta {
+    border-left: 4px solid #0d6efd;
+}
+
+.card-totales-venta span {
+    font-size: 0.95rem;
+}
+
+/* ERRORES */
+.campo-error {
+    font-size: 0.75rem;
+    margin-top: 2px;
+    color: #dc3545;
+}
+
+
+/* ------------------------------------------------------------
+   IFAME DEL MODAL
+------------------------------------------------------------ */
+#ventaModalIframe {
+    width: 100%;
+    height: 75vh;
+    border: none;
+}
+
+@media (max-width: 576px) {
+    #ventaModalIframe {
+        height: 60vh;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   BOTONES DE LISTA
+------------------------------------------------------------ */
+.acciones-venta .btn {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.82rem;
+}
+
+.acciones-venta i {
+    font-size: 0.9rem;
+}
+
+
+/* ------------------------------------------------------------
+   TÍTULOS Y BLOQUES
+------------------------------------------------------------ */
+.section-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: #0d6efd;
+}
+
+.credit-box {
+    padding: 15px;
+    border: 2px dashed #0d6efd50;
+    border-radius: 8px;
+    background: #f8faff;
+}
+
+/* ------------------------------------------------------------
+   SELECT2 — Apariencia como input normal (muy limpio)
+------------------------------------------------------------ */
+
+#tablaProductos .select2-container {
+    width: 100% !important;
+}
+
+#tablaProductos .select2-selection--single {
+    height: 32px !important;
+    padding-left: 6px !important;
+    display: flex;
+    align-items: center;
+    font-size: 0.85rem !important;
+}
+
+.select2-container .select2-selection__arrow {
+    height: 30px !important;
+}
+
+/* ------------------------------------------------------------
+   MINI VISTA DE PRODUCTOS
+------------------------------------------------------------ */
+.prod-item-mini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px;
+}
+
+.prod-img-mini {
+    width: 45px;
+    height: 45px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    object-fit: cover;
+}
+
+.prod-item-mini small {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+/* RESPONSIVE mini vista */
+@media (max-width: 768px) {
+    .prod-img-mini {
+        width: 40px;
+        height: 40px;
+    }
+    .prod-item-mini strong {
+        font-size: 0.83rem;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   DROPDOWN SELECT2 PEQUEÑO Y ELEGANTE
+------------------------------------------------------------ */
+
+.mini-dropdown {
+    max-height: 240px !important;
+    overflow-y: auto !important;
+    border-radius: 8px !important;
+    border: 1px solid #d0d0d0 !important;
+    box-shadow: 0px 4px 12px #0002;
+}
+
+.mini-results .select2-results__option {
+    padding: 6px 8px !important;
+    font-size: 0.82rem !important;
+}
+
+.mini-results .select2-results__option--highlighted {
+    background: #e9f3ff !important;
+}
+
+
+/* ------------------------------------------------------------
+   SELECT2 — RESPONSIVE COMPLETO
+------------------------------------------------------------ */
+
+/* En móvil, el dropdown debe ocupar casi toda la pantalla */
+@media (max-width: 576px) {
+    .mini-dropdown {
+        width: 95vw !important;
+        left: 5px !important;
+    }
+}
+
+/* Tablets */
+@media (max-width: 992px) {
+    #tablaProductos .select2-selection--single {
+        font-size: 0.83rem !important;
+    }
+}
+
+/* ------------------------------------------------------------
+   MEJORAS DE INTERACCIÓN
+------------------------------------------------------------ */
+
+.select2-results__option {
+    cursor: pointer;
+}
+
+.select2-container--bootstrap-5 .select2-selection--single {
+    border-radius: 6px !important;
+}
+
+/* =========================================
+   MODAL NUEVA VENTA MODERNO
+========================================= */
+
+.venta-card-modern {
+    background: transparent;
+    border-radius: 0;
+    overflow: visible;
+    border: none;
+    box-shadow: none;
+}
+
+.venta-header-modern {
+    background: linear-gradient(135deg, #0d6efd, #0b5ed7);
+    color: #fff;
+    padding: 1rem 1.25rem;
+}
+
+.venta-header-modern h5 {
+    font-weight: 800;
+}
+
+.section-modern {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 18px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.section-title-modern {
+    font-size: .95rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+}
+
+.section-title-modern i {
+    color: #2563eb;
+}
+
+#tablaProductos {
+    border-radius: 16px;
+    overflow: hidden;
+}
+
+#tablaProductos thead th {
+    background: #f8fafc !important;
+    color: #64748b;
+    font-size: .78rem;
+    text-transform: uppercase;
+    border: none !important;
+}
+
+.card-totales-venta {
+    border-radius: 18px !important;
+    border: 1px solid #bbf7d0 !important;
+    background: #ecfdf5 !important;
+    border-left: none !important;
+}
+
+#lblTotal {
+    font-size: 1.5rem;
+}
+/* =========================================
+   PRODUCTOS MODERNOS
+========================================= */
+
+#tablaProductos{
+    margin-bottom:0;
+}
+
+#tablaProductos tbody tr{
+    transition:.2s ease;
+}
+
+#tablaProductos tbody tr:hover{
+    background:#f8fbff;
+}
+
+#tablaProductos td{
+    padding:.8rem .6rem;
+    border-color:#eef2f7 !important;
+}
+
+#tablaProductos input,
+#tablaProductos select{
+    border-radius:12px !important;
+    border:1px solid #dbe4ee !important;
+    box-shadow:none !important;
+}
+
+#tablaProductos input:focus,
+#tablaProductos select:focus{
+    border-color:#0d6efd !important;
+}
+
+.subtotal-cell{
+    font-weight:700;
+    color:#16a34a;
+}
+
+.btn-eliminar-fila{
+    border-radius:10px !important;
+}
+
+.unidad-input{
+    border-radius:999px !important;
+    padding:.45rem .7rem;
+}
+
+/* =========================================
+   INPUTS PREMIUM
+========================================= */
+
+.form-control,
+.form-select{
+    border-radius:14px !important;
+    border:1px solid #dbe4ee !important;
+    min-height:44px;
+    box-shadow:none !important;
+    transition:.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus{
+    border-color:#0d6efd !important;
+    box-shadow:0 0 0 .18rem rgba(13,110,253,.12) !important;
+}
+
+.form-label{
+    font-size:.82rem;
+    font-weight:700;
+    color:#475569;
+    margin-bottom:.45rem;
+}
+
+/* =========================================
+   BOTONES PREMIUM
+========================================= */
+
+.btn{
+    transition:.2s ease;
+}
+
+.btn-primary{
+    box-shadow:0 8px 18px rgba(13,110,253,.18);
+}
+
+.btn-primary:hover{
+    transform:translateY(-1px);
+}
+
+.btn-light:hover{
+    background:#f8fafc;
+}
+
+/* =========================================
+   BLOQUE CRÉDITO
+========================================= */
+
+.credit-box{
+    border:none !important;
+    background:#fff7ed !important;
+    border-radius:18px !important;
+    padding:1rem !important;
+}
+
+/* =========================================
+   SELECT2 PREMIUM
+========================================= */
+
+.select2-container--bootstrap-5 .select2-selection{
+    border-radius:14px !important;
+    border:1px solid #dbe4ee !important;
+    min-height:44px !important;
+    display:flex !important;
+    align-items:center !important;
+}
+
+.select2-dropdown{
+    border-radius:16px !important;
+    border:1px solid #dbe4ee !important;
+    overflow:hidden;
+    box-shadow:0 10px 30px rgba(15,23,42,.12);
+}
+
+/* =========================================
+   MODAL RESPONSIVE
+========================================= */
+
+@media(max-width:768px){
+
+    .venta-header-modern{
+        flex-direction:column;
+        align-items:flex-start !important;
+        gap:1rem;
+    }
+
+    #tablaProductos{
+        min-width:900px;
+    }
+
+}
+
+.section-modern {
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.section-title-modern {
+    margin-bottom: 1.1rem !important;
+}
+
+.form-control,
+.form-select {
+    font-size: .92rem !important;
+}
+
+#tablaProductos th,
+#tablaProductos td {
+    padding: .75rem .8rem !important;
+}
+/* =========================================
+   PRODUCTO CON IMAGEN
+========================================= */
+
+.producto-box{
+    display:flex;
+    align-items:center;
+    gap:.7rem;
+}
+
+.producto-img-mini{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    object-fit:cover;
+    border:1px solid #e5e7eb;
+    background:#fff;
+    flex-shrink:0;
+}
+
+/* =========================================
+   ICONO PRODUCTO
+========================================= */
+
+.producto-icon-mini{
+    width:48px;
+    height:48px;
+    border-radius:12px;
+    background:#eff6ff;
+    color:#2563eb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:1.1rem;
+    border:1px solid #dbeafe;
+    flex-shrink:0;
+}
+
+.cell-input-wrap {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+}
+
+.cell-input-wrap .form-control {
+    margin: 0 !important;
+}
+
+/* =========================================
+   BLOQUE CRÉDITO MODERNO
+========================================= */
+
+.credit-box {
+    background: #fff7ed !important;
+    border: 1px solid #fed7aa !important;
+    border-radius: 18px !important;
+    padding: 1.25rem !important;
+    margin-bottom: 1.25rem;
+}
+
+#tablaCuotasPreview {
+    background: #fff;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+#tablaCuotasPreview thead th {
+    background: #fffaf0 !important;
+    color: #92400e;
+    font-size: .75rem;
+    text-transform: uppercase;
+}
+
+#tablaCuotasPreview input {
+    min-height: 36px !important;
+    border-radius: 10px !important;
+}
+/* ============================================================
+   PRODUCTOS DE VENTA - DISEÑO FINAL LIMPIO
+============================================================ */
+
+#tablaProductos {
+    width: 100%;
+    border-collapse: separate !important;
+    border-spacing: 0 10px !important;
+    border-radius: 18px;
+    overflow: visible !important;
+}
+
+#tablaProductos thead th {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    font-size: 0.72rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    border: none !important;
+    padding: 12px 14px !important;
+    white-space: nowrap;
+}
+
+#tablaProductos tbody tr {
+    background: #ffffff !important;
+    box-shadow: 0 5px 16px rgba(15, 23, 42, 0.06);
+    border-radius: 16px;
+    transition: .2s ease;
+}
+
+#tablaProductos tbody tr:hover {
+    background: #f8fbff !important;
+    transform: translateY(-1px);
+}
+
+#tablaProductos tbody td {
+    background: #ffffff !important;
+    border-top: 1px solid #eef2f7 !important;
+    border-bottom: 1px solid #eef2f7 !important;
+    padding: 12px 10px !important;
+    vertical-align: middle !important;
+}
+
+#tablaProductos tbody td:first-child {
+    border-left: 1px solid #eef2f7 !important;
+    border-radius: 16px 0 0 16px;
+}
+
+#tablaProductos tbody td:last-child {
+    border-right: 1px solid #eef2f7 !important;
+    border-radius: 0 16px 16px 0;
+}
+
+.producto-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 220px;
+}
+
+.producto-icon-mini,
+.producto-img-mini {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+    flex: 0 0 44px;
+}
+
+.producto-icon-mini {
+    background: #eff6ff !important;
+    color: #2563eb !important;
+    border: 1px solid #dbeafe !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.producto-img-mini {
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+}
+
+#tablaProductos .select2-container--bootstrap-5 .select2-selection,
+#tablaProductos .form-select,
+#tablaProductos .form-control {
+    min-height: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+    border: 1px solid #dbe4ee !important;
+    font-size: .88rem !important;
+    box-shadow: none !important;
+}
+
+#tablaProductos .select2-container--bootstrap-5 .select2-selection:focus,
+#tablaProductos .form-select:focus,
+#tablaProductos .form-control:focus {
+    border-color: #0d6efd !important;
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .12) !important;
+}
+
+.presentacion-select {
+    min-width: 165px;
+}
+
+.presentacion-ayuda {
+    display: none;
+    margin-top: .35rem;
+    color: #64748b;
+    font-size: .76rem;
+    line-height: 1.3;
+    text-align: left;
+    overflow-wrap: anywhere;
+}
+
+.presentacion-ayuda.is-visible {
+    display: block;
+}
+
+.presentacion-ayuda--error {
+    color: #b42318;
+}
+
+.btn-config-preparacion {
+    max-width: 100%;
+    white-space: nowrap;
+}
+
+.btn-config-preparacion:disabled,
+.btn-config-preparacion[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: .58;
+}
+
+.btn-config-preparacion:focus-visible {
+    outline: 3px solid rgba(13, 110, 253, .32);
+    outline-offset: 2px;
+}
+
+.unidad-input {
+    min-width: 54px;
+    min-height: 34px;
+    border-radius: 999px !important;
+    padding: 8px 12px !important;
+    background: #64748b !important;
+    color: #fff !important;
+    font-weight: 800 !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cantidad,
+.precio,
+.descuento {
+    text-align: center;
+    font-weight: 700;
+}
+
+.subtotal-cell {
+    font-weight: 900 !important;
+    color: #0f172a !important;
+    font-size: 1rem !important;
+    text-align: center !important;
+}
+
+.btn-eliminar-fila {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+/* ============================================================
+   MODAL PREPARACIÓN / CORTE - NUEVO DISEÑO
+============================================================ */
+
+.modal-prep-corte {
+    min-height: 82vh;
+}
+
+.prep-option-group {
+    display: grid;
+    gap: .65rem;
+}
+
+.prep-option {
+    cursor: pointer;
+    width: 100%;
+}
+
+.prep-option input {
+    display: none;
+}
+
+.prep-option span {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    border: 1px solid #dee2e6;
+    border-radius: 1rem;
+    padding: .75rem .9rem;
+    background: #fff;
+    color: #495057;
+    font-weight: 600;
+    transition: .2s ease;
+}
+
+.prep-option input:checked + span {
+    border-color: #0d6efd;
+    background: #eaf2ff;
+    color: #0d6efd;
+    box-shadow: 0 0 0 .18rem rgba(13, 110, 253, .08);
+}
+
+.prep-info-box {
+    display: flex;
+    gap: .5rem;
+    align-items: flex-start;
+    border-radius: 1rem;
+    padding: .8rem;
+    background: #eaf6ff;
+    color: #075985;
+    font-size: .85rem;
+}
+
+.prep-piezas-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.prep-pieza-tab {
+    border: 1px solid #dee2e6;
+    background: #fff;
+    border-radius: 999px;
+    padding: .45rem .75rem;
+    font-size: .85rem;
+    font-weight: 700;
+    color: #495057;
+    cursor: pointer;
+}
+
+.prep-pieza-tab.active {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+.prep-pieza-tab.error {
+    background: #fff5f5;
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.prep-panel-pieza {
+    border: 1px solid #e9ecef;
+    border-radius: 1rem;
+    background: #f8fafc;
+    padding: .9rem;
+}
+
+.prep-error-inline {
+    border: 1px solid #f5c2c7;
+    background: #fff5f5;
+    color: #b02a37;
+    border-radius: .8rem;
+    padding: .55rem .75rem;
+    font-size: .85rem;
+    margin-bottom: .65rem;
+}
+
+.prep-cortes-list {
+    display: grid;
+    gap: .65rem;
+    max-height: 330px;
+    overflow-y: auto;
+    padding-right: .25rem;
+}
+
+.prep-corte-card {
+    border: 1px solid #e9ecef;
+    background: #fff;
+    border-radius: 1rem;
+    padding: .75rem;
+}
+
+.prep-corte-card.error {
+    border-color: #dc3545;
+    background: #fff5f5;
+}
+
+.prep-corte-grid-area {
+    display: grid;
+    grid-template-columns: 1fr 1fr .8fr auto;
+    gap: .5rem;
+    align-items: end;
+}
+
+.prep-corte-grid-longitud {
+    display: grid;
+    grid-template-columns: 1fr .8fr auto;
+    gap: .5rem;
+    align-items: end;
+}
+
+.prep-croquis-preview {
+    border: 1px solid #dee2e6;
+    background: #f8fafc;
+    border-radius: 1rem;
+    min-height: 360px;
+    max-height: 520px;
+    overflow: auto;
+    padding: .8rem;
+    text-align: center;
+}
+
+.prep-resumen-medidas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .4rem;
+}
+
+@media (max-width: 991px) {
+    .prep-corte-grid-area,
+    .prep-corte-grid-longitud {
+        grid-template-columns: 1fr;
+    }
+
+    .prep-croquis-preview {
+        min-height: 260px;
+    }
+}
+
+/* ============================================================
+   MODAL DE VENTA MÁS AMPLIO
+============================================================ */
+
+@media (min-width: 1200px) {
+    .modal-dialog:has(#ventaModalIframe) {
+        max-width: 96vw !important;
+    }
+}
+
+#ventaModalIframe {
+    height: 88vh !important;
+}
+
+/* Modal preparación dentro del iframe */
+#modalPreparacionProducto .modal-xl {
+    max-width: 96vw !important;
+}
+
+#modalPreparacionProducto .modal-body {
+    max-height: 78vh;
+    overflow-y: auto;
+}
+
+.ventas-mobile-list {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    .ventas-form-page .presentacion-ayuda {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .ventas-form-page .btn-config-preparacion {
+        width: auto;
+        min-width: 0;
+        padding-inline: .75rem;
+        white-space: normal;
+        line-height: 1.2;
+    }
+
+    .ventas-module .filter-card .card-body { padding: .75rem !important; }
+    .ventas-module form > .input-group { width: 100%; }
+    .ventas-module form > .input-group .form-control { min-width: 0; }
+    .ventas-module form > .input-group .btn { padding-inline: .75rem !important; }
+
+    .ventas-module .ventas-listado-contenedor {
+        width: 100%;
+        max-width: 100%;
+        overflow: visible;
+    }
+
+    .ventas-module #tablaVentas {
+        display: none !important;
+    }
+
+    .ventas-module .ventas-mobile-list {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: .75rem;
+        width: 100%;
+        min-width: 0;
+        padding: .75rem;
+    }
+
+    .ventas-module .venta-mobile-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        border: 1px solid #dbe4f0;
+        border-radius: .9rem;
+        background: #fff;
+        box-shadow: 0 .3rem .9rem rgba(15, 23, 42, .07);
+    }
+
+    .ventas-module .venta-mobile-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: .55rem;
+        padding: .75rem;
+        border-bottom: 1px solid #edf2f7;
+        background: #f8fafc;
+    }
+
+    .ventas-module .venta-mobile-identidad {
+        min-width: 0;
+        flex: 1 1 9rem;
+    }
+
+    .ventas-module .venta-mobile-identidad small,
+    .ventas-module .venta-mobile-dato small {
+        display: block;
+        margin-bottom: .12rem;
+        color: #64748b;
+        font-size: .7rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    .ventas-module .venta-mobile-identidad strong {
+        display: block;
+        color: #163a63;
+        font-size: 1rem;
+        line-height: 1.25;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .ventas-module .venta-mobile-badges {
+        display: flex;
+        flex: 0 1 auto;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .35rem;
+        min-width: 0;
+    }
+
+    .ventas-module .venta-mobile-badges .badge {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .ventas-module .venta-mobile-body {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .65rem .75rem;
+        padding: .75rem;
+    }
+
+    .ventas-module .venta-mobile-dato {
+        min-width: 0;
+        color: #334155;
+        font-size: .86rem;
+        line-height: 1.3;
+        overflow-wrap: anywhere;
+        word-break: normal;
+    }
+
+    .ventas-module .venta-mobile-dato-ancho {
+        grid-column: 1 / -1;
+    }
+
+    .ventas-module .venta-mobile-total strong {
+        color: #198754;
+        font-size: 1rem;
+    }
+
+    .ventas-module .venta-mobile-footer {
+        padding: .65rem .75rem .75rem;
+        border-top: 1px solid #edf2f7;
+    }
+
+    .ventas-module .venta-mobile-acciones {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: .4rem;
+    }
+
+    .ventas-module .venta-mobile-acciones .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: .3rem;
+        width: auto !important;
+        height: auto !important;
+        min-height: 2.35rem;
+        max-width: 100%;
+        padding: .35rem .55rem !important;
+        border-radius: .6rem;
+        font-size: .78rem;
+        line-height: 1.1;
+        white-space: normal;
+    }
+
+    .ventas-module .venta-mobile-empty {
+        display: flex;
+        min-height: 8rem;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: .5rem;
+        color: #64748b;
+        text-align: center;
+    }
+
+    .ventas-module .venta-mobile-empty i {
+        font-size: 2rem;
+    }
+
+    .ventas-module .ventas-pagination-bar {
+        flex-wrap: wrap;
+        justify-content: center !important;
+        gap: .65rem;
+        text-align: center;
+    }
+
+    .ventas-module .ventas-pagination-bar nav {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .ventas-module .ventas-pagination-bar .pagination {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: .25rem;
+        width: 100%;
+    }
+
+    .ventas-module .ventas-pagination-bar .page-link {
+        border-radius: .45rem !important;
+        min-width: 2rem;
+        text-align: center;
+    }
+
+    .ventas-module .row.g-4 > [class*="col-"] { width: 100%; }
+    .ventas-module .summary-card .summary-box { margin-bottom: .45rem !important; }
+}
+
+@media (max-width: 359.98px) {
+    .ventas-module .ventas-mobile-list { padding: .6rem; }
+    .ventas-module .venta-mobile-body { grid-template-columns: 1fr; }
+    .ventas-module .venta-mobile-dato,
+    .ventas-module .venta-mobile-dato-ancho { grid-column: 1; }
+    .ventas-module .venta-mobile-badges { justify-content: flex-start; }
+}
+
+@media (max-width: 768px) {
+    .ventas-module .tabla-cuotas,
+    .ventas-module .tabla-cuotas tbody { display: block; width: 100%; min-width: 0; }
+    .ventas-module .tabla-cuotas thead { display: none; }
+    .ventas-module .tabla-cuotas tbody tr {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+        margin-bottom: .65rem; padding: .7rem; border: 1px solid #dbe4f0;
+        border-radius: .8rem; background: #fff;
+    }
+    .ventas-module .tabla-cuotas tbody td {
+        display: block; min-width: 0 !important; padding: 0 !important; border: 0; text-align: left !important;
+    }
+    .ventas-module .tabla-cuotas tbody td::before {
+        display: block; margin-bottom: .1rem; color: #64748b; font-size: .68rem; font-weight: 700;
+    }
+    .ventas-module .tabla-cuotas tbody td:nth-child(1)::before { content: "Cuota"; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(2)::before { content: "Total"; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(3)::before { content: "Estado"; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(4)::before { content: "Método"; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(5)::before { content: "Acción"; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(4),
+    .ventas-module .tabla-cuotas tbody td:nth-child(5) { grid-column: 1 / -1; }
+    .ventas-module .tabla-cuotas tbody td:nth-child(5) form { display: flex; justify-content: flex-start; }
+}
+
+@media (max-width: 768px) {
+    .ventas-form-page .table-responsive,
+    .ventas-detalle-page .table-responsive { overflow: visible; max-width: 100%; }
+
+    .ventas-form-page #tablaProductos,
+    .ventas-form-page #tablaProductos tbody,
+    .ventas-form-page #tablaCuotasPreview,
+    .ventas-form-page #tablaCuotasPreview tbody,
+    .ventas-detalle-page .table-responsive > table,
+    .ventas-detalle-page .table-responsive > table > tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        white-space: normal;
+    }
+
+    .ventas-form-page #tablaProductos thead,
+    .ventas-form-page #tablaCuotasPreview thead,
+    .ventas-detalle-page .table-responsive > table > thead { display: none; }
+
+    .ventas-form-page #tablaProductos tbody > tr,
+    .ventas-form-page #tablaCuotasPreview tbody > tr,
+    .ventas-detalle-page .table-responsive > table > tbody > tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .5rem .65rem;
+        margin-bottom: .65rem;
+        padding: .7rem;
+        border: 1px solid #dbe4f0;
+        border-radius: .8rem;
+        background: #fff;
+    }
+
+    .ventas-form-page #tablaProductos tbody > tr > td,
+    .ventas-form-page #tablaCuotasPreview tbody > tr > td,
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td {
+        display: block;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    .ventas-form-page #tablaProductos tbody > tr > td::before,
+    .ventas-form-page #tablaCuotasPreview tbody > tr > td::before,
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td::before {
+        display: block;
+        margin-bottom: .12rem;
+        content: attr(data-label);
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 700;
+    }
+
+    .ventas-form-page #tablaProductos tbody > tr > td:first-child,
+    .ventas-form-page #tablaProductos tbody > tr > td:nth-child(2),
+    .ventas-form-page #tablaProductos tbody > tr > td:nth-child(7),
+    .ventas-form-page #tablaProductos tbody > tr > td:last-child,
+    .ventas-form-page #tablaCuotasPreview tbody > tr > td[colspan],
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td:first-child,
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td:last-child,
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td[colspan] { grid-column: 1 / -1; }
+
+    .ventas-form-page #tablaProductos .producto-box,
+    .ventas-form-page #tablaProductos .select2-container,
+    .ventas-form-page #tablaProductos input,
+    .ventas-form-page #tablaProductos select { min-width: 0; max-width: 100%; width: 100% !important; }
+
+    .ventas-form-page #tablaProductos tbody > tr > td:last-child {
+        padding-top: .45rem !important;
+        border-top: 1px solid #edf2f7;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .ventas-form-page #tablaProductos tbody > tr,
+    .ventas-form-page #tablaCuotasPreview tbody > tr,
+    .ventas-detalle-page .table-responsive > table > tbody > tr { grid-template-columns: 1fr; }
+    .ventas-form-page #tablaProductos tbody > tr > td,
+    .ventas-form-page #tablaCuotasPreview tbody > tr > td,
+    .ventas-detalle-page .table-responsive > table > tbody > tr > td { grid-column: 1; }
+}
+.cliente-consulta-estado {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    min-width: 0;
+    padding: .65rem .8rem;
+    border: 1px solid rgba(15, 23, 42, .1);
+    border-radius: .75rem;
+    background: #f8fafc;
+    color: #334155;
+    font-size: .875rem;
+}
+
+.cliente-consulta-estado > span:last-child {
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 575.98px) {
+    .cliente-consulta-estado {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+/* ============================================================
+   NUEVA VENTA: FLUJOS NORMAL Y POR MEDIDAS
+============================================================ */
+.venta-productos-acciones {
+    min-width: 0;
+}
+
+#prepSeleccionProductoPanel .select2-container {
+    width: 100% !important;
+}
+
+#prepSeleccionProductoPanel .select2-selection {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+}
+
+.linea-medidas-calculada {
+    background: rgba(13, 110, 253, 0.035);
+}
+
+.linea-medidas-calculada .cantidad {
+    background-color: #eef3f8;
+    font-weight: 700;
+}
+
+.linea-medidas-calculada .select2-selection,
+.linea-medidas-calculada .presentacion-select {
+    pointer-events: none;
+    background-color: #f5f7fa;
+}
+
+.linea-medidas-calculada .btn-config-preparacion {
+    white-space: nowrap;
+}
+
+@media (max-width: 767.98px) {
+    .venta-productos-acciones {
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .venta-productos-acciones .btn {
+        width: 100%;
+        min-width: 0;
+    }
+
+    #prepSeleccionProductoPanel .card-body {
+        padding: 0.9rem;
+    }
+}
+
+@media (max-width: 380px) {
+    .venta-productos-acciones {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ==========================================================
+   VENTA POR MEDIDAS - CÁLCULO AUTOMÁTICO
+========================================================== */
+.venta-medidas-auto .modal-header{background:linear-gradient(135deg,#163a69,#2563a8);padding:1.1rem 1.35rem}
+.medidas-card{background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:1.15rem;box-shadow:0 8px 24px rgba(15,23,42,.05)}
+.medidas-empty{min-height:390px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:#64748b;gap:.55rem}
+.medidas-empty i{font-size:3rem;color:#94a3b8}.medidas-empty strong{font-size:1.05rem;color:#334155}
+.md-grupo{border:1px solid #dbe4ef;border-radius:14px;padding:.75rem;background:#f8fafc}
+.md-grupo-grid{display:grid;grid-template-columns:1fr 1fr 110px 38px;gap:.55rem;align-items:end}
+.md-grupo-grid.longitud{grid-template-columns:1fr 110px 38px}
+.md-grupo label{font-size:.74rem;color:#64748b;margin-bottom:.2rem}
+.medidas-metricas{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem}
+.medida-metrica{border:1px solid #e2e8f0;border-radius:13px;padding:.7rem;background:#f8fafc}
+.medida-metrica span{display:block;font-size:.72rem;color:#64748b}.medida-metrica strong{font-size:.95rem;color:#0f172a}
+.md-linea{display:flex;justify-content:space-between;gap:1rem;align-items:center;border:1px solid #dbe4ef;border-radius:13px;padding:.75rem .85rem}
+.md-linea small{display:block;color:#64748b}.linea-medidas-calculada{background:#f8fbff}.linea-medidas-calculada .cantidad,.linea-medidas-calculada .precio,.linea-medidas-calculada .presentacion-select,.linea-medidas-calculada .seleccionar-producto{pointer-events:none;background:#f1f5f9}
+@media(max-width:767px){.md-grupo-grid,.md-grupo-grid.longitud{grid-template-columns:1fr 1fr}.md-grupo-grid .md-quitar{grid-column:2;justify-self:end}.medidas-metricas{grid-template-columns:1fr 1fr}.venta-medidas-auto .modal-body{padding:.75rem}}
+
+/* ==========================================================
+   FASE 1E - GRUPOS CALCULADOS POR MEDIDAS
+========================================================== */
+.badge-medidas-calculadas{
+    display:inline-flex;align-items:center;gap:.3rem;width:max-content;
+    margin-top:.38rem;padding:.28rem .55rem;border-radius:999px;
+    background:#e8f1ff;color:#174f91;border:1px solid #bfd7f5;
+    font-size:.7rem;font-weight:700;line-height:1;
+}
+.linea-medidas-calculada .producto-box{flex-wrap:wrap}
+.linea-medidas-calculada [data-bloqueado-medidas="1"]{pointer-events:none!important}
+.linea-medidas-calculada .select2-container{pointer-events:none}
+.linea-medidas-calculada .descuento{background:#f1f5f9;font-weight:700}
+.btn-ver-corte-medidas{white-space:nowrap}
+.croquis-medidas-preview{overflow:auto;border:1px solid #dbe4ef;border-radius:14px;background:#f8fafc;padding:.65rem}
+.croquis-medidas-preview svg{display:block;width:100%;height:auto;min-width:520px}
+
+.grupos-medidas-controles{
+    display:flex;flex-wrap:wrap;gap:.5rem;padding:.65rem;
+    border:1px solid #dbe4ef;border-radius:14px;background:#f8fafc;
+}
+.grupo-medidas-control{
+    display:inline-grid;grid-template-columns:auto minmax(80px,180px) 32px;
+    align-items:center;gap:.45rem;min-width:0;padding:.35rem .4rem .35rem .65rem;
+    border:1px solid #bfd7f5;border-radius:999px;background:#fff;color:#174f91;
+}
+.grupo-medidas-control-numero{font-size:.76rem;font-weight:800;white-space:nowrap}
+.grupo-medidas-control-producto{font-size:.72rem;color:#64748b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.grupo-medidas-control .btn{width:30px;height:30px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+
+#tablaProductos .col-plano-medidas,
+#tablaProductos .col-eliminar-producto{width:58px;min-width:58px!important}
+#tablaProductos .btn-icono-tabla{
+    width:32px;height:32px;padding:0;border-radius:10px;
+    display:inline-flex;align-items:center;justify-content:center;
+}
+#tablaProductos .linea-medidas-calculada td{padding:7px 6px!important}
+#tablaProductos .linea-medidas-calculada .producto-icon-mini,
+#tablaProductos .linea-medidas-calculada .producto-img-mini{width:36px!important;height:36px!important;flex-basis:36px}
+#tablaProductos .linea-medidas-calculada .select2-selection,
+#tablaProductos .linea-medidas-calculada .form-select,
+#tablaProductos .linea-medidas-calculada .form-control{min-height:36px!important;height:36px!important;border-radius:10px!important}
+
+.md-elegir-alternativa{border-width:1px;border-radius:13px;padding:.7rem .8rem;background:#fff}
+.md-elegir-alternativa:hover{background:#f8fafc}
+.md-alternativa-seleccionada{
+    color:#123f73;border:2px solid #2563a8!important;background:#eaf3ff!important;
+    box-shadow:0 0 0 .16rem rgba(37,99,168,.12);
+}
+.md-alternativa-check{color:#64748b;margin-top:.1rem}
+.md-alternativa-seleccionada .md-alternativa-check{color:#198754}
+@media(max-width:991.98px){
+    .btn-ver-corte-medidas{margin-left:0!important;margin-top:.35rem}
+    .badge-medidas-calculadas{font-size:.66rem}
+}
+@media(max-width:767.98px){
+    .grupos-medidas-controles{display:grid;grid-template-columns:1fr}
+    .grupo-medidas-control{grid-template-columns:auto minmax(0,1fr) 32px;width:100%;border-radius:12px}
+    .ventas-form-page #tablaProductos .linea-medidas-calculada > td:nth-child(7),
+    .ventas-form-page #tablaProductos .linea-medidas-calculada > td:last-child{grid-column:auto!important}
+    .ventas-form-page #tablaProductos .linea-medidas-calculada > td:last-child{padding-top:0!important;border-top:0}
+}

@@ -1,0 +1,127 @@
+.pacientes-page {
+    max-width: 1680px;
+}
+
+.pacientes-primary-action {
+    min-height: 46px;
+    padding-inline: 1.25rem;
+    border-radius: .75rem;
+}
+
+.pacientes-filter,
+.pacientes-card,
+.paciente-modal-content {
+    border-radius: 1rem;
+    box-shadow: 0 12px 35px rgba(15, 23, 42, .06);
+}
+
+.pacientes-filter {
+    background: #fff;
+    border: 1px solid #e2e8f0;
+}
+
+.pacientes-table thead th {
+    color: #475569;
+    font-size: .78rem;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    background: #f8fafc;
+    border-bottom-color: #e2e8f0;
+}
+
+.pacientes-table td,
+.pacientes-table th {
+    padding: 1rem;
+}
+
+.pacientes-table tbody tr:hover {
+    background: #f8fffc;
+}
+
+.paciente-mobile-item {
+    padding: 0.65rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.paciente-mobile-item:last-child {
+    border-bottom: 0;
+}
+
+.grid-mobile-actions {
+    grid-template-columns: 1fr 1fr;
+}
+
+.paciente-modal-content {
+    border: 0;
+}
+
+.dni-consulta-box {
+    padding: 0.85rem;
+    border: 1px solid #bbf7d0;
+    border-radius: .75rem;
+    background: linear-gradient(135deg, #f0fdf4, #f8fafc);
+}
+
+#estadoConsultaDni.is-loading {
+    color: #0f766e;
+}
+
+#estadoConsultaDni.is-success {
+    color: #15803d;
+}
+
+#estadoConsultaDni.is-error {
+    color: #b45309;
+}
+
+@media (max-width: 768px) {
+    .pacientes-page {
+        padding-inline: .35rem !important;
+    }
+
+    .pacientes-filter {
+        padding: 0.65rem 0.75rem !important;
+        margin-bottom: 0.55rem !important;
+        border-radius: 0.65rem !important;
+    }
+
+    .pacientes-primary-action {
+        width: 100%;
+        min-height: 38px;
+        font-size: 0.85rem;
+    }
+
+    .paciente-mobile-item {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .paciente-modal-content {
+        min-height: 100%;
+        border-radius: 0;
+    }
+
+    .modal-dialog {
+        margin: 0;
+        min-height: 100%;
+    }
+
+    .modal-dialog-scrollable {
+        height: 100%;
+    }
+
+    .dni-consulta-box .input-group {
+        flex-wrap: wrap;
+    }
+
+    .dni-consulta-box .input-group .btn {
+        width: 100%;
+        margin-left: 0 !important;
+        margin-top: .4rem;
+        border-radius: .5rem !important;
+    }
+}
+
+
+/* Estados visibles en el formulario del paciente. */
+#modalPaciente .form-control.is-valid, #modalPaciente .form-control.is-valid:focus { border-color: #0a945c !important; background-color: #fff !important; box-shadow: none !important; }
+#modalPaciente .form-control.is-invalid, #modalPaciente .form-control.is-invalid:focus { border-color: #e52b3e !important; background-color: #fff !important; box-shadow: none !important; }

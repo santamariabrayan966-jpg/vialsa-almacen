@@ -1,0 +1,1168 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Registrar Venta | DentIA</title>
+
+    <!-- CSRF -->
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+    <!-- Bootstrap + Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Select2 + Bootstrap theme -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+
+    <!-- CSS del sistema -->
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/ventas.css}">
+</head>
+
+<body class="bg-light panel-interno ventas-module ventas-form-page">
+
+
+<div class="container-fluid p-4">
+
+    <div class="venta-card-modern">
+
+
+        <div class="card-body p-3 p-md-4">
+
+            <!-- ====================== FORMULARIO ====================== -->
+            <form th:action="@{/interno/ventas/guardar}"
+                  target="_top"
+                  th:object="${ventaForm}"
+                  method="post"
+                  id="ventaForm">
+
+                <input type="hidden"
+                       th:if="${ventaForm.idVentas != null and ventaForm.idVentas > 0}"
+                       th:field="*{idVentas}">
+
+
+                <input type="hidden" th:field="*{idCliente}" id="idCliente">
+                <input type="hidden" th:field="*{clienteOrigen}" id="clienteOrigen">
+                <input type="hidden" th:field="*{clienteNombres}" id="clienteNombres">
+                <input type="hidden" th:field="*{clienteApellidos}" id="clienteApellidos">
+                <input type="hidden" th:field="*{clienteRazonSocial}" id="clienteRazonSocial">
+
+                <!-- ====================== CLIENTE ====================== -->
+                <div class="section-modern">
+
+                    <h6 class="section-title-modern">
+                        <i class="bi bi-person-vcard"></i>
+                        Datos del cliente
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">DNI / RUC</label>
+                            <div class="input-group">
+                                <input type="text"
+                                       id="cliDocumento"
+                                       class="form-control"
+                                       placeholder="Ingrese documento"
+                                       inputmode="numeric"
+                                       autocomplete="off"
+                                       maxlength="11"
+                                       pattern="[0-9]{8}|[0-9]{11}"
+                                       aria-describedby="clienteConsultaMensaje"
+                                       th:field="*{documentoCliente}">
+                                <button type="button" id="btnBuscarCliente" class="btn btn-outline-primary"
+                                        aria-label="Buscar cliente por documento">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Nombre del cliente</label>
+                            <input type="text"
+                                   id="cliNombre"
+                                   class="form-control"
+                                   placeholder="Nombre o razón social"
+                                   th:field="*{nombreCliente}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-semibold">Teléfono</label>
+                            <input type="text"
+                                   id="cliTelefono"
+                                   class="form-control"
+                                   inputmode="tel"
+                                   pattern="[0-9]{7,15}"
+                                   maxlength="15"
+                                   placeholder="Opcional"
+                                   th:field="*{telefonoCliente}">
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold" for="cliCorreo">Correo</label>
+                            <input type="email" id="cliCorreo" class="form-control" maxlength="160"
+                                   placeholder="Opcional" th:field="*{clienteCorreo}">
+                        </div>
+
+                        <div class="col-md-8">
+                            <label class="form-label small fw-semibold" for="cliDireccion">Dirección</label>
+                            <input type="text" id="cliDireccion" class="form-control" maxlength="250"
+                                   placeholder="Dirección del cliente" th:field="*{clienteDireccion}">
+                        </div>
+
+                        <div class="col-12">
+                            <div id="clienteConsultaEstado" class="cliente-consulta-estado d-none" role="status" aria-live="polite">
+                                <span id="clienteConsultaBadge" class="badge text-bg-secondary"></span>
+                                <span id="clienteConsultaMensaje"></span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ====================== COMPROBANTE ====================== -->
+                <div class="section-modern">
+
+                    <h6 class="section-title-modern">
+                        <i class="bi bi-file-earmark-text"></i>
+                        Comprobante y pago
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Tipo de comprobante</label>
+                            <select th:field="*{tipoComprobante}" id="tipoComprobante" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="BOLETA">Boleta</option>
+                                <option value="FACTURA">Factura</option>
+                                <option value="NOTA">Nota de Venta</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Número</label>
+                            <input th:field="*{nroComprobante}"
+                                   id="nroComprobante"
+                                   class="form-control bg-light"
+                                   readonly>
+                        </div>
+
+                        <div class="col-md-4">
+
+                            <label class="form-label small fw-semibold">
+                                Sede activa
+                            </label>
+
+                            <div class="border rounded-3 bg-light px-3 py-2 d-flex align-items-center gap-2">
+        <span class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
+              style="width: 32px; height: 32px;">
+            <i class="bi bi-geo-alt-fill"></i>
+        </span>
+
+                                <div class="lh-sm">
+                                    <div class="fw-bold"
+                                         th:text="${sedeActivaNombre != null ? sedeActivaNombre : 'Sin sede activa'}">
+                                        Almacen 1
+                                    </div>
+
+                                    <small class="text-muted">
+                                        Esta venta se registrará en esta sede.
+                                    </small>
+                                </div>
+                            </div>
+
+                            <input type="hidden" th:field="*{idSede}">
+
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Forma de pago</label>
+                            <select th:field="*{formaPago}" id="formaPago" class="form-select">
+                                <option value="CONTADO">Contado</option>
+                                <option value="CREDITO">Crédito</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4" id="bloqueMetodoCobro">
+
+                            <label class="form-label small fw-semibold">
+                                Método de cobro
+                            </label>
+
+                            <select th:field="*{metodoPago}"
+                                    id="metodoPago"
+                                    class="form-select"
+                                    required>
+
+                                <option value="EFECTIVO">Efectivo</option>
+                                <option value="YAPE">Yape</option>
+                                <option value="PLIN">Plin</option>
+                                <option value="TARJETA">Tarjeta</option>
+                                <option value="TRANSFERENCIA">Transferencia</option>
+
+                            </select>
+
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Entrega</label>
+                            <select name="tipoEntrega" id="tipoEntrega" class="form-select">
+                                <option value="INMEDIATA"
+                                        th:selected="${ventaForm.fechaRecojoProgramada == null}">
+                                    Entrega inmediata
+                                </option>
+
+                                <option value="PROGRAMADA"
+                                        th:selected="${ventaForm.fechaRecojoProgramada != null}">
+                                    Recojo programado
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 d-none" id="bloqueRecojoProgramado">
+
+                            <div class="border rounded-4 bg-light p-3">
+
+                                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                                    <div>
+                                        <label class="form-label small fw-bold mb-1">
+                                            <i class="bi bi-calendar-check text-primary me-1"></i>
+                                            Programar recojo
+                                        </label>
+                                        <div class="small text-muted">
+                                            Selecciona una fecha y luego elige un horario disponible según la sede activa.
+                                        </div>
+                                    </div>
+
+                                    <span class="badge rounded-pill text-bg-primary">
+                Horarios por sede
+            </span>
+                                </div>
+
+                                <input type="hidden"
+                                       name="fechaRecojoProgramadaInput"
+                                       id="fechaRecojoProgramadaInput"
+                                       th:value="${ventaForm.fechaRecojoProgramada != null ? #temporals.format(ventaForm.fechaRecojoProgramada, 'yyyy-MM-dd''T''HH:mm') : ''}">
+
+                                <div class="row g-3">
+
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-semibold">
+                                            Fecha de recojo
+                                        </label>
+                                        <input type="date"
+                                               id="fechaRecojoProgramadaFecha"
+                                               class="form-control">
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        <label class="form-label small fw-semibold">
+                                            Horarios disponibles
+                                        </label>
+
+                                        <div id="horariosRecojoContainer"
+                                             class="d-flex flex-wrap gap-2">
+
+                                            <div class="text-muted small border rounded-3 px-3 py-2 bg-white">
+                                                Selecciona una fecha para cargar los horarios.
+                                            </div>
+
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <div id="alertaRecojoProgramado"
+                                     class="alert alert-warning border-0 rounded-4 mt-3 mb-0 d-none">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    <span id="mensajeRecojoProgramado">
+                Debe seleccionar un horario disponible.
+            </span>
+                                </div>
+
+                                <div id="resumenRecojoProgramado"
+                                     class="alert alert-success border-0 rounded-4 mt-3 mb-0 d-none">
+                                    <i class="bi bi-check-circle me-1"></i>
+                                    Recojo seleccionado:
+                                    <strong id="textoRecojoSeleccionado"></strong>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- ====================== BLOQUE CRÉDITO ====================== -->
+                <div id="bloqueCredito" class="credit-box d-none">
+
+                    <h6 class="section-title-modern mb-3">
+                        <i class="bi bi-credit-card-2-front"></i>
+                        Venta al crédito
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-md-3">
+                            <label class="form-label">Pago inicial (S/)</label>
+                            <input type="number"
+                                   id="pagoInicial"
+                                   name="pagoInicial"
+                                   class="form-control"
+                                   min="0"
+                                   step="0.01"
+                                   th:value="${ventaForm.pagoInicial != null ? ventaForm.pagoInicial : 0}">
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Deuda (S/)</label>
+                            <input type="text"
+                                   id="deudaVenta"
+                                   name="deudaVenta"
+                                   class="form-control fw-bold text-danger"
+                                   readonly>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">N° cuotas</label>
+                            <input type="number"
+                                   id="numeroCuotas"
+                                   name="numeroCuotas"
+                                   class="form-control"
+                                   min="1"
+                                   max="24"
+                                   step="1"
+                                   th:value="${ventaForm.numeroCuotas != null ? ventaForm.numeroCuotas : 1}">
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Frecuencia</label>
+                            <select id="frecuenciaCuotas"
+                                    th:field="*{frecuenciaCuotas}"
+                                    class="form-select">
+
+                                <option value="DIARIO">Diario</option>
+                                <option value="SEMANAL">Semanal</option>
+                                <option value="MENSUAL">Mensual</option>
+                                <option value="PERSONALIZADO">Personalizado</option>
+
+                            </select>
+                        </div>
+
+                        <div class="col-md-2">
+                            <label class="form-label">Primera fecha</label>
+                            <input type="date"
+                                   id="fechaPrimeraCuota"
+                                   name="fechaPrimeraCuota"
+                                   class="form-control"
+                                   th:value="${ventaForm.fechaPrimeraCuota != null ? #temporals.format(ventaForm.fechaPrimeraCuota, 'yyyy-MM-dd') : ''}">
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3 mb-2">
+                        <small class="text-muted fw-semibold">
+                            Vista previa de cuotas
+                        </small>
+
+                        <button type="button"
+                                id="btnGenerarCuotas"
+                                class="btn btn-outline-primary btn-sm rounded-pill">
+                            <i class="bi bi-calendar-plus me-1"></i>
+                            Generar cuotas
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0" id="tablaCuotasPreview">
+                            <thead>
+                            <tr>
+                                <th>Cuota</th>
+                                <th>Fecha vencimiento</th>
+                                <th class="text-end">Monto</th>
+                            </tr>
+                            </thead>
+                            <tbody id="cuotasPreviewBody">
+                            <tr>
+                                <td colspan="3" class="text-center text-muted py-3">
+                                    Selecciona los datos del crédito y genera las cuotas.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+
+                <hr>
+
+                <!-- ====================== PRODUCTOS ====================== -->
+                <div class="section-modern">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <h6 class="section-title-modern mb-0">
+                            <i class="bi bi-box-seam"></i>
+                            Productos de la venta
+                        </h6>
+
+                        <div class="d-flex flex-wrap gap-2 justify-content-end venta-productos-acciones">
+                            <button type="button"
+                                    id="agregarProducto"
+                                    class="btn btn-primary rounded-pill px-3">
+                                <i class="bi bi-plus-circle me-1"></i>
+                                Agregar producto
+                            </button>
+
+                            <button type="button"
+                                    id="agregarPorMedidas"
+                                    class="btn btn-outline-primary rounded-pill px-3">
+                                <i class="bi bi-rulers me-1"></i>
+                                Agregar por medidas
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div id="gruposMedidasControles"
+                         class="grupos-medidas-controles d-none mb-3"
+                         aria-label="Grupos agregados por medidas"></div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle" id="tablaProductos">
+                            <thead class="table-light text-center">
+                            <tr>
+                                <th style="min-width: 220px;">Producto</th>
+                                <th style="min-width: 170px;">Presentación</th>
+                                <th>Cant.</th>
+                                <th>Precio</th>
+                                <th>Desc.</th>
+                                <th>Subtotal</th>
+                                <th class="col-plano-medidas">Plano</th>
+                                <th class="col-eliminar-producto">Eliminar</th>
+                            </tr>
+                            </thead>
+
+                            <tbody id="detalleBody">
+
+                            <tr th:each="d : ${detalles}">
+
+                                <td>
+
+                                    <div class="producto-box">
+
+                                        <div class="producto-icon-mini"
+                                             th:classappend="${d.foto != null and !#strings.isEmpty(d.foto)} ? ' d-none'">
+                                            <i class="bi bi-box-seam"></i>
+                                        </div>
+
+                                        <img th:src="${d.foto != null and !#strings.isEmpty(d.foto)}
+        ? @{/uploads/productos/{f}(f=${d.foto})}
+        : ''"
+                                             class="producto-img-mini"
+                                             th:classappend="${d.foto == null or #strings.isEmpty(d.foto)} ? ' d-none'">
+
+                                        <div class="flex-grow-1">
+
+                                            <select class="form-select seleccionar-producto"
+                                                    name="idProducto"
+                                                    required>
+
+                                                <option th:value="${d.idProducto}"
+                                                        th:text="${d.nombreProducto}"
+                                                        th:attr="data-foto=${d.foto}"
+                                                        selected>
+                                                </option>
+
+                                            </select>
+
+                                        </div>
+
+                                    </div>
+
+                                </td>
+
+                                <td>
+                                    <select class="form-select presentacion-select"
+                                            name="idPrecioPresentacion"
+                                            th:attr="data-selected=${d.idPrecioPresentacion}"
+                                            required>
+                                        <option value="">Seleccione presentación</option>
+
+                                        <option th:if="${d.idPrecioPresentacion != null}"
+                                                th:value="${d.idPrecioPresentacion}"
+                                                th:text="${d.nombrePresentacion != null ? d.nombrePresentacion : 'Presentación actual'}"
+                                                selected>
+                                        </option>
+                                    </select>
+
+                                    <div class="presentacion-ayuda"
+                                         role="status"
+                                         aria-live="polite"></div>
+
+                                    <input type="hidden"
+                                           name="factorConversionStock"
+                                           class="factor-stock-hidden"
+                                           th:value="${d.factorConversionStock != null ? d.factorConversionStock : 1}">
+
+                                    <input type="hidden"
+                                           name="idUnidad"
+                                           class="unidad-hidden"
+                                           th:value="${d.idUnidad}">
+                                </td>
+
+
+                                <td>
+                                    <input type="number"
+                                           class="form-control cantidad"
+                                           name="cantidad"
+                                           step="1"
+                                           min="1"
+                                           th:value="${#numbers.formatDecimal(d.cantidad,1,0)}"
+                                           required>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           class="form-control precio"
+                                           name="precioUnitario"
+                                           step="0.01"
+                                           th:value="${d.precioUnitario}"
+                                           required>
+                                </td>
+
+                                <td>
+                                    <input type="number"
+                                           class="form-control descuento"
+                                           name="descuento"
+                                           step="0.01"
+                                           th:value="${d.descuento}"
+                                           required>
+                                </td>
+
+                                <td class="subtotal-cell text-end"
+                                    th:text="${#numbers.formatDecimal(
+            (d.cantidad * d.precioUnitario) - d.descuento,
+            1,2)}">
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-sm rounded-pill btn-config-preparacion"
+                                            th:classappend="${d.requierePreparacion} ? '' : ' d-none'"
+                                            th:disabled="${!d.requierePreparacion}"
+                                            th:attr="aria-disabled=${!d.requierePreparacion}"
+                                            title="Editar las medidas calculadas">
+                                        <i class="bi bi-pencil-square me-1"></i>
+                                        Editar medidas
+                                    </button>
+
+                                    <input type="hidden" name="requierePreparacion" class="requiere-preparacion-hidden"
+                                           th:value="${d.requierePreparacion ? 1 : 0}">
+
+                                    <input type="hidden" name="tipoPreparacion" class="tipo-preparacion-hidden"
+                                           th:value="${d.tipoPreparacion}">
+
+                                    <input type="hidden" name="entregarSobrante" class="entregar-sobrante-hidden"
+                                           th:value="${d.entregarSobrante ? 1 : 0}">
+
+                                    <input type="hidden" name="observacionPreparacion" class="observacion-preparacion-hidden"
+                                           th:value="${d.observacionPreparacion}">
+
+                                    <input type="hidden" name="cortesJson" class="cortes-json-hidden"
+                                           th:value="${d.cortesJson}">
+
+                                    <input type="hidden" name="croquisSvg" class="croquis-svg-hidden"
+                                           th:value="${d.croquisSvg}">
+
+                                    <input type="hidden" name="grupoMedidaUuid" class="grupo-medida-uuid-hidden"
+                                           th:value="${d.grupoMedidaUuid}">
+                                    <input type="hidden" name="lineaPrincipalMedida" class="linea-principal-medida-hidden"
+                                           th:value="${d.lineaPrincipalMedida ? 1 : 0}">
+                                    <input type="hidden" class="linea-medida-clave-hidden" value="">
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-danger btn-sm btn-eliminar-fila">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+
+                            </tr>
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ====================== TOTALES + ACCIONES ====================== -->
+                <div class="row g-3 mt-3">
+
+                    <div class="col-lg-5 ms-auto">
+
+                        <div class="card-totales-venta p-4">
+
+                            <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">
+            Productos
+        </span>
+
+                                <strong id="lblItems">
+                                    0 ítems
+                                </strong>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+    <span class="text-muted" id="labelSubtotalVenta">
+        Subtotal gravado
+    </span>
+
+                                <strong id="lblSubtotal">
+                                    S/ 0.00
+                                </strong>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted">
+            Descuento total
+        </span>
+
+                                <strong class="text-danger" id="lblDescuento">
+                                    S/ 0.00
+                                </strong>
+                            </div>
+
+                            <div class="d-flex justify-content-between mb-3" id="filaIgvVenta">
+    <span class="text-muted">
+        IGV (18%)
+    </span>
+
+                                <strong id="lblIgv">
+                                    S/ 0.00
+                                </strong>
+                            </div>
+
+                            <hr>
+
+                            <div class="d-flex justify-content-between align-items-center">
+
+                                <div>
+                                    <small class="text-muted d-block">
+                                        Total a pagar
+                                    </small>
+
+                                    <strong class="fs-5">
+                                        TOTAL
+                                    </strong>
+                                </div>
+
+                                <span id="lblTotal"
+                                      class="fw-bold text-success fs-2">
+
+            S/ 0.00
+
+        </span>
+
+                            </div>
+
+                            <input type="hidden"
+                                   th:field="*{totalVenta}"
+                                   id="totalVentaInput">
+
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+
+                            <button type="submit"
+                                    class="btn btn-light border rounded-pill px-4"
+                                    name="accion"
+                                    value="BORRADOR">
+                                <i class="bi bi-file-earmark-text me-1"></i>
+                                Guardar Proforma
+                            </button>
+
+                            <button type="submit"
+                                    class="btn btn-primary rounded-pill px-4"
+                                    name="accion"
+                                    value="REGISTRAR">
+                                <i class="bi bi-check2-circle me-1"></i>
+                                Confirmar venta
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+<div id="select2-global-container"></div>
+
+<!-- MODAL AGREGAR POR MEDIDAS - CÁLCULO AUTOMÁTICO -->
+<div class="modal fade" id="modalVentaMedidasAuto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 overflow-hidden venta-medidas-auto">
+            <div class="modal-header text-white">
+                <div>
+                    <h5 class="modal-title fw-bold mb-1"><i class="bi bi-rulers me-2"></i>Agregar producto por medidas</h5>
+                    <small class="opacity-75">Registra los cortes. El sistema elegirá automáticamente la combinación comercial válida y de menor costo.</small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                <div class="row g-3">
+                    <div class="col-12 col-lg-5">
+                        <div class="medidas-card h-100">
+                            <label class="form-label fw-semibold">Producto medible</label>
+                            <select id="mdProducto" class="form-select"></select>
+                            <div id="mdProductoAyuda" class="small text-muted mt-2">Busca un vidrio o aluminio configurado para venta por área o longitud.</div>
+
+                            <div id="mdDatosProducto" class="d-none mt-3">
+                                <div class="d-flex gap-2 flex-wrap mb-3">
+                                    <span id="mdTipoBadge" class="badge rounded-pill text-bg-primary"></span>
+                                    <span id="mdUnidadBadge" class="badge rounded-pill text-bg-light border"></span>
+                                </div>
+
+                                <label class="form-label fw-semibold">Modalidad</label>
+                                <div class="d-grid gap-2 mb-3">
+                                    <label class="border rounded-3 p-2">
+                                        <input class="form-check-input me-2" type="radio" name="mdModalidad"
+                                               value="COTIZAR_CORTES" checked>
+                                        <strong>Cotizar cortes</strong>
+                                        <span class="d-block small text-muted ms-4">Compara presentaciones y recomienda la opción válida de menor precio.</span>
+                                    </label>
+                                    <label class="border rounded-3 p-2">
+                                        <input class="form-check-input me-2" type="radio" name="mdModalidad"
+                                               value="COMPRAR_PRESENTACION">
+                                        <strong>Comprar presentación y cortar</strong>
+                                        <span class="d-block small text-muted ms-4">Cobra exactamente la presentación física seleccionada.</span>
+                                    </label>
+                                </div>
+
+                                <div id="mdPresentacionFijaPanel" class="d-none border rounded-3 p-3 mb-3 bg-white">
+                                    <label for="mdPresentacionFija" class="form-label fw-semibold">Presentación</label>
+                                    <select id="mdPresentacionFija" class="form-select mb-2"></select>
+
+                                    <div class="small text-muted mb-2">
+                                        El sistema calculará automáticamente la cantidad mínima necesaria según los cortes ingresados.
+                                    </div>
+
+                                    <div id="mdPresentacionFijaInfo" class="small text-muted mt-2"></div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <h6 class="fw-bold mb-0">Medidas solicitadas</h6>
+                                    <button type="button" id="mdAgregarGrupo" class="btn btn-sm btn-outline-primary rounded-pill">
+                                        <i class="bi bi-plus-lg me-1"></i>Agregar medida
+                                    </button>
+                                </div>
+                                <div id="mdGrupos" class="d-grid gap-2"></div>
+
+                                <div id="mdEntregarSobrantePanel" class="form-check form-switch mt-3 d-none">
+                                    <input class="form-check-input" type="checkbox" id="mdEntregarSobrante">
+                                    <label class="form-check-label" for="mdEntregarSobrante">Entregar sobrante al cliente</label>
+                                    <div id="mdEntregarSobranteAyuda" class="small text-muted mt-1">
+                                        Disponible únicamente al comprar media plancha o plancha completa.
+                                    </div>
+                                </div>
+                                <label class="form-label fw-semibold mt-3" for="mdObservacion">Nota para preparación</label>
+                                <textarea id="mdObservacion" class="form-control" rows="2" maxlength="500" placeholder="Ej.: proteger bordes, identificar piezas..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-lg-7">
+                        <div class="medidas-card h-100">
+                            <div id="mdEstadoInicial" class="medidas-empty">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                                <strong>La distribución aparecerá aquí</strong>
+                                <span>Selecciona un producto, agrega medidas y pulsa “Calcular”.</span>
+                            </div>
+                            <div id="mdResultado" class="d-none">
+                                <div class="d-flex justify-content-between gap-3 flex-wrap align-items-start mb-3">
+                                    <div>
+                                        <div id="mdResultadoEtiqueta" class="text-muted small">Combinación recomendada</div>
+                                        <h5 id="mdResultadoTitulo" class="fw-bold mb-1"></h5>
+                                        <div id="mdResultadoMotivo" class="small text-muted"></div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-muted small">Total calculado</div>
+                                        <div id="mdResultadoPrecio" class="fs-4 fw-bold text-primary"></div>
+                                    </div>
+                                </div>
+                                <div id="mdMetricas" class="medidas-metricas mb-3"></div>
+                                <div id="mdAlternativas" class="mb-3"></div>
+                                <div id="mdLineas" class="d-grid gap-2"></div>
+                                <div id="mdAdvertencias" class="mt-3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" id="mdCalcular" class="btn btn-outline-primary rounded-pill px-4" disabled>
+                    <span class="md-btn-normal"><i class="bi bi-calculator me-1"></i>Calcular</span>
+                    <span class="md-btn-cargando d-none"><span class="spinner-border spinner-border-sm me-1"></span>Calculando</span>
+                </button>
+                <button type="button" id="mdAgregarVenta" class="btn btn-primary rounded-pill px-4 d-none">
+                    <i class="bi bi-cart-plus me-1"></i>Agregar a la venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PREPARACIÓN / CORTE - NUEVO DISEÑO -->
+<div class="modal fade" id="modalPreparacionProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen-lg-down modal-xl modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 overflow-hidden modal-prep-corte">
+
+            <div class="modal-header bg-primary text-white">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="bi bi-scissors me-1"></i>
+                        Medidas y preparación del producto
+                    </h5>
+                    <small id="prepResumenProducto">
+                        Ingresa primero las medidas; la cantidad, stock y subtotal se calcularán automáticamente.
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body bg-light">
+
+                <input type="hidden" id="prepFilaIndex">
+                <input type="hidden" id="prepPiezaActiva" value="1">
+
+                <div id="prepSeleccionProductoPanel" class="card border-0 shadow-sm rounded-4 mb-3 d-none">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start gap-2 mb-3">
+                            <i class="bi bi-rulers text-primary fs-4"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">¿Qué necesita el cliente?</h6>
+                                <p class="text-muted small mb-0">
+                                    Selecciona el producto y una presentación compatible. Después ingresa las medidas y el sistema calculará la cantidad necesaria.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-lg-7">
+                                <label for="prepProductoSelect" class="form-label fw-semibold">Producto</label>
+                                <select id="prepProductoSelect" class="form-select" data-placeholder="Buscar producto"></select>
+                            </div>
+                            <div class="col-lg-5">
+                                <label for="prepPresentacionSelect" class="form-label fw-semibold">Presentación</label>
+                                <select id="prepPresentacionSelect" class="form-select" disabled>
+                                    <option value="">Selecciona primero un producto</option>
+                                </select>
+                                <div id="prepSeleccionAyuda" class="form-text" aria-live="polite"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="prepAlertaInline"
+                     class="alert alert-danger border-0 rounded-4 d-none mb-3">
+                    <div class="d-flex gap-2">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <div>
+                            <strong>Revisa los cortes</strong>
+                            <div id="prepAlertaTexto" class="small">
+                                Hay cortes que superan la medida disponible.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-3" id="prepContenidoTecnico">
+
+                    <!-- CONFIGURACIÓN GENERAL -->
+                    <div class="col-lg-3">
+
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body">
+
+                                <h6 class="fw-bold mb-3">
+                                    <i class="bi bi-sliders me-1"></i>
+                                    Configuración
+                                </h6>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">Modo</label>
+
+                                    <div class="prep-option-group">
+                                        <label class="prep-option">
+                                            <input type="radio"
+                                                   name="prepTipoRadio"
+                                                   value="TAL_CUAL"
+                                                   checked>
+                                            <span>
+        <i class="bi bi-box-seam"></i>
+        Entregar tal cual
+    </span>
+                                        </label>
+
+
+
+                                        <label class="prep-option">
+                                            <input type="radio"
+                                                   name="prepTipoRadio"
+                                                   value="CORTE">
+                                            <span>
+        <i class="bi bi-scissors"></i>
+        Requiere corte
+    </span>
+                                        </label>
+                                    </div>
+
+                                    <select id="prepTipo" class="form-select d-none">
+                                        <option value="TAL_CUAL">Entregar tal cual</option>
+                                        <option value="CORTE">Requiere corte</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">
+                                        ¿Entregar sobrante?
+                                    </label>
+                                    <select id="prepEntregarSobrante" class="form-select">
+                                        <option value="0">No</option>
+                                        <option value="1">Sí</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label small fw-semibold">
+                                        Observación para despacho
+                                    </label>
+                                    <textarea id="prepObservacion"
+                                              class="form-control"
+                                              rows="4"
+                                              placeholder="Ej: pulir bordes, envolver separado, entregar sobrante, etc."></textarea>
+                                </div>
+
+                                <div class="prep-info-box">
+                                    <i class="bi bi-info-circle"></i>
+                                    <span id="prepTextoAyuda">
+                                        Selecciona una pieza física y registra sus cortes.
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- PIEZAS + CORTES -->
+                    <div class="col-lg-4">
+
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">
+                                            <i class="bi bi-layers me-1"></i>
+                                            Medidas solicitadas y piezas físicas
+                                        </h6>
+                                        <small id="prepMedidaBaseTexto" class="text-muted">
+                                            Medida base pendiente.
+                                        </small>
+                                    </div>
+
+                                    <span id="prepBadgeEstado"
+                                          class="badge rounded-pill text-bg-secondary">
+                                        Sin cortes
+                                    </span>
+                                </div>
+
+                                <div id="prepPiezasTabs"
+                                     class="prep-piezas-tabs mb-3">
+                                    <!-- JS genera Plancha 1, Plancha 2, Varilla 1, etc. -->
+                                </div>
+
+                                <div id="prepPanelPieza"
+                                     class="prep-panel-pieza">
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div>
+                                            <strong id="prepTituloPieza">
+                                                Pieza 1
+                                            </strong>
+                                            <div id="prepSubtituloPieza"
+                                                 class="small text-muted">
+                                                Disponible según medida real.
+                                            </div>
+                                        </div>
+
+                                        <button type="button"
+                                                id="btnAgregarCorte"
+                                                class="btn btn-outline-primary btn-sm rounded-pill">
+                                            <i class="bi bi-plus-circle me-1"></i>
+                                            Agregar corte
+                                        </button>
+                                    </div>
+
+                                    <div id="prepErroresPieza"
+                                         class="prep-error-inline d-none">
+                                        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                                        <span></span>
+                                    </div>
+
+                                    <div id="prepCortesBody"
+                                         class="prep-cortes-list">
+                                        <div class="text-center text-muted small py-4">
+                                            Sin cortes registrados para esta pieza.
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- PREVIEW -->
+                    <div class="col-lg-5">
+
+                        <div class="card border-0 shadow-sm rounded-4 h-100">
+                            <div class="card-body">
+
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h6 class="fw-bold mb-1">
+                                            <i class="bi bi-bounding-box me-1"></i>
+                                            Vista previa del corte
+                                        </h6>
+                                        <small class="text-muted">
+                                            Croquis referencial por pieza física.
+                                        </small>
+                                    </div>
+
+                                    <button type="button"
+                                            id="btnVerCroquisGrande"
+                                            class="btn btn-light border btn-sm rounded-pill">
+                                        <i class="bi bi-eye me-1"></i>
+                                        Ver grande
+                                    </button>
+                                </div>
+
+                                <div id="prepResumenMedidas"
+                                     class="prep-resumen-medidas mb-2">
+                                    <span class="badge text-bg-light border">
+                                        Disponible: -
+                                    </span>
+                                    <span class="badge text-bg-light border">
+                                        Usado: -
+                                    </span>
+                                    <span class="badge text-bg-light border">
+                                        Sobrante: -
+                                    </span>
+                                </div>
+
+                                <div id="prepCroquisPreview"
+                                     class="prep-croquis-preview">
+                                    <span class="text-muted small">
+                                        Selecciona “Requiere corte” y agrega medidas para generar el croquis.
+                                    </span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer bg-white">
+                <button type="button"
+                        class="btn btn-light border rounded-pill px-4"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        id="btnGuardarPreparacion"
+                        class="btn btn-primary rounded-pill px-4">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Aplicar a la venta
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CROQUIS GRANDE -->
+<div class="modal fade" id="modalCroquisGrande" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content border-0">
+
+            <div class="modal-header bg-dark text-white">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="bi bi-eye me-1"></i>
+                        Croquis completo de corte
+                    </h5>
+                    <small id="croquisGrandeSubtitulo">
+                        Vista ampliada del corte.
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body bg-light">
+                <div id="croquisGrandeContenido"
+                     class="bg-white border rounded-4 p-3 text-center h-100">
+                    <span class="text-muted">
+                        No hay croquis generado.
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- ========= JS EN ORDEN CORRECTO ========= -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+<!-- Select2 (JS SOLO UNA VEZ, sin CSS aquí) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.full.min.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Tu JS final -->
+<script th:src="@{/js/interno/ventas.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+
+
+</body>
+</html>

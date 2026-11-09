@@ -1,0 +1,30 @@
+:root {
+    --dentia-primary: #0b7f86;
+    --dentia-primary-dark: #075d63;
+    --dentia-accent: #35b8a0;
+    --dentia-ink: #17313a;
+    --dentia-muted: #667b83;
+    --dentia-bg: #f3f9f8;
+}
+
+body.dentia-patient {
+    min-height: 100vh;
+    color: var(--dentia-ink);
+    background: radial-gradient(circle at top right, #dff7f2 0, transparent 34%), var(--dentia-bg);
+}
+
+.patient-navbar { background: rgba(255, 255, 255, .94); backdrop-filter: blur(12px); }
+.dentia-brand { color: var(--dentia-primary-dark); font-weight: 800; letter-spacing: -.03em; }
+.dentia-mark {
+    display: inline-grid; place-items: center; width: 2.5rem; height: 2.5rem;
+    border-radius: .85rem; color: white; background: linear-gradient(135deg, var(--dentia-primary), var(--dentia-accent));
+}
+.patient-card { border: 0; border-radius: 1.4rem; box-shadow: 0 18px 55px rgba(25, 76, 80, .10); }
+.btn-dentia { color: white; background: var(--dentia-primary); border-color: var(--dentia-primary); }
+.btn-dentia:hover, .btn-dentia:focus { color: white; background: var(--dentia-primary-dark); border-color: var(--dentia-primary-dark); }
+.patient-hero { padding: 5rem 0 3rem; }
+.patient-action { transition: transform .2s ease, box-shadow .2s ease; }
+.patient-action:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(25, 76, 80, .12); }
+.form-control, .form-select { min-height: 3rem; border-radius: .85rem; border-color: #cfe1df; }
+.form-control:focus, .form-select:focus { border-color: var(--dentia-accent); box-shadow: 0 0 0 .25rem rgba(53, 184, 160, .16); }
+@media (max-width: 767.98px) { .patient-hero { padding-top: 2.5rem; } }

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="headerInterno">
+    <input type="hidden" id="dentiaCsrf" th:if="${_csrf != null}" th:value="${_csrf.token}" data-header="X-CSRF-TOKEN">
+    <script>
+        try {
+            if (localStorage.getItem('dentia-reading-mode') === 'large') document.documentElement.dataset.dentiaReadingMode = 'large';
+            const scale = Number(localStorage.getItem('dentia-reading-scale'));
+            if (scale >= 100 && scale <= 150) document.documentElement.style.setProperty('--dentia-access-font-size', Math.min(scale, 112.5) + '%');
+        } catch (_) {}
+    </script>
+    <link rel="stylesheet" th:href="@{/css/dentia/panel.css(v='20261109-2')}">
+    <script defer th:src="@{/js/dentia/pwa-install.js}"></script>
+    <script>
+        document.body.classList.add('panel-interno');
+        if (/^\/interno\/(usuarios|roles|configuracion)(\/|$)/.test(location.pathname) || (location.pathname === '/interno/perfil' && new URLSearchParams(location.search).has('editar'))) {
+            document.body.classList.add('mobile-settings-module');
+        }
+    </script>
+
+    <div class="mobile-settings-header"><a th:href="@{/interno/perfil}" aria-label="Volver a perfil y ajustes"><i class="bi bi-arrow-left"></i></a><span>Perfil y ajustes</span></div>
+
+    <!-- 1. SIDEBAR DE NAVEGACIÓN DENTIA -->
+    <aside class="dentia-sidebar" id="dentiaSidebar">
+        <!-- Logo y Marca Vinculada Dinámicamente a la Configuración del Consultorio -->
+        <div class="sidebar-brand-wrap">
+            <a class="dentia-brand-futuristic" th:href="@{/interno/dashboard}">
+                <!-- Logo registrado en Configuración (reemplaza al icono por defecto) -->
+                <img th:if="${!#strings.isEmpty(logoPrincipalUrl)}"
+                     th:src="${logoPrincipalUrl}"
+                     th:alt="${marcaConfig != null and marcaConfig.nombreComercial != null ? marcaConfig.nombreComercial : 'Logo'}"
+                     class="brand-custom-logo"
+                     onerror="this.onerror=null;this.src='/img/dentia-tooth-icon-trans.png';">
+
+                <!-- Ícono por defecto solo si no hay logo registrado -->
+                <img th:unless="${!#strings.isEmpty(logoPrincipalUrl)}"
+                     th:src="@{/img/dentia-tooth-icon-trans.png}"
+                     alt="DentIA Logo"
+                     class="brand-tooth-img">
+
+                <div class="brand-text-block">
+                    <!-- Nombre de la empresa configurado (ej: DENTID) -->
+                    <div class="brand-text" th:if="${marcaConfig != null and !#strings.isEmpty(marcaConfig.nombreComercial)}"
+                         th:text="${marcaConfig.nombreComercial}">DentIA</div>
+                    <div class="brand-text" th:if="${marcaConfig == null or #strings.isEmpty(marcaConfig.nombreComercial)}">
+                        <span class="brand-dent">Dent</span><span class="brand-ia">IA</span>
+                    </div>
+                    <div class="brand-subtitle"
+                         th:text="${marcaConfig != null and !#strings.isEmpty(marcaConfig.slogan) ? marcaConfig.slogan : (marcaConfig != null and marcaConfig.nombreComercial != null and !marcaConfig.nombreComercial.equalsIgnoreCase('DentIA') ? 'CONSULTORIO' : 'VOICE 3D')}">CONSULTORIO</div>
+                </div>
+            </a>
+            <button type="button" class="btn btn-sm text-secondary d-lg-none p-1" id="sidebarCloseBtn" aria-label="Cerrar menú">
+                <i class="bi bi-x-lg text-white fs-5"></i>
+            </button>
+        </div>
+
+        <!-- Navegación Original Limpia y Directa -->
+        <nav class="sidebar-nav">
+            <!-- 1. Inicio -->
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['dashboard']==true}" th:href="@{/interno/dashboard}">
+                <i class="bi bi-house-door-fill"></i> <span>Inicio</span>
+            </a>
+
+            <!-- 2. Pacientes -->
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['pacientes']==true}" th:href="@{/interno/pacientes}">
+                <i class="bi bi-people-fill"></i> <span>Pacientes</span>
+            </a>
+
+            <!-- 3. Agenda y Citas -->
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['citas']==true}" th:href="@{/interno/citas}">
+                <i class="bi bi-calendar2-week-fill"></i> <span>Agenda y Citas</span>
+            </a>
+
+            <!-- ÁREA CLÍNICA -->
+            <div class="sidebar-section-title">Clínica</div>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and (permisosUsuario['historia_clinica']==true or permisosUsuario['odontograma']==true or permisosUsuario['diagnosticos']==true or permisosUsuario['tratamientos']==true or permisosUsuario['plan_tratamiento']==true or permisosUsuario['atenciones']==true or permisosUsuario['pagos']==true or permisosUsuario['citas']==true)}" th:href="@{/interno/clinica}">
+                <i class="bi bi-clipboard2-pulse-fill"></i> <span>Expediente Clínico 360°</span>
+            </a>
+
+            <!-- FINANZAS Y GESTIÓN -->
+            <div class="sidebar-section-title">Finanzas y Gestión</div>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['pagos']==true}" th:href="@{/interno/gestion/pagos}">
+                <i class="bi bi-credit-card-fill"></i> <span>Pagos y Cobros</span>
+            </a>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['reportes']==true}" th:href="@{/interno/reportes}">
+                <i class="bi bi-bar-chart-line-fill"></i> <span>Reportes</span>
+            </a>
+
+            <!-- ADMINISTRACIÓN -->
+            <div class="sidebar-section-title">Administración</div>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['profesionales']==true}" th:href="@{/interno/profesionales}">
+                <i class="bi bi-person-vcard-fill"></i> <span>Profesionales</span>
+            </a>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and (permisosUsuario['servicios']==true or permisosUsuario['citas']==true or permisosUsuario['profesionales']==true)}" th:href="@{/interno/tipos-atencion}">
+                <i class="bi bi-list-check"></i> <span>Servicios y precios</span>
+            </a>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['usuarios']==true}" th:href="@{/interno/usuarios}">
+                <i class="bi bi-person-gear"></i> <span>Usuarios</span>
+            </a>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['roles']==true}" th:href="@{/interno/roles}">
+                <i class="bi bi-shield-check"></i> <span>Roles y permisos</span>
+            </a>
+            <a class="sidebar-link" th:if="${permisosUsuario!=null and permisosUsuario['configuracion']==true}" th:href="@{/interno/configuracion}">
+                <i class="bi bi-sliders"></i> <span>Configuración</span>
+            </a>
+        </nav>
+
+        <form class="sidebar-logout d-none d-lg-block" th:action="@{/interno/logout}" method="post">
+            <button type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Cerrar sesión</span></button>
+        </form>
+
+        <!-- Utilidades de sesión móvil -->
+        <div class="mobile-sheet-utilities d-lg-none">
+            <a th:href="@{/interno/perfil}"><i class="bi bi-person-circle" aria-hidden="true"></i> Mi perfil</a>
+            <form th:action="@{/interno/logout}" method="post">
+                <button type="submit"><i class="bi bi-box-arrow-right" aria-hidden="true"></i> Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Overlay backdrop para móvil -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- 2. BARRA SUPERIOR SLIM Y LUMINOSA -->
+    <nav class="navbar dentia-topbar">
+        <div class="d-flex align-items-center gap-2">
+            <!-- Botón Hamburguesa para Móvil -->
+            <button type="button" class="btn-hamburger-mobile d-lg-none" id="sidebarOpenBtn" aria-label="Abrir menú de navegación">
+                <i class="bi bi-list"></i>
+            </button>
+
+        </div>
+
+        <div class="topbar-actions ms-auto d-flex align-items-center gap-1.5 gap-sm-2">
+            <button type="button" class="reading-control" id="dentiaReadingToggle" aria-pressed="false" aria-label="Aumentar tamaño del texto" title="Cambiar tamaño del texto">A+</button>
+
+            <!-- WhatsApp Rápido -->
+            <button type="button" class="btn btn-sm btn-success rounded-pill px-2.5 py-1 d-inline-flex align-items-center gap-1.5 text-white shadow-xs"
+                    id="btnWaHeader" data-bs-toggle="modal" data-bs-target="#modalComunicarPaciente"
+                    title="Enviar WhatsApp" style="font-size: 11.5px; background-color: #25D366; border-color: #20ba5a;">
+                <i class="bi bi-whatsapp"></i>
+                <span class="d-none d-sm-inline fw-semibold">WhatsApp</span>
+            </button>
+
+            <!-- Campana de Notificaciones -->
+            <div class="dropdown">
+                <button type="button" class="btn btn-sm btn-light position-relative p-1 rounded-circle border shadow-xs"
+                        id="btnNotificacionesBell" data-bs-toggle="dropdown" aria-expanded="false" title="Alertas de Citas"
+                        style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-bell-fill fs-6 text-secondary"></i>
+                    <span id="notifsBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white"
+                          style="display: none; font-size: 9px; padding: 0.2em 0.45em;">0</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 p-0 mt-2 notifications-menu"
+                     aria-labelledby="btnNotificacionesBell" style="width: 340px; max-width: 90vw; overflow: hidden; z-index: 1060;">
+                    <div class="p-2.5 bg-light border-bottom d-flex align-items-center justify-content-between">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-bell-fill text-warning"></i>
+                            <span class="fw-bold text-dark small mb-0">Alertas de Agenda</span>
+                            <span class="badge bg-danger rounded-pill" id="notifsDropdownCount" style="font-size: 10px;">0</span>
+                        </div>
+                        <button type="button" class="btn btn-link p-0 text-decoration-none text-muted" id="btnMarcarTodasNotifs" style="font-size: 11px;">Marcar leídas</button>
+                    </div>
+                    <div id="notifsListaContenedor" style="max-height: 320px; overflow-y: auto;">
+                        <div class="text-center py-4 text-muted small">
+                            <div class="spinner-border spinner-border-sm text-teal mb-2" role="status"></div>
+                            <div>Cargando alertas...</div>
+                        </div>
+                    </div>
+                    <div class="p-2 bg-light border-top text-center">
+                        <a th:href="@{/interno/citas}" class="small text-decoration-none fw-semibold text-teal" style="font-size: 11.5px;">Ver Agenda Completa &rarr;</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acceso al perfil -->
+            <a th:href="@{/interno/perfil}" class="topbar-profile" aria-label="Abrir perfil de usuario" title="Mi perfil">
+                <img class="topbar-profile-image d-none" alt="">
+                <i class="bi bi-person-circle topbar-profile-placeholder" aria-hidden="true"></i>
+            </a>
+        </div>
+    </nav>
+
+    <!-- Contenedor dock para compatibilidad de contratos de pruebas -->
+    <nav class="dentia-mobile-dock d-none" id="dentiaMobileDock" aria-label="Desliza para ver todos los módulos"></nav>
+
+    <!-- Script de control del Sidebar y Spotlight -->
+    <script>
+    (() => {
+        const currentPath = window.location.pathname;
+        const sidebarLinks = document.querySelectorAll('.sidebar-link');
+
+        // Resaltar ítem activo en el sidebar
+        sidebarLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href) return;
+
+            let isActive = false;
+            if (currentPath === href) {
+                isActive = true;
+            } else if (href === '/interno/pacientes' && currentPath.startsWith('/interno/pacientes/')) {
+                if (!currentPath.includes('/nuevo')) {
+                    isActive = true;
+                }
+            } else if (href !== '/interno/dashboard' && href !== '/interno/pacientes/nuevo' && currentPath.startsWith(href)) {
+                isActive = true;
+            }
+
+            if (isActive) {
+                link.classList.add('active');
+            }
+        });
+
+        // Generar items en dentiaMobileDock para compatibilidad de contratos
+        const mobileDock = document.getElementById('dentiaMobileDock');
+        document.querySelectorAll('#dentiaSidebar .sidebar-nav .sidebar-link').forEach(link => {
+            const item = document.createElement('a');
+            item.className = 'mobile-dock-link';
+            item.href = link.href;
+            item.setAttribute('aria-label', link.textContent.trim());
+            const icon = link.querySelector('i')?.cloneNode(true);
+            if (icon) { icon.setAttribute('aria-hidden', 'true'); item.appendChild(icon); }
+            const label = document.createElement('span');
+            label.textContent = link.textContent.trim();
+            item.appendChild(label);
+            mobileDock?.appendChild(item);
+        });
+
+        // Control de Apertura/Cierre del Menú en Móvil
+        const sidebar = document.getElementById('dentiaSidebar');
+        const backdrop = document.getElementById('sidebarBackdrop');
+        const openBtn = document.getElementById('sidebarOpenBtn');
+        const closeBtn = document.getElementById('sidebarCloseBtn');
+
+        function openSidebar() {
+            sidebar?.classList.add('show');
+            backdrop?.classList.add('show');
+            document.body.classList.add('mobile-nav-open');
+        }
+
+        function closeSidebar() {
+            sidebar?.classList.remove('show');
+            backdrop?.classList.remove('show');
+            document.body.classList.remove('mobile-nav-open');
+        }
+
+        openBtn?.addEventListener('click', openSidebar);
+        closeBtn?.addEventListener('click', closeSidebar);
+        backdrop?.addEventListener('click', closeSidebar);
+
+        sidebarLinks.forEach(l => {
+            l.addEventListener('click', () => {
+                if (window.innerWidth < 992) closeSidebar();
+            });
+        });
+
+        const readingToggle = document.getElementById('dentiaReadingToggle');
+        function syncReadingToggle() {
+            const large = document.documentElement.dataset.dentiaReadingMode === 'large';
+            readingToggle?.setAttribute('aria-pressed', String(large));
+            readingToggle?.setAttribute('aria-label', large ? 'Usar tamaño de texto normal' : 'Aumentar tamaño del texto');
+        }
+        readingToggle?.addEventListener('click', () => {
+            const large = document.documentElement.dataset.dentiaReadingMode !== 'large';
+            if (large) document.documentElement.dataset.dentiaReadingMode = 'large';
+            else delete document.documentElement.dataset.dentiaReadingMode;
+            const scale = large ? 112.5 : 100;
+            document.documentElement.style.setProperty('--dentia-access-font-size', scale + '%');
+            try {
+                localStorage.setItem('dentia-reading-mode', large ? 'large' : 'normal');
+                localStorage.setItem('dentia-reading-scale', String(scale));
+            } catch (_) {}
+            syncReadingToggle();
+        });
+        syncReadingToggle();
+    })();
+    </script>
+
+    <!-- Comunicación individual por WhatsApp -->
+    <div class="modal fade wa-modal" id="modalComunicarPaciente" tabindex="-1" aria-labelledby="modalComunicarLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div class="wa-heading"><span class="wa-heading-icon"><i class="bi bi-whatsapp"></i></span>
+                        <div><h2 class="modal-title" id="modalComunicarLabel">Mensaje por WhatsApp</h2>
+                        <p>Prepara un mensaje para un paciente o escribe un número.</p></div>
+                    </div>
+                    <button type="button" class="wa-close" data-bs-dismiss="modal" aria-label="Cerrar"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+                </div>
+                <div class="modal-body wa-body">
+                    <div class="wa-field">
+                        <label for="waSearchPacienteInput">Buscar paciente <span>opcional</span></label>
+                        <div class="wa-search"><i class="bi bi-search" aria-hidden="true"></i><input type="search" class="form-control" id="waSearchPacienteInput" placeholder="Nombre, apellido o DNI" autocomplete="off"></div>
+                        <div id="waSearchPacienteResults" class="wa-results" aria-live="polite"></div>
+                    </div>
+                    <div class="wa-recipient"><span>Destinatario</span><strong id="waSelPacienteNombre">Número manual</strong></div>
+                    <div class="wa-field">
+                        <label for="waPacienteTelefono">Número de WhatsApp</label>
+                        <input type="tel" inputmode="tel" autocomplete="tel" class="form-control" id="waPacienteTelefono" placeholder="Ej. 999 888 777" aria-describedby="waPhoneHelp">
+                        <small id="waPhoneHelp">Para números de Perú de 9 dígitos, agregamos +51.</small>
+                    </div>
+                    <div class="wa-field">
+                        <label for="waSelectPlantilla">Plantilla</label>
+                        <select class="form-select" id="waSelectPlantilla">
+                            <option value="personalizado">Mensaje personalizado</option>
+                            <option value="recordatorio">Recordatorio de cita</option>
+                            <option value="inasistencia">Reprogramar cita</option>
+                            <option value="post_operatorio">Seguimiento posterior</option>
+                            <option value="presupuesto">Presupuesto disponible</option>
+                            <option value="higiene">Control preventivo</option>
+                        </select>
+                    </div>
+                    <div class="wa-field">
+                        <div class="wa-label-row"><label for="waMensajeTexto">Mensaje</label><small id="waCharCountIndividual">0 caracteres</small></div>
+                        <textarea class="form-control" id="waMensajeTexto" rows="4" placeholder="Escribe o edita tu mensaje"></textarea>
+                    </div>
+                    <p id="waFormStatus" class="wa-status" role="status" aria-live="polite"></p>
+                    <button type="button" class="wa-submit" id="btnEnviarWaModal"><i class="bi bi-whatsapp" aria-hidden="true"></i><span>Continuar en WhatsApp</span><i class="bi bi-arrow-up-right" aria-hidden="true"></i></button>
+                    <p class="wa-footnote">Podrás revisar el mensaje en WhatsApp antes de enviarlo.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" th:href="@{/css/dentia/mobile-nav.css(v='20261108')}">
+    <nav class="dentia-mobile-nav" aria-label="Navegación principal móvil">
+        <a th:if="${permisosUsuario!=null and permisosUsuario['dashboard']==true}" th:href="@{/interno/dashboard}"><i class="bi bi-house-door-fill"></i><span>Inicio</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['pacientes']==true}" th:href="@{/interno/pacientes}"><i class="bi bi-people-fill"></i><span>Pacientes</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['citas']==true}" th:href="@{/interno/citas}"><i class="bi bi-calendar2-week-fill"></i><span>Agenda</span></a>
+        <a th:if="${permisosUsuario!=null and (permisosUsuario['historia_clinica']==true or permisosUsuario['odontograma']==true or permisosUsuario['diagnosticos']==true or permisosUsuario['tratamientos']==true or permisosUsuario['plan_tratamiento']==true or permisosUsuario['atenciones']==true or permisosUsuario['pagos']==true or permisosUsuario['citas']==true)}" th:href="@{/interno/clinica}"><i class="bi bi-clipboard2-pulse-fill"></i><span>Clínica</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['pagos']==true}" th:href="@{/interno/gestion/pagos}"><i class="bi bi-credit-card-fill"></i><span>Pagos</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['reportes']==true}" th:href="@{/interno/reportes}"><i class="bi bi-bar-chart-line-fill"></i><span>Reportes</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['profesionales']==true}" th:href="@{/interno/profesionales}"><i class="bi bi-person-vcard-fill"></i><span>Profesionales</span></a>
+        <a th:if="${permisosUsuario!=null and permisosUsuario['citas']==true}" th:href="@{/interno/tipos-atencion}"><i class="bi bi-list-check"></i><span>Servicios</span></a>
+    </nav>
+    <script>
+    (() => {
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.dentia-mobile-nav > a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href) return;
+            let isActive = false;
+            if (currentPath === href) {
+                isActive = true;
+            } else if (href !== '/interno/dashboard' && currentPath.startsWith(href)) {
+                isActive = true;
+            }
+            if (isActive) {
+                link.setAttribute('aria-current', 'page');
+                setTimeout(() => {
+                    link.scrollIntoView({ inline: 'center', block: 'nearest' });
+                }, 50);
+            }
+        });
+    })();
+    </script>
+
+    <script defer th:src="@{/js/dentia/avatar-panel.js(v=1)}"></script>
+    <script defer th:src="@{/js/dentia/estado-configuracion.js(v=1)}"></script>
+    <!-- Scripts de Soporte -->
+    <script th:src="@{/js/dentia/modales-sistema.js(v='1.3')}"></script>
+    <script th:src="@{/js/dentia/whatsapp-smart-sender.js(v='2.0')}"></script>
+    <script th:src="@{/js/dentia/notificaciones.js(v='1.0')}"></script>
+</header>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "source": "C:\\Users\\Brayan\\Documents\\DENTISTA\\odontograma_cerrado.blend",
+  "source_names": {
+    "upper": "cerrada_arcada_inferior",
+    "lower": "cerrada_arcada_superior"
+  },
+  "factor_to_mm": 49.44253600813926,
+  "source_center_after_axis_change": [
+    -0.026941388845443726,
+    -0.08078716695308685,
+    0.06166118383407593
+  ],
+  "target_width_mm": 64,
+  "scale_is_design_assumption": true
+}

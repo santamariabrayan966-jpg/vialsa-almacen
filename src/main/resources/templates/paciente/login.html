@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#087c78">
+    <title>DentIA | Portal del paciente</title>
+    <link rel="stylesheet" th:href="@{/css/dentia/login.css}">
+    <script defer th:src="@{/js/dentia/login.js}"></script>
+</head>
+<body class="dentia-login patient-login">
+<main class="login-layout">
+    <section class="login-visual" aria-label="DentIA, atención odontológica">
+        <div class="visual-content">
+            <a class="brand brand-light" th:href="@{/paciente/login}" aria-label="DentIA, inicio">
+                <span class="brand-symbol" aria-hidden="true"><img th:src="@{/img/dentia-mark.svg}" alt="Logo" style="width:84%;height:84%;object-fit:contain;border-radius:.5rem;"></span>
+                <span>DentIA</span>
+            </a>
+            <div class="visual-copy">
+                <span class="visual-kicker">Tu salud dental, más cerca</span>
+                <h2>Tu consultorio siempre contigo</h2>
+                <p>Gestiona tus citas y mantente conectado con tu atención odontológica desde un entorno privado.</p>
+            </div>
+            <div class="clinical-art" aria-hidden="true">
+                <span class="clinical-orbit orbit-one"></span>
+                <span class="clinical-orbit orbit-two"></span>
+                <span class="clinical-tooth">D</span>
+                <span class="clinical-pulse"></span>
+            </div>
+            <p class="privacy-note"><span aria-hidden="true">✓</span> Acceso protegido y confidencial</p>
+        </div>
+    </section>
+
+    <section class="login-form-area">
+        <div class="mobile-brand">
+            <a class="brand" th:href="@{/paciente/login}" aria-label="DentIA, inicio">
+                <span class="brand-symbol" aria-hidden="true"><img th:src="@{/img/dentia-mark.svg}" alt="Logo" style="width:84%;height:84%;object-fit:contain;border-radius:.5rem;"></span>
+                <span>DentIA</span>
+            </a>
+            <span>Portal del paciente</span>
+        </div>
+
+        <div class="login-card">
+            <div class="portal-label">Portal del paciente</div>
+            <h1>Bienvenido</h1>
+            <p class="login-intro">Ingresa con la cuenta que usarás para gestionar tus citas.</p>
+
+            <div th:if="${param.registro}" class="login-alert success" role="status">Continúa con Google para acceder a tu cuenta.</div>
+            <div th:if="${param.error}" class="login-alert danger" role="alert">No se pudo completar el acceso con Google. Vuelve a intentarlo.</div>
+            <div th:if="${param.disabled}" class="login-alert warning" role="alert">Tu cuenta se encuentra inactiva. Comunícate con el consultorio.</div>
+            <div th:if="${param.bloqueado}" class="login-alert warning" role="alert">Tu cuenta está temporalmente bloqueada. Inténtalo nuevamente más tarde.</div>
+            <div th:if="${param.logout}" class="login-alert info" role="status">Sesión cerrada correctamente.</div>
+
+            <!-- Acceso con Google -->
+            <div class="google-auth-options mb-3">
+                <a th:href="@{/oauth2/authorization/google}" class="btn-google-auth" id="btnGoogleReal">
+                    <svg class="google-svg" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+                        <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+                        <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                    </svg>
+                    <span>Continuar con Google</span>
+                </a>
+            </div>
+
+            <p class="login-info">Verifica tu identidad con Google para gestionar tus citas. No solicitamos tu contraseña de Google en DentIA.</p>
+        </div>
+
+        <a class="staff-link" th:href="@{/}"><span aria-hidden="true">←</span> Volver a la página de DentIA</a>
+        <p class="login-footer">© DentIA · Atención odontológica inteligente</p>
+    </section>
+</main>
+</body>
+</html>

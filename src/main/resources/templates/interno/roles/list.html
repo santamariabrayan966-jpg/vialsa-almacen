@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Roles y permisos | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css(v='20261109-5')}">
+    <link rel="stylesheet" th:href="@{/css/interno/roles.css(v='20261109-5')}">
+</head>
+<body class="panel-interno mobile-settings-module">
+    <div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+    <main class="dentia-page container-fluid admin-page roles-page">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 mb-lg-4">
+            <div>
+                <span class="text-success fw-semibold d-none d-lg-inline">Administración</span>
+                <h1 class="h3 fw-bold mb-0 mb-lg-1">Roles y permisos</h1>
+                <p class="text-secondary small mb-0 d-none d-sm-block">Controla el acceso real al panel de DentIA.</p>
+            </div>
+            <button class="btn btn-success" id="btn-nuevo-rol" data-bs-toggle="modal" data-bs-target="#modalRol">
+                <i class="bi bi-plus-circle me-1"></i>Nuevo rol
+            </button>
+        </div>
+
+        <div class="alert alert-success" th:if="${param.guardado}">Rol y permisos actualizados correctamente.</div>
+        <div class="alert alert-success" th:if="${param.estadoCambiado}">Estado del rol actualizado.</div>
+        <div class="alert alert-warning" th:if="${param.adminProtegido}">El rol ADMIN está protegido.</div>
+        <div class="alert alert-warning" th:if="${param.usuariosAsociados}">El rol tiene usuarios asociados y no puede eliminarse.</div>
+        <div class="alert alert-warning" th:if="${param.duplicado}">Ya existe un rol con ese nombre.</div>
+        <div class="alert alert-warning" th:if="${param.nombreRequerido}">El nombre del rol es obligatorio.</div>
+        <div class="alert alert-danger" th:if="${param.errorTecnico}">No se pudo guardar el rol por un problema de persistencia. El detalle fue registrado en el servidor.</div>
+        <div class="alert alert-danger" th:if="${param.errorRol}">Ocurrió un error inesperado. El detalle fue registrado en el servidor.</div>
+
+        <div class="card dentia-card border-0">
+            <div class="table-responsive">
+                <table class="table align-middle mb-0 tabla-roles">
+                    <thead>
+                        <tr>
+                            <th>Rol</th>
+                            <th>Descripción</th>
+                            <th>Usuarios</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="rol:${roles}">
+                            <td data-label="Rol">
+                                <strong th:text="${rol.nombreRol}"></strong>
+                                <span th:if="${#strings.equalsIgnoreCase(rol.nombreRol,'ADMIN')}" class="badge text-bg-dark ms-2">Protegido</span>
+                            </td>
+                            <td data-label="Descripción" th:text="${#strings.isEmpty(rol.descripcion)?'Sin descripción':rol.descripcion}"></td>
+                            <td data-label="Usuarios" th:text="${rol.cantidadUsuarios}"></td>
+                            <td data-label="Estado">
+                                <span class="badge" th:classappend="${rol.activo}?'text-bg-success':'text-bg-secondary'" th:text="${rol.activo}?'Activo':'Inactivo'"></span>
+                            </td>
+                            <td data-label="Acciones">
+                                <div class="admin-actions">
+                                    <button th:unless="${#strings.equalsIgnoreCase(rol.nombreRol,'ADMIN')}" class="btn btn-sm btn-outline-primary btn-editar-rol" th:data-id-rol="${rol.idRol}" th:data-nombre="${rol.nombreRol}" th:data-descripcion="${rol.descripcion}" data-bs-toggle="modal" data-bs-target="#modalRol">Editar</button>
+                                    <button th:unless="${#strings.equalsIgnoreCase(rol.nombreRol,'ADMIN')}" class="btn btn-sm btn-outline-success btn-permisos" th:data-id="${rol.idRol}" th:data-nombre="${rol.nombreRol}">Permisos</button>
+                                    <span th:if="${#strings.equalsIgnoreCase(rol.nombreRol,'ADMIN')}" class="badge bg-secondary-subtle text-secondary border px-2 py-1" title="Rol ADMIN protegido con acceso total"><i class="bi bi-shield-lock-fill text-dark me-1"></i>Protegido</span>
+                                    <form th:unless="${#strings.equalsIgnoreCase(rol.nombreRol,'ADMIN')}" method="post" th:action="${rol.activo}?@{'/interno/roles/desactivar/'+${rol.idRol}}:@{'/interno/roles/activar/'+${rol.idRol}}">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-outline-secondary" th:text="${rol.activo}?'Desactivar':'Activar'"></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Formulario Rol -->
+    <div class="modal fade" id="modalRol" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" th:action="@{/interno/roles/guardar}">
+                    <div class="modal-header">
+                        <h2 class="modal-title h5">Rol interno</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="idRol" id="rol-id">
+                        <label class="form-label fw-semibold">Nombre *</label>
+                        <input class="form-control mb-3" name="nombreRol" id="rol-nombre" required maxlength="80" style="text-transform: uppercase;">
+                        <label class="form-label fw-semibold">Descripción</label>
+                        <textarea class="form-control" name="descripcion" id="rol-descripcion" maxlength="255"></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success ms-auto">Guardar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Profesional de Permisos por Rol -->
+    <div class="modal fade" id="modalPermisos" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false" aria-labelledby="modalPermisosTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable modal-permisos-dialog">
+            <div class="modal-content border-0 shadow-lg">
+                <form id="form-permisos" class="d-flex flex-column h-100">
+                    <!-- Modal Header: Professional Deep Navy with DentIA Cyan accents -->
+                    <div class="modal-header modal-permisos-header text-white">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="modal-icon-badge">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <h2 class="modal-title h5 mb-0 fw-bold text-white" id="modalPermisosTitle">Permisos del Sistema</h2>
+                                    <span class="badge-rol-target" id="badge-rol-nombre">ROL</span>
+                                </div>
+                                <p class="text-white-50 small mb-0 mt-1">Configura el acceso literal a los módulos y secciones del panel de DentIA.</p>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <!-- Modal Toolbar / Quick Actions -->
+                    <div class="modal-permisos-toolbar px-3 px-md-4 py-2 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge rounded-pill bg-light text-dark border px-3 py-2 fw-semibold fs-7" id="counter-total-badge">
+                                <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                <span id="lbl-total-activos">0</span> de 21 módulos habilitados
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button" class="btn btn-sm btn-outline-primary fw-medium px-3" id="btn-marcar-todos">
+                                <i class="bi bi-check-all me-1"></i>Marcar todos
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary fw-medium px-3" id="btn-desmarcar-todos">
+                                <i class="bi bi-x-circle me-1"></i>Desmarcar todos
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Modal Body -->
+                    <div class="modal-body p-3 p-md-4 bg-slate">
+                        <input type="hidden" id="csrf-header" th:value="${_csrf.headerName}">
+                        <input type="hidden" id="csrf-token" th:value="${_csrf.token}">
+                        <input type="hidden" id="permiso-idRol">
+                        <div id="contenedor-permisos">
+                            <!-- Injected by roles.js -->
+                        </div>
+                    </div>
+
+                    <!-- Modal Footer -->
+                    <div class="modal-footer modal-permisos-footer bg-white border-top px-4 py-3 d-flex justify-content-between align-items-center">
+                        <div class="small text-muted d-none d-md-flex align-items-center gap-1">
+                            <i class="bi bi-info-circle text-primary"></i>
+                            <span>Los cambios se guardan de inmediato y aplican a la navegación del rol.</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                            <button type="button" class="btn btn-outline-secondary px-4 fw-medium" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-success px-4 fw-semibold shadow-sm" id="btn-guardar-permisos">
+                                <i class="bi bi-save2 me-1"></i>Guardar permisos
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/interno/roles.js(v='20261109-5')}"></script>
+</body>
+</html>

@@ -1,0 +1,805 @@
+<!DOCTYPE html><html lang="es" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Agenda y citas | DentIA</title><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"><link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"><link rel="stylesheet" th:href="@{/css/dentia/agenda.css(v='3.5')}"><link rel="stylesheet" th:href="@{/css/dentia/admin.css(v='20261109-2')}"></head><body><div th:replace="~{fragments/interno/header :: headerInterno}"></div><main class="dentia-page container-fluid admin-page"><div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4"><div><span class="text-success fw-semibold">Consultorio</span><h1 class="h2 fw-bold">Agenda / Citas</h1><p class="text-secondary mb-0">Disponibilidad y estados validados por el backend.</p></div><div class="d-flex align-items-center gap-2 flex-wrap"><a class="btn btn-outline-teal fw-bold d-inline-flex align-items-center gap-1.5 shadow-xs" th:href="@{/interno/clinica}" style="color: #0b7f86; border-color: #0b7f86;" title="Atender paciente directamente sin cita previa"><i class="bi bi-heart-pulse"></i> Atención Directa (Sin Cita)</a><button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCita">Nueva cita</button></div></div><div class="alert alert-success" th:if="${ok}" th:text="${ok}"></div><div class="alert alert-danger" th:if="${error}" th:text="${error}"></div><!-- Barra de Navegación de Fechas y Rango Activo -->
+<div class="card dentia-card border-0 p-3 mb-3 shadow-sm bg-white">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <!-- Botones de Navegación Rápida -->
+        <div class="btn-group" role="group" aria-label="Navegación de fechas">
+            <a th:if="${vista=='semana'}" th:href="@{/interno/citas(fecha=${semanaAnterior},vista='semana',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" title="Semana anterior">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+            <a th:if="${vista!='semana'}" th:href="@{/interno/citas(fecha=${diaAnterior},vista='dia',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" title="Día anterior">
+                <i class="bi bi-chevron-left"></i> Anterior
+            </a>
+
+            <a th:href="@{/interno/citas(fecha=${hoy},vista=${vista},profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-outline-primary btn-sm fw-bold d-inline-flex align-items-center gap-1" title="Ir al día de hoy">
+                <i class="bi bi-calendar-check"></i> Hoy
+            </a>
+
+            <a th:if="${vista=='semana'}" th:href="@{/interno/citas(fecha=${semanaSiguiente},vista='semana',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" title="Semana siguiente">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+            <a th:if="${vista!='semana'}" th:href="@{/interno/citas(fecha=${diaSiguiente},vista='dia',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-outline-secondary btn-sm d-inline-flex align-items-center gap-1" title="Día siguiente">
+                Siguiente <i class="bi bi-chevron-right"></i>
+            </a>
+        </div>
+
+        <!-- Indicador Visual Prominente del Rango Seleccionado -->
+        <div class="text-center">
+            <span th:if="${vista=='semana'}" class="badge bg-primary-subtle text-primary border border-primary-subtle fs-6 px-3 py-2 shadow-xs">
+                <i class="bi bi-calendar-week me-1"></i> Semana del <strong th:text="${#temporals.format(desde, 'dd/MM/yyyy')}">28/09/2026</strong> al <strong th:text="${#temporals.format(hasta, 'dd/MM/yyyy')}">04/10/2026</strong>
+            </span>
+            <span th:if="${vista!='semana'}" class="badge bg-success-subtle text-success border border-success-subtle fs-6 px-3 py-2 shadow-xs">
+                <i class="bi bi-calendar-event me-1"></i> Fecha: <strong th:text="${#temporals.format(desde, 'dd/MM/yyyy')}">30/09/2026</strong>
+            </span>
+        </div>
+
+        <!-- Cambio Rápido Diaria / Semanal -->
+        <div class="btn-group" role="group">
+            <a th:href="@{/interno/citas(fecha=${fecha},vista='dia',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-sm" th:classappend="${vista!='semana'} ? 'btn-success text-white fw-bold' : 'btn-outline-secondary'">
+                <i class="bi bi-calendar-day me-1"></i> Día
+            </a>
+            <a th:href="@{/interno/citas(fecha=${fecha},vista='semana',profesional=${filtroProfesional},estado=${filtroEstado},paciente=${filtroPaciente})}"
+               class="btn btn-sm" th:classappend="${vista=='semana'} ? 'btn-success text-white fw-bold' : 'btn-outline-secondary'">
+                <i class="bi bi-calendar-week me-1"></i> Semana
+            </a>
+        </div>
+    </div>
+</div>
+
+<form class="admin-filter p-3 mb-3" method="get"><div class="row g-2"><div class="col-lg-2"><input class="form-control" type="date" name="fecha" th:value="${fecha}"></div><div class="col-lg-2"><select class="form-select" name="vista"><option value="dia" th:selected="${vista=='dia'}">Diaria</option><option value="semana" th:selected="${vista=='semana'}">Semanal</option></select></div><div class="col-lg-3"><select class="form-select" name="profesional"><option value="">Todos los profesionales</option><option th:each="p:${profesionales}" th:value="${p.idProfesional}" th:text="${p.nombreCompleto}" th:selected="${p.idProfesional==filtroProfesional}"></option></select></div><div class="col-lg-2"><select class="form-select" name="estado"><option value="">Todos los estados</option><option th:each="e:${estados}" th:value="${e}" th:text="${e}" th:selected="${e==filtroEstado}"></option></select></div><div class="col-lg-3"><div class="input-group"><input class="form-control" name="paciente" th:value="${filtroPaciente}" placeholder="Paciente"><button class="btn btn-outline-success">Filtrar</button></div></div></div></form>
+<section class="d-grid gap-3">
+    <article class="card dentia-card border-0 p-3 shadow-sm" th:each="c:${citas}">
+        <div class="row g-3 align-items-center">
+            <!-- Hora y Fecha + Alerta de Atraso -->
+            <div class="col-md-2 col-sm-6">
+                <strong class="text-teal fs-5 d-block" th:text="${#temporals.format(c.inicio,'HH:mm') + ' – ' + #temporals.format(c.fin,'HH:mm')}">09:00 – 13:00</strong>
+                <small class="text-secondary d-block" th:text="${#temporals.format(c.inicio,'dd/MM/yyyy')}">03/09/2026</small>
+                <small class="text-secondary d-block">Turno · orden de llegada</small>
+                <div th:if="${c.estado.name()=='NO_ASISTIO'}" class="mt-1">
+                    <span class="badge bg-secondary-subtle text-muted border d-inline-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                        <i class="bi bi-clock-history"></i> Horario finalizado
+                    </span>
+                </div>
+            </div>
+
+            <!-- Paciente y Motivo -->
+            <div class="col-md-3 col-sm-6">
+                <a class="fw-bold text-decoration-none text-dark fs-6 d-block"
+                   th:href="@{'/interno/citas/atender/'+${c.idCita}}"
+                   th:text="${c.paciente}" title="Abrir expediente 360°">Carlos Méndez</a>
+                <div class="d-flex align-items-center gap-1.5 flex-wrap">
+                    <span class="badge bg-light text-secondary border px-2 py-0" th:text="${c.tipoAtencion}">Limpieza</span>
+                    <span th:if="${!#strings.isEmpty(c.pacienteCelular)}" class="badge bg-success-subtle text-success border border-success-subtle py-0" style="font-size: 0.72rem;">
+                        <i class="bi bi-whatsapp me-0.5"></i><span th:text="${c.pacienteCelular}">999999999</span>
+                    </span>
+                </div>
+                <small class="d-block text-muted text-truncate mt-1" th:if="${c.motivoConsulta}" th:text="${c.motivoConsulta}" style="max-width: 260px; font-size: 0.78rem;"></small>
+            </div>
+
+            <!-- Profesional y Especialidad -->
+            <div class="col-md-2 col-sm-6">
+                <span class="fw-semibold text-dark d-block" th:text="${c.profesional}">Dra. María Elena Ramos</span>
+                <small class="text-secondary d-block" th:text="${c.especialidad}">Ortodoncia</small>
+            </div>
+
+            <!-- Estado de la Cita con Badge Colorido -->
+            <div class="col-md-2 col-sm-6">
+                <span th:if="${c.estado.name()=='RESERVADA'}" class="badge bg-light text-secondary border px-2 py-1">
+                    <i class="bi bi-bookmark me-1"></i> Reservada
+                </span>
+                <span th:if="${c.estado.name()=='CONFIRMADA'}" class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                    <i class="bi bi-check-circle me-1"></i> Confirmada
+                </span>
+                <span th:if="${c.estado.name()=='EN_ESPERA'}" class="badge bg-warning-subtle text-dark border border-warning-subtle px-2 py-1">
+                    <i class="bi bi-person-walking me-1"></i> En Sala
+                </span>
+                <span th:if="${c.estado.name()=='EN_ATENCION'}" class="badge bg-primary text-white px-2 py-1 shadow-sm">
+                    <i class="bi bi-person-workspace me-1"></i> En Atención
+                </span>
+                <span th:if="${c.estado.name()=='ATENDIDA'}" class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                    <i class="bi bi-check2-all me-1"></i> Atendida
+                </span>
+                <span th:if="${c.estado.name()=='CANCELADA'}" class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                    Cancelada
+                </span>
+                <span th:if="${c.estado.name()=='NO_ASISTIO'}" class="badge bg-secondary-subtle text-muted border px-2 py-1">
+                    <i class="bi bi-person-x me-1"></i> No asistió
+                </span>
+            </div>
+
+            <!-- Acciones de Atención y Recepción (Flujo Dinámico Orden de Llegada) -->
+            <div class="col-md-3 col-sm-12">
+                <!-- Paso 1: RESERVADA -->
+                <div th:if="${c.estado.name()=='RESERVADA'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <button th:if="${!#strings.isEmpty(c.pacienteCelular)}" type="button"
+                            class="btn btn-sm btn-outline-success btn-wa-smart d-inline-flex align-items-center gap-1"
+                            th:data-wa-phone="${c.pacienteCelular}"
+                            th:data-wa-message="${'Hola ' + c.paciente + ', te recordamos tu cita odontológica en DentIA para el ' + #temporals.format(c.inicio,'dd/MM/yyyy') + ' a las ' + #temporals.format(c.inicio,'HH:mm') + ' con ' + c.profesional + ' (' + c.tipoAtencion + '). ¡Te esperamos!'}"
+                            title="Enviar recordatorio por WhatsApp">
+                        <i class="bi bi-whatsapp"></i> <span class="d-none d-xl-inline">Recordar</span>
+                    </button>
+                    <a th:href="@{'/interno/citas/atender/' + ${c.idCita}}"
+                       class="btn btn-sm btn-primary text-white fw-bold d-inline-flex align-items-center gap-1 shadow-sm px-2.5"
+                       title="Pasar al consultorio e iniciar atención clínica">
+                        <i class="bi bi-person-workspace"></i> Atender
+                    </a>
+                    <form method="post" th:action="@{/interno/citas/estado}" class="d-inline">
+                        <input type="hidden" name="idCita" th:value="${c.idCita}">
+                        <input type="hidden" name="nuevoEstado" value="NO_ASISTIO">
+                        <input type="hidden" name="fecha" th:value="${fecha}">
+                        <button class="btn btn-sm btn-outline-secondary p-1 px-2" title="Marcar como no asistió">
+                            <i class="bi bi-person-x"></i>
+                        </button>
+                    </form>
+                    <button class="btn btn-sm btn-outline-danger cancelar p-1 px-2" th:data-id="${c.idCita}" data-bs-toggle="modal" data-bs-target="#modalCancelar" title="Cancelar cita">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Paso 2: CONFIRMADA -->
+                <div th:if="${c.estado.name()=='CONFIRMADA'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <button th:if="${!#strings.isEmpty(c.pacienteCelular)}" type="button"
+                            class="btn btn-sm btn-outline-success btn-wa-smart p-1 px-2"
+                            th:data-wa-phone="${c.pacienteCelular}"
+                            th:data-wa-message="${'Hola ' + c.paciente + ', te esperamos hoy en DentIA a las ' + #temporals.format(c.inicio,'HH:mm') + ' con ' + c.profesional + '.'}"
+                            title="Mensaje WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </button>
+                    <a th:href="@{'/interno/citas/atender/' + ${c.idCita}}"
+                       class="btn btn-sm btn-primary fw-bold text-white d-inline-flex align-items-center gap-1 px-2.5"
+                       title="Pasar al consultorio directo e iniciar atención">
+                        <i class="bi bi-person-workspace"></i> Atender
+                    </a>
+                    <form method="post" th:action="@{/interno/citas/estado}" class="d-inline">
+                        <input type="hidden" name="idCita" th:value="${c.idCita}">
+                        <input type="hidden" name="nuevoEstado" value="NO_ASISTIO">
+                        <input type="hidden" name="fecha" th:value="${fecha}">
+                        <button class="btn btn-sm btn-outline-secondary p-1 px-2" title="No asistió">
+                            <i class="bi bi-person-x"></i>
+                        </button>
+                    </form>
+                    <button class="btn btn-sm btn-outline-danger cancelar p-1 px-2" th:data-id="${c.idCita}" data-bs-toggle="modal" data-bs-target="#modalCancelar" title="Cancelar cita">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Paso 3: EN_ESPERA (En Sala) -->
+                <div th:if="${c.estado.name()=='EN_ESPERA'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <a th:href="@{'/interno/citas/atender/' + ${c.idCita}}"
+                       class="btn btn-sm btn-success fw-bold text-white shadow-sm d-inline-flex align-items-center gap-1 px-3 py-1"
+                       title="Pasar al consultorio e iniciar atención clínica">
+                        <i class="bi bi-person-workspace"></i> Atender
+                    </a>
+                    <form method="post" th:action="@{/interno/citas/estado}" class="d-inline">
+                        <input type="hidden" name="idCita" th:value="${c.idCita}">
+                        <input type="hidden" name="nuevoEstado" value="NO_ASISTIO">
+                        <input type="hidden" name="fecha" th:value="${fecha}">
+                        <button class="btn btn-sm btn-outline-secondary p-1 px-2" title="El paciente se retiró sin ser atendido">
+                            <i class="bi bi-person-x"></i> No asistió
+                        </button>
+                    </form>
+                    <button class="btn btn-sm btn-outline-danger cancelar p-1 px-2" th:data-id="${c.idCita}" data-bs-toggle="modal" data-bs-target="#modalCancelar" title="Cancelar cita">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Paso 4: EN_ATENCION (En Sillón / En Consulta) -->
+                <div th:if="${c.estado.name()=='EN_ATENCION'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <a th:href="@{'/interno/clinica/odontograma?pacienteId='+${c.idPaciente}+'&citaId='+${c.idCita}}"
+                       class="btn btn-sm btn-primary fw-bold text-white shadow-sm d-inline-flex align-items-center gap-1 px-2.5 py-1"
+                       title="Continuar la atención clínica de esta cita en el consultorio">
+                        <i class="bi bi-person-workspace"></i> Continuar Atención
+                    </a>
+                    <form method="post" th:action="@{/interno/citas/estado}" class="d-inline"
+                          onsubmit="return confirm('¿Deseas regresar este paciente a espera? Se reactivará el botón de Atender.');">
+                        <input type="hidden" name="idCita" th:value="${c.idCita}">
+                        <input type="hidden" name="nuevoEstado" value="RESERVADA">
+                        <input type="hidden" name="fecha" th:value="${fecha}">
+                        <input type="hidden" name="observacion" value="Atención cancelada / Revertido a espera por el profesional">
+                        <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 px-2 py-1"
+                                title="Deshacer atención y regresar paciente a espera (por si se atendió por error)">
+                            <i class="bi bi-arrow-counterclockwise"></i> Regresar a Espera
+                        </button>
+                    </form>
+                </div>
+
+                <!-- ATENDIDA -->
+                <div th:if="${c.estado.name()=='ATENDIDA'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <a th:href="@{'/interno/clinica/odontograma?pacienteId='+${c.idPaciente}+'&citaId='+${c.idCita}}"
+                       class="btn btn-sm btn-outline-success fw-bold d-inline-flex align-items-center gap-1 px-2 py-1"
+                       title="Ver ficha clínica completa del paciente">
+                        <i class="bi bi-folder2-open"></i> Expediente
+                    </a>
+                </div>
+
+                <!-- NO_ASISTIO -->
+                <div th:if="${c.estado.name()=='NO_ASISTIO'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <button th:if="${!#strings.isEmpty(c.pacienteCelular)}"
+                            type="button" class="btn btn-sm btn-success btn-wa-smart d-inline-flex align-items-center gap-1"
+                            th:data-wa-phone="${c.pacienteCelular}"
+                            th:data-wa-message="${'Hola ' + c.paciente + ', te saludamos de la clínica odontológica DentIA. Notamos que no pudiste acudir a tu cita programada. ¿Deseas que te ayudemos a reprogramarla para otra fecha que te sea conveniente?'}"
+                            title="Contactar al paciente para reprogramar">
+                        <i class="bi bi-whatsapp"></i> <span>Reagendar</span>
+                    </button>
+                    <a th:href="@{'/interno/citas/atender/' + ${c.idCita}}"
+                       class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1 px-2 py-1"
+                       title="Atender paciente (por llegada tardía o excepción)">
+                        <i class="bi bi-person-workspace"></i> Atender
+                    </a>
+                    <a th:href="@{'/interno/clinica/odontograma?pacienteId='+${c.idPaciente}}"
+                       class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" title="Ver historial del paciente">
+                        <i class="bi bi-clock-history"></i> Historial
+                    </a>
+                </div>
+
+                <!-- CANCELADA -->
+                <div th:if="${c.estado.name()=='CANCELADA'}" class="d-flex flex-wrap gap-1 justify-content-md-end align-items-center">
+                    <a th:href="@{'/interno/clinica/odontograma?pacienteId='+${c.idPaciente}}"
+                       class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" title="Ver historial del paciente">
+                        <i class="bi bi-clock-history"></i> Historial
+                    </a>
+                </div>
+            </div>
+        </div>
+    </article>
+
+    <!-- Estado vacío informativo con accesos rápidos -->
+    <div class="card dentia-card border-0 p-5 text-center text-secondary shadow-sm" th:if="${#lists.isEmpty(citas)}">
+        <div class="py-3">
+            <i class="bi bi-calendar-x fs-1 text-muted d-block mb-2"></i>
+            <h5 class="fw-bold text-dark mb-1">No hay citas registradas para este periodo</h5>
+            <p class="text-secondary small mb-3">
+                <span th:if="${vista=='semana'}">No se encontraron citas en la semana del <strong th:text="${#temporals.format(desde, 'dd/MM/yyyy')}">28/09/2026</strong> al <strong th:text="${#temporals.format(hasta, 'dd/MM/yyyy')}">04/10/2026</strong>.</span>
+                <span th:if="${vista!='semana'}">No se encontraron citas para la fecha <strong th:text="${#temporals.format(desde, 'dd/MM/yyyy')}">30/09/2026</strong>.</span>
+            </p>
+            <div class="d-flex justify-content-center gap-2 flex-wrap">
+                <a th:href="@{/interno/citas(fecha=${hoy},vista=${vista})}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-calendar-check me-1"></i> Ir a Hoy
+                </a>
+                <a th:if="${vista!='semana'}" th:href="@{/interno/citas(fecha=${fecha},vista='semana')}" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-calendar-week me-1"></i> Ver toda la semana
+                </a>
+                <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalCita">
+                    <i class="bi bi-plus-lg me-1"></i> Agendar nueva cita
+                </button>
+            </div>
+        </div>
+    </div>
+</section></main>
+<div class="modal fade" id="modalCita" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><h2 class="h5 mb-1">Nueva cita interna</h2><small class="text-secondary">Reserva un espacio en la agenda; los pacientes se atienden por orden de llegada.</small></div><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><form id="formCita" method="post" th:action="@{/interno/citas}" class="row g-3">
+    <div class="col-md-6">
+        <label class="form-label fw-bold" for="filtroPacienteCita">Paciente *</label>
+        <div class="patient-picker">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="bi bi-search text-teal"></i></span>
+                <input class="form-control" id="filtroPacienteCita" type="search" autocomplete="off" aria-autocomplete="list" aria-controls="opcionesPacienteCita" aria-label="Buscar paciente por nombre o DNI" placeholder="Buscar por nombre o DNI...">
+            </div>
+            <div class="patient-suggestions shadow" id="opcionesPacienteCita" role="listbox" hidden>
+                <button type="button" role="option" th:each="p:${pacientes}" th:attr="data-id=${p.idPaciente},data-search=${#strings.toLowerCase((p.nombres ?: '') + ' ' + (p.apellidos ?: '') + ' ' + (p.apellidos ?: '') + ' ' + (p.nombres ?: '') + ' ' + (p.dni ?: ''))},data-nombre=${p.nombreCompleto},data-dni=${p.dni ?: ''}">
+                    <span class="patient-opt-name fw-semibold" th:text="${p.nombreCompleto}"></span>
+                    <span th:if="${p.dni != null and !#strings.isEmpty(p.dni)}" class="patient-opt-dni badge bg-light text-secondary border ms-2" th:text="'DNI ' + ${p.dni}"></span>
+                </button>
+                <div class="patient-suggestions-empty text-muted small py-3 px-3 text-center" hidden>
+                    <i class="bi bi-person-x me-1"></i> No se encontraron pacientes con ese criterio.
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="citaPaciente" name="idPaciente">
+        <small class="text-secondary" id="resultadoFiltroPaciente" aria-live="polite"></small>
+    </div>
+
+    <div class="col-md-6">
+        <label class="form-label fw-bold" for="citaProfesional">Profesional *</label>
+        <select class="form-select" id="citaProfesional" required>
+            <option value="" selected disabled>Selecciona un profesional...</option>
+            <option th:each="p:${profesionales}" th:value="${p.idProfesional}" th:text="${p.nombreCompleto}"></option>
+        </select>
+        <small class="text-muted" style="font-size: 0.76rem;">Obligatorio: selecciona un profesional para habilitar el calendario de turnos.</small>
+    </div>
+
+    <!-- COLUMNA IZQUIERDA: CALENDARIO COMPACTO -->
+    <div class="col-lg-6 col-md-12">
+        <label class="form-label fw-bold text-dark mb-1">
+            <i class="bi bi-calendar3 me-1 text-teal"></i>Selecciona fecha en el calendario *
+        </label>
+
+        <div class="cal-container shadow-sm">
+            <div class="cal-header-bar">
+                <div class="cal-nav-group">
+                    <button type="button" class="cal-nav-btn" id="calPrevMes" title="Mes anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <span id="calTituloMes" class="cal-title-label">Setiembre 2026</span>
+                    <button type="button" class="cal-nav-btn" id="calNextMes" title="Mes siguiente">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    <button type="button" class="cal-nav-btn" id="calBtnHoy">Hoy</button>
+                </div>
+                <div class="cal-legend-bar">
+                    <span class="cal-legend-item"><span class="cal-legend-badge disponible"></span> Atiende</span>
+                    <span class="cal-legend-item"><span class="cal-legend-badge bloqueado"></span> Vacaciones</span>
+                    <span class="cal-legend-item"><span class="cal-legend-badge nolaborable"></span> No atiende</span>
+                </div>
+            </div>
+
+            <div class="cal-grid-weekdays">
+                <span>Do</span><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sa</span>
+            </div>
+
+            <div id="calGridDias" class="cal-grid-cells">
+                <!-- Se genera dinámicamente con JavaScript -->
+            </div>
+
+            <div id="calResumenSeleccion" class="mt-2 text-success fw-bold small" style="display:none;">
+                <i class="bi bi-check-circle-fill me-1"></i> <span id="calTextoSeleccion"></span>
+            </div>
+        </div>
+        <input type="hidden" id="citaFecha" name="fecha" required>
+    </div>
+
+    <!-- COLUMNA DERECHA: TURNOS, MOTIVO Y CONFIRMACIÓN -->
+    <div class="col-lg-6 col-md-12 d-flex flex-column justify-content-between">
+        <div>
+            <label class="form-label fw-bold text-dark mb-1">
+                <i class="bi bi-clock-history me-1 text-teal"></i>Turno disponible *
+            </label>
+            <div id="turnosInternos" class="slot-grid mb-2" style="min-height: 85px; max-height: 180px; overflow-y: auto;">
+                <div class="text-secondary small py-2 px-1">
+                    <i class="bi bi-info-circle me-1"></i>Haz clic en un día verde del calendario para ver los turnos.
+                </div>
+            </div>
+
+            <input type="hidden" id="horarioCita" name="idHorario">
+            <input type="hidden" id="profesionalCita" name="idProfesional">
+
+            <div class="mb-2">
+                <label class="form-label small mb-1">Motivo de consulta (Opcional)</label>
+                <input class="form-control form-control-sm" name="motivoConsulta" placeholder="Ej. Dolor en muela, revisión general..." maxlength="500">
+            </div>
+            <div class="mb-2">
+                <label class="form-label small mb-1">Observaciones internas (Opcional)</label>
+                <input class="form-control form-control-sm" name="observaciones" placeholder="Ej. Paciente viene acompañado, primera vez..." maxlength="500">
+            </div>
+        </div>
+        <button id="confirmarCita" class="btn btn-success py-2 fw-semibold w-100 mt-2" disabled>Reservar turno</button>
+    </div>
+</form></div></div></div></div>
+<div class="modal fade" id="modalCancelar" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false"><div class="modal-dialog modal-dialog-centered"><form class="modal-content" method="post" th:action="@{/interno/citas/cancelar}"><input type="hidden" name="fecha" th:value="${fecha}"><div class="modal-header"><h2 class="h5">Cancelar cita</h2><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" name="idCita" id="cancelarId"><label class="form-label">Motivo *</label><textarea class="form-control" name="motivo" required maxlength="500"></textarea></div><div class="modal-footer"><button class="btn btn-danger">Confirmar cancelacion</button></div></form></div></div>
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script>
+document.querySelectorAll('.cancelar').forEach(b => b.onclick = () => cancelarId.value = b.dataset.id);
+
+const normalizar = value => (value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+const filtroPaciente = document.getElementById('filtroPacienteCita');
+const pacienteSelect = document.getElementById('citaPaciente');
+const resultadoFiltroPaciente = document.getElementById('resultadoFiltroPaciente');
+const opcionesPaciente = document.getElementById('opcionesPacienteCita');
+const turnosInternos = document.getElementById('turnosInternos');
+const confirmarCita = document.getElementById('confirmarCita');
+const horarioCita = document.getElementById('horarioCita');
+const profesionalCita = document.getElementById('profesionalCita');
+const citaFecha = document.getElementById('citaFecha');
+const citaPaciente = document.getElementById('citaPaciente');
+const citaProfesional = document.getElementById('citaProfesional');
+
+// Elementos del calendario interactivo
+const calGridDias = document.getElementById('calGridDias');
+const calTituloMes = document.getElementById('calTituloMes');
+const calPrevMes = document.getElementById('calPrevMes');
+const calNextMes = document.getElementById('calNextMes');
+const calBtnHoy = document.getElementById('calBtnHoy');
+const calResumenSeleccion = document.getElementById('calResumenSeleccion');
+const calTextoSeleccion = document.getElementById('calTextoSeleccion');
+
+const mesesNombres = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Setiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+const fechaHoy = new Date();
+let calAnio = fechaHoy.getFullYear();
+let calMes = fechaHoy.getMonth() + 1; // 1-12
+let calFechaSeleccionada = null; // 'YYYY-MM-DD'
+
+function limpiarTurnoElegido() {
+    horarioCita.value = '';
+    profesionalCita.value = '';
+    confirmarCita.disabled = true;
+    turnosInternos.innerHTML = '<div class="text-secondary small py-2 px-1"><i class="bi bi-info-circle me-1"></i>Haz clic en un día verde del calendario para ver los turnos.</div>';
+}
+
+function limpiarErrorPaciente() {
+    if (!filtroPaciente) return;
+    filtroPaciente.classList.remove('is-invalid');
+    const parentPicker = filtroPaciente.closest('.patient-picker') || filtroPaciente.parentElement;
+    const feedback = parentPicker?.querySelector('.invalid-feedback');
+    if (feedback) {
+        feedback.textContent = '';
+        feedback.classList.remove('d-block');
+    }
+}
+
+function marcarErrorPaciente(mensaje) {
+    if (!filtroPaciente) return;
+    filtroPaciente.classList.add('is-invalid');
+    filtroPaciente.classList.remove('is-valid');
+    const parentPicker = filtroPaciente.closest('.patient-picker') || filtroPaciente.parentElement;
+    let feedback = parentPicker?.querySelector('.invalid-feedback');
+    if (!feedback) {
+        feedback = document.createElement('div');
+        feedback.className = 'invalid-feedback d-block';
+        parentPicker?.appendChild(feedback);
+    } else {
+        feedback.classList.add('d-block');
+    }
+    feedback.textContent = mensaje;
+}
+
+const filtrarPacientes = () => {
+    limpiarErrorPaciente();
+    const query = normalizar(filtroPaciente.value);
+    const palabras = query.split(/\s+/).filter(Boolean);
+    let visibles = 0;
+    opcionesPaciente.querySelectorAll('button[data-id]').forEach(option => {
+        const textoBusqueda = normalizar((option.dataset.search || '') + ' ' + (option.dataset.nombre || '') + ' ' + option.textContent);
+        const coincide = palabras.length === 0 || palabras.every(p => textoBusqueda.includes(p));
+        option.hidden = !coincide;
+        if (coincide) visibles++;
+    });
+    const emptyEl = opcionesPaciente.querySelector('.patient-suggestions-empty');
+    if (emptyEl) emptyEl.hidden = visibles > 0;
+    opcionesPaciente.hidden = false;
+    resultadoFiltroPaciente.textContent = palabras.length && !visibles ? 'Sin coincidencias' : '';
+};
+
+filtroPaciente?.addEventListener('input', () => {
+    pacienteSelect.value = '';
+    filtroPaciente.classList.remove('is-valid');
+    limpiarTurnoElegido();
+    filtrarPacientes();
+});
+
+filtroPaciente?.addEventListener('focus', filtrarPacientes);
+
+opcionesPaciente?.addEventListener('click', event => {
+    const option = event.target.closest('button[data-id]');
+    if (!option) return;
+    pacienteSelect.value = option.dataset.id;
+    const nombre = option.dataset.nombre || option.querySelector('.patient-opt-name')?.textContent || option.textContent.trim();
+    const dni = option.dataset.dni;
+    filtroPaciente.value = nombre + (dni ? ` · DNI ${dni}` : '');
+    opcionesPaciente.hidden = true;
+    resultadoFiltroPaciente.textContent = '';
+    limpiarErrorPaciente();
+    filtroPaciente.classList.add('is-valid');
+    if (calFechaSeleccionada) {
+        consultarTurnosDisponibles(calFechaSeleccionada);
+    }
+});
+
+document.addEventListener('click', event => {
+    if (!event.target.closest('.patient-picker')) {
+        opcionesPaciente.hidden = true;
+        if (filtroPaciente && filtroPaciente.value.trim() && (!pacienteSelect.value || pacienteSelect.value === '0')) {
+            marcarErrorPaciente('Selecciona un paciente de la lista de sugerencias para continuar.');
+        }
+    }
+});
+
+filtroPaciente?.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+        opcionesPaciente.hidden = true;
+    } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        const primerVisible = opcionesPaciente.querySelector('button[data-id]:not([hidden])');
+        if (primerVisible) primerVisible.focus();
+    } else if (event.key === 'Enter') {
+        event.preventDefault();
+        const primerVisible = opcionesPaciente.querySelector('button[data-id]:not([hidden])');
+        if (primerVisible) {
+            primerVisible.click();
+        }
+    }
+});
+
+opcionesPaciente?.addEventListener('keydown', event => {
+    const active = document.activeElement;
+    if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        let next = active.nextElementSibling;
+        while (next && (next.hidden || !next.hasAttribute('data-id'))) {
+            next = next.nextElementSibling;
+        }
+        if (next) next.focus();
+    } else if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        let prev = active.previousElementSibling;
+        while (prev && (prev.hidden || !prev.hasAttribute('data-id'))) {
+            prev = prev.previousElementSibling;
+        }
+        if (prev) prev.focus();
+        else filtroPaciente.focus();
+    } else if (event.key === 'Escape') {
+        opcionesPaciente.hidden = true;
+        filtroPaciente.focus();
+    }
+});
+
+// CALENDARIO DINÁMICO
+function renderizarCalendarioVacio() {
+    calTituloMes.textContent = `${mesesNombres[calMes - 1]} ${calAnio}`;
+    calGridDias.replaceChildren();
+
+    const primerDiaSemana = new Date(calAnio, calMes - 1, 1).getDay(); // 0: Do, 1: Lu, etc.
+    const totalDias = new Date(calAnio, calMes, 0).getDate();
+
+    for (let i = 0; i < primerDiaSemana; i++) {
+        const vacia = document.createElement('div');
+        vacia.className = 'cal-cell empty';
+        calGridDias.appendChild(vacia);
+    }
+
+    for (let dia = 1; dia <= totalDias; dia++) {
+        const celda = document.createElement('div');
+        celda.className = 'cal-cell nolaborable';
+        celda.style.cursor = 'not-allowed';
+        celda.style.opacity = '0.35';
+        celda.title = 'Primero selecciona un profesional odontólogo';
+
+        const numSpan = document.createElement('span');
+        numSpan.className = 'cal-cell-day text-muted';
+        numSpan.textContent = dia;
+        celda.appendChild(numSpan);
+
+        const hintSpan = document.createElement('span');
+        hintSpan.className = 'cal-cell-hint text-muted';
+        hintSpan.textContent = '—';
+        celda.appendChild(hintSpan);
+
+        calGridDias.appendChild(celda);
+    }
+
+    if (turnosInternos) {
+        turnosInternos.innerHTML = '<div class="text-secondary small py-2 px-1"><i class="bi bi-info-circle me-1 text-teal"></i>Selecciona un profesional para consultar los días y turnos disponibles.</div>';
+    }
+    if (calResumenSeleccion) calResumenSeleccion.style.display = 'none';
+    if (calTextoSeleccion) calTextoSeleccion.textContent = '';
+    citaFecha.value = '';
+    calFechaSeleccionada = null;
+    limpiarTurnoElegido();
+}
+
+async function cargarCalendarioMes() {
+    calTituloMes.textContent = `${mesesNombres[calMes - 1]} ${calAnio}`;
+
+    const profesional = citaProfesional.value || '';
+    if (!profesional) {
+        renderizarCalendarioVacio();
+        return;
+    }
+
+    calGridDias.innerHTML = '<div class="text-center text-muted small py-4" style="grid-column: span 7;"><span class="spinner-border spinner-border-sm me-1"></span>Cargando disponibilidad...</div>';
+
+    const query = new URLSearchParams({ anio: calAnio, mes: calMes });
+    query.set('profesional', profesional);
+
+    try {
+        const resp = await fetch(`/interno/citas/mes-disponibilidad?${query}`);
+        if (!resp.ok) throw new Error('Error al cargar disponibilidad.');
+        const data = await resp.json();
+        renderizarCalendario(data);
+    } catch (e) {
+        calGridDias.innerHTML = `<div class="text-danger small py-3 text-center" style="grid-column: span 7;">No se pudo cargar el calendario.</div>`;
+    }
+}
+
+function renderizarCalendario(data) {
+    calGridDias.replaceChildren();
+
+    const primerDiaSemana = new Date(calAnio, calMes - 1, 1).getDay(); // 0: Do, 1: Lu, etc.
+    const totalDias = new Date(calAnio, calMes, 0).getDate();
+
+    for (let i = 0; i < primerDiaSemana; i++) {
+        const vacia = document.createElement('div');
+        vacia.className = 'cal-cell empty';
+        calGridDias.appendChild(vacia);
+    }
+
+    const diasInfo = data.dias || {};
+
+    for (let dia = 1; dia <= totalDias; dia++) {
+        const diaIso = `${calAnio}-${String(calMes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+        const info = diasInfo[diaIso] || { estado: 'NO_LABORABLE' };
+
+        const celda = document.createElement('div');
+        celda.className = 'cal-cell';
+        celda.dataset.fecha = diaIso;
+
+        const numSpan = document.createElement('span');
+        numSpan.className = 'cal-cell-day';
+        numSpan.textContent = dia;
+        celda.appendChild(numSpan);
+
+        const hintSpan = document.createElement('span');
+        hintSpan.className = 'cal-cell-hint';
+
+        if (info.estado === 'PASADO') {
+            celda.classList.add('pasado');
+            hintSpan.textContent = '-';
+            celda.title = 'Fecha pasada';
+        } else if (info.estado === 'DISPONIBLE') {
+            celda.classList.add('disponible');
+            const turnosCount = info.turnos || 1;
+            hintSpan.textContent = turnosCount === 1 ? '1 turno' : `${turnosCount} turnos`;
+            celda.title = `${turnosCount} turno(s) disponible(s) - Clic para ver horarios`;
+            celda.onclick = () => seleccionarDia(diaIso, celda);
+        } else if (info.estado === 'BLOQUEADO') {
+            celda.classList.add('bloqueado');
+            const motivo = info.motivo || 'Vacaciones / Bloqueado';
+            hintSpan.textContent = 'Vacaciones';
+            celda.title = `${motivo} (No disponible)`;
+        } else {
+            celda.classList.add('nolaborable');
+            hintSpan.textContent = 'No atiende';
+            celda.title = 'No atiende en este día';
+        }
+
+        celda.appendChild(hintSpan);
+
+        if (diaIso === calFechaSeleccionada) {
+            celda.classList.add('selected');
+        }
+
+        calGridDias.appendChild(celda);
+    }
+}
+
+function seleccionarDia(fechaIso, celda) {
+    calGridDias.querySelectorAll('.cal-cell').forEach(c => c.classList.remove('selected'));
+    if (celda) celda.classList.add('selected');
+
+    calFechaSeleccionada = fechaIso;
+    citaFecha.value = fechaIso;
+
+    const [y, m, d] = fechaIso.split('-');
+    const fechaObj = new Date(Number(y), Number(m) - 1, Number(d));
+    const fechaFormateada = fechaObj.toLocaleDateString('es-PE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    calTextoSeleccion.textContent = `Fecha seleccionada: ${fechaFormateada}`;
+    calResumenSeleccion.style.display = 'block';
+
+    consultarTurnosDisponibles(fechaIso);
+}
+
+async function consultarTurnosDisponibles(fecha) {
+    limpiarTurnoElegido();
+    citaFecha.value = fecha;
+
+    const paciente = citaPaciente.value;
+    const profesional = citaProfesional.value;
+
+    turnosInternos.innerHTML = '<div class="py-2 text-center text-muted small"><span class="spinner-border spinner-border-sm me-1"></span>Consultando turnos disponibles...</div>';
+
+    const query = new URLSearchParams({ fecha });
+    if (paciente) query.set('paciente', paciente);
+    if (profesional) query.set('profesional', profesional);
+
+    try {
+        const response = await fetch('/interno/citas/turnos?' + query);
+        if (!response.ok) throw new Error('No se pudieron consultar los turnos.');
+        const turnos = await response.json();
+        if (!turnos.length) {
+            turnosInternos.innerHTML = '<div class="alert alert-light border mb-0 py-2 small">No hay turnos disponibles para la fecha seleccionada.</div>';
+            return;
+        }
+        turnosInternos.replaceChildren();
+        turnos.forEach((turno, index) => {
+            const inicio = new Date(turno.inicio).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+            const fin = new Date(turno.fin).toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+            const boton = document.createElement('button');
+            boton.type = 'button';
+            boton.className = 'slot-option text-start';
+            const titulo = document.createElement('strong');
+            titulo.textContent = `Turno ${index + 1}: ${inicio} – ${fin}`;
+            const detalle = document.createElement('small');
+            detalle.className = 'd-block';
+            detalle.textContent = `${turno.profesional} · Atención por orden de llegada`;
+            boton.append(titulo, detalle);
+            boton.onclick = () => {
+                turnosInternos.querySelectorAll('.slot-option').forEach(item => item.classList.remove('selected'));
+                boton.classList.add('selected');
+                horarioCita.value = turno.idHorario;
+                profesionalCita.value = turno.idProfesional;
+                confirmarCita.disabled = false;
+            };
+            turnosInternos.appendChild(boton);
+        });
+    } catch (error) {
+        turnosInternos.innerHTML = `<div class="alert alert-danger mb-0 py-2 small">${error.message}</div>`;
+    }
+}
+
+calPrevMes.onclick = () => {
+    calMes--;
+    if (calMes < 1) {
+        calMes = 12;
+        calAnio--;
+    }
+    cargarCalendarioMes();
+};
+
+calNextMes.onclick = () => {
+    calMes++;
+    if (calMes > 12) {
+        calMes = 1;
+        calAnio++;
+    }
+    cargarCalendarioMes();
+};
+
+calBtnHoy.onclick = () => {
+    const ahora = new Date();
+    calAnio = ahora.getFullYear();
+    calMes = ahora.getMonth() + 1;
+    cargarCalendarioMes();
+};
+
+citaProfesional.addEventListener('change', () => {
+    calFechaSeleccionada = null;
+    citaFecha.value = '';
+    if (calResumenSeleccion) calResumenSeleccion.style.display = 'none';
+    if (calTextoSeleccion) calTextoSeleccion.textContent = '';
+    limpiarTurnoElegido();
+    if (citaProfesional.value) {
+        cargarCalendarioMes();
+    } else {
+        renderizarCalendarioVacio();
+    }
+});
+
+const formCita = document.getElementById('formCita');
+formCita?.addEventListener('submit', event => {
+    if (!pacienteSelect.value || pacienteSelect.value === '0') {
+        event.preventDefault();
+        event.stopPropagation();
+        marcarErrorPaciente('Debe seleccionar un paciente de la lista de sugerencias.');
+        filtroPaciente.focus();
+        return false;
+    }
+    if (!citaFecha.value) {
+        event.preventDefault();
+        event.stopPropagation();
+        alert('Por favor, selecciona una fecha en el calendario.');
+        return false;
+    }
+    if (!horarioCita.value) {
+        event.preventDefault();
+        event.stopPropagation();
+        alert('Por favor, selecciona un turno disponible.');
+        return false;
+    }
+});
+
+const modalCitaEl = document.getElementById('modalCita');
+if (modalCitaEl) {
+    modalCitaEl.addEventListener('show.bs.modal', () => {
+        citaProfesional.value = '';
+        renderizarCalendarioVacio();
+        if (filtroPaciente) {
+            filtroPaciente.value = '';
+            filtroPaciente.classList.remove('is-valid', 'is-invalid');
+        }
+        if (pacienteSelect) pacienteSelect.value = '';
+        limpiarErrorPaciente();
+        if (resultadoFiltroPaciente) resultadoFiltroPaciente.textContent = '';
+        if (opcionesPaciente) opcionesPaciente.hidden = true;
+    });
+    modalCitaEl.addEventListener('shown.bs.modal', () => {
+        if (!citaProfesional.value) {
+            renderizarCalendarioVacio();
+        } else {
+            cargarCalendarioMes();
+        }
+        if (filtroPaciente) filtroPaciente.focus();
+    });
+}
+</script></body></html>

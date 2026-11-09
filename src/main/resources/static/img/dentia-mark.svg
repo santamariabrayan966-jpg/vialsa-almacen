@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" role="img" aria-label="DentIA">
+  <rect x="2" y="2" width="92" height="92" rx="23" fill="#087c78"/>
+  <path d="M21 28c5-9 13-13 22-11 3 1 5 2 5 2s2-1 5-2c9-2 17 2 22 11 6 13 0 28-5 40-3 8-8 15-15 12-5-3-4-19-7-19s-2 16-7 19c-7 3-12-4-15-12-5-12-11-27-5-40z" fill="#fff"/>
+  <path d="M48 29v21M37.5 39.5h21" stroke="#087c78" stroke-width="6" stroke-linecap="round"/>
+</svg>

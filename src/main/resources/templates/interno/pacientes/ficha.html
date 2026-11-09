@@ -1,0 +1,1639 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title th:text="${paciente.nombreCompleto + ' | Ficha Clínica | DentIA'}">Ficha del paciente | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css(v='20261109-2')}">
+    <link rel="stylesheet" th:href="@{/css/dentia/ficha-paciente.css}">
+</head>
+<body style="background-color: #f8fafc;">
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="dentia-page container-fluid admin-page ficha-container">
+
+    <!-- Enlace Volver -->
+    <div class="mb-2">
+        <a class="text-decoration-none small text-secondary d-inline-flex align-items-center gap-1.5 fw-semibold hover-teal" th:href="@{/interno/pacientes}">
+            <i class="bi bi-arrow-left"></i> Volver a Pacientes
+        </a>
+    </div>
+
+    <!-- ── Hero del Paciente (Compacto, Ejecutivo y sin Botones Duplicados) ── -->
+    <div class="ficha-hero-compact">
+        <div class="d-flex flex-wrap gap-3 align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-3">
+                <div class="ficha-hero-avatar" th:text="${#strings.substring(paciente.nombres,0,1).toUpperCase()}">P</div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <h1 class="ficha-hero-title" th:text="${paciente.nombreCompleto}">Nombre del Paciente</h1>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2 py-0.5" style="font-size:0.75rem;" th:if="${paciente.activo}">Activo</span>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle fw-bold px-2 py-0.5" style="font-size:0.75rem;" th:unless="${paciente.activo}">Inactivo</span>
+                    </div>
+                    <div class="ficha-hero-meta">
+                        <span><i class="bi bi-person-badge opacity-75"></i> <strong th:text="${#strings.isEmpty(paciente.dni)?'Sin DNI':paciente.dni}"></strong></span>
+                        <span th:if="${paciente.edad != null}"><i class="bi bi-calendar3 opacity-75"></i> <strong th:text="${paciente.edad + ' años'}"></strong></span>
+                        <span th:if="${!#strings.isEmpty(paciente.celular)}">
+                            <i class="bi bi-phone opacity-75"></i> <strong th:text="${paciente.celular}"></strong>
+                            <a th:href="'https://wa.me/51'+${paciente.celular}" target="_blank" class="text-success ms-1 small" title="WhatsApp">
+                                <i class="bi bi-whatsapp"></i>
+                            </a>
+                        </span>
+                        <span th:if="${!#strings.isEmpty(paciente.correo)}"><i class="bi bi-envelope opacity-75"></i> <span th:text="${paciente.correo}"></span></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acción única y discreta (Edición de datos básicos) -->
+            <div>
+                <a class="btn btn-outline-light btn-sm fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm"
+                   th:href="@{'/interno/pacientes/'+${paciente.idPaciente}+'/editar'}"
+                   title="Editar datos personales del paciente">
+                    <i class="bi bi-pencil"></i> Editar datos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Pestañas Informativas ── -->
+    <nav class="ficha-nav-bar" role="tablist">
+        <a href="#resumen" class="ficha-nav-link active" data-tab="resumen" id="tab-resumen">
+            <i class="bi bi-person-lines-fill"></i> Resumen General
+        </a>
+        <a href="#odontograma" class="ficha-nav-link" data-tab="odontograma" id="tab-odontograma">
+            <i class="bi bi-diagram-3"></i> Estado Dental (Odontograma 2D)
+            <span class="badge bg-teal-subtle text-teal rounded-pill ms-1" id="badgeFichaOdontoCount"></span>
+        </a>
+        <a href="#citas" class="ficha-nav-link" data-tab="citas" id="tab-citas">
+            <i class="bi bi-calendar-event"></i> Historial de Citas
+            <span class="badge bg-secondary-subtle text-secondary rounded-pill ms-1" th:if="${todasLasCitas!=null and !#lists.isEmpty(todasLasCitas)}" th:text="${#lists.size(todasLasCitas)}"></span>
+        </a>
+        <a href="#presupuestos" class="ficha-nav-link" data-tab="presupuestos" id="tab-presupuestos">
+            <i class="bi bi-receipt"></i> Presupuestos
+        </a>
+        <a href="#pagos" class="ficha-nav-link" data-tab="pagos" id="tab-pagos">
+            <i class="bi bi-wallet2"></i> Cuentas y Pagos
+        </a>
+    </nav>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PESTAÑA 1: RESUMEN GENERAL (Informativo y Compacto)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="ficha-tab-panel active" id="tab-content-resumen">
+
+        <!-- 1. Datos Personales y Contacto -->
+        <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Edad del Paciente</span>
+                    <div class="fch-stat-value text-dark" th:text="${paciente.edad==null?'No registrada':paciente.edad+' años'}">20 años</div>
+                    <span class="fch-stat-sub">Historial cronológico</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Fecha de Nacimiento</span>
+                    <div class="fch-stat-value text-dark" style="font-size:1.05rem;" th:text="${paciente.fechaNacimiento!=null?#temporals.format(paciente.fechaNacimiento,'dd/MM/yyyy'):'No registrada'}">11/03/2006</div>
+                    <span class="fch-stat-sub">Datos filiación</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Teléfono / WhatsApp</span>
+                    <div class="fch-stat-value text-dark" style="font-size:1.05rem;">
+                        <span th:if="${!#strings.isEmpty(paciente.celular)}" th:text="${paciente.celular}"></span>
+                        <a th:if="${!#strings.isEmpty(paciente.celular)}" th:href="'https://wa.me/51'+${paciente.celular}" target="_blank" class="text-success ms-1 small" title="Abrir chat">
+                            <i class="bi bi-whatsapp"></i>
+                        </a>
+                        <span th:if="${#strings.isEmpty(paciente.celular)}" class="text-muted fw-normal" style="font-size:.9rem;">No registrado</span>
+                    </div>
+                    <span class="fch-stat-sub">Contacto principal</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Correo Electrónico</span>
+                    <div class="fch-stat-value text-dark text-truncate" style="font-size:0.95rem;" th:text="${#strings.isEmpty(paciente.correo)?'No registrado':paciente.correo}">paciente@demo.com</div>
+                    <span class="fch-stat-sub">Notificaciones</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Alertas y Antecedentes Médicos -->
+        <div class="fch-alert-strip" id="boxAlertasMedicas">
+            <div class="d-flex align-items-center gap-1.5 fw-bold text-dark" style="font-size: 0.85rem;">
+                <i class="bi bi-shield-exclamation text-danger fs-6"></i> Antecedentes y Alertas Clínicas:
+            </div>
+            <div id="fichaAlertasMedicas" class="d-flex flex-wrap gap-1.5 align-items-center">
+                <span class="badge bg-white border text-secondary fw-normal small">
+                    <i class="bi bi-shield-check text-success me-1"></i> Consultando ficha médica...
+                </span>
+            </div>
+        </div>
+
+        <!-- 3. Balance Financiero Resumido -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Presupuestado Aprobado</span>
+                    <div class="fch-stat-value text-dark" id="resumenFinTotal">S/ 0.00</div>
+                    <span class="fch-stat-sub">Tratamientos aceptados</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Total Abonado / Pagado</span>
+                    <div class="fch-stat-value text-success" id="resumenFinPagado">S/ 0.00</div>
+                    <span class="fch-stat-sub">Abonos efectivos</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Saldo Pendiente</span>
+                    <div class="fch-stat-value text-danger" id="resumenFinDeuda">S/ 0.00</div>
+                    <span class="fch-stat-sub">Estado de cuenta</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 4. Citas: Próxima Cita y Última Cita (Sin botones duplicados) -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-6">
+                <div class="fch-card h-100 mb-0">
+                    <div class="fch-card-header">
+                        <span class="fch-card-title text-success"><i class="bi bi-calendar-check"></i> Próxima Cita Programada</span>
+                    </div>
+                    <div th:if="${proximaCita!=null}">
+                        <div class="fw-bold fs-6 text-dark" th:text="${#temporals.format(proximaCita.inicio,'dd/MM/yyyy HH:mm')}"></div>
+                        <div class="small text-secondary mt-0.5" th:text="${proximaCita.tipoAtencion}"></div>
+                        <span class="badge bg-light text-dark border mt-1.5" th:text="${proximaCita.profesional}"></span>
+                    </div>
+                    <div th:if="${proximaCita==null}" class="text-secondary small py-2">
+                        <i class="bi bi-calendar2-x me-1"></i> No tiene citas futuras programadas.
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="fch-card h-100 mb-0">
+                    <div class="fch-card-header">
+                        <span class="fch-card-title text-secondary"><i class="bi bi-clock-history"></i> Última Cita Atendida</span>
+                        <button type="button" class="btn btn-xs btn-outline-primary fw-semibold btn-ver-detalle-cita"
+                                th:if="${ultimaCita!=null}"
+                                th:data-cita-id="${ultimaCita.idCita}"
+                                th:data-fecha="${#temporals.format(ultimaCita.inicio,'dd/MM/yyyy HH:mm')}"
+                                th:data-prof="${ultimaCita.profesional}"
+                                th:data-motivo="${ultimaCita.tipoAtencion}"
+                                th:data-estado="${ultimaCita.estado}">
+                            <i class="bi bi-eye me-1"></i>Ver qué se le hizo
+                        </button>
+                    </div>
+                    <div th:if="${ultimaCita!=null}">
+                        <div class="fw-bold fs-6 text-dark" th:text="${#temporals.format(ultimaCita.inicio,'dd/MM/yyyy HH:mm')}"></div>
+                        <div class="small text-secondary mt-0.5" th:text="${ultimaCita.tipoAtencion + ' · ' + ultimaCita.estado}"></div>
+                        <span class="badge bg-light text-dark border mt-1.5" th:text="${ultimaCita.profesional}"></span>
+                    </div>
+                    <div th:if="${ultimaCita==null}" class="text-secondary small py-2">
+                        <i class="bi bi-info-circle me-1"></i> Sin atenciones anteriores registradas.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Resumen de la Última Atención Clínica Realizada en sus Dientes -->
+        <div class="fch-card mb-0">
+            <div class="fch-card-header">
+                <span class="fch-card-title text-dark"><i class="bi bi-check2-circle text-teal"></i> Última Atención Clínica en sus Dientes</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle" id="badgeUltimaAtencionFecha">Cargando...</span>
+            </div>
+            <p class="text-secondary small mb-2" id="lblUltimaAtencionDetalle">Consultando procedimientos de la última atención registrada...</p>
+            <div class="d-flex flex-wrap gap-1.5 align-items-center" id="chipsPiezasUltimaAtencion">
+                <!-- Chips de piezas tratadas -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PESTAÑA 2: ESTADO DENTAL (ODONTOGRAMA 2D ANATÓMICO COMPLETO)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="ficha-tab-panel" id="tab-content-odontograma">
+
+        <!-- 1. Cuatro Indicadores (KPIs Rápidos) -->
+        <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box" style="border-left: 4px solid #2563eb;">
+                    <span class="fch-stat-label text-primary">Dientes Curados</span>
+                    <div class="fch-stat-value text-primary" id="kpiDientesCurados">0</div>
+                    <span class="fch-stat-sub">Obturaciones y resinas</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box" style="border-left: 4px solid #ef4444;">
+                    <span class="fch-stat-label text-danger">Caries / Por Tratar</span>
+                    <div class="fch-stat-value text-danger" id="kpiDientesCaries">0</div>
+                    <span class="fch-stat-sub">Patologías activas</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box" style="border-left: 4px solid #64748b;">
+                    <span class="fch-stat-label text-secondary">Piezas Ausentes</span>
+                    <div class="fch-stat-value text-secondary" id="kpiDientesAusentes">0</div>
+                    <span class="fch-stat-sub">Extraídas o ausentes</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="fch-stat-box" style="border-left: 4px solid #16a34a;">
+                    <span class="fch-stat-label text-success">Dientes Sanos</span>
+                    <div class="fch-stat-value text-success" id="kpiDientesSanos">32</div>
+                    <span class="fch-stat-sub">Sin alteraciones</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. MODELADO COMPLETO 2D: ODONTOGRAMA ANATÓMICO FDI COMPLETO -->
+        <div class="odonto-board-wrapper">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3 pb-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-teal-subtle text-teal p-1.5 rounded-circle d-inline-flex"><i class="bi bi-grid-3x3 fs-6"></i></span>
+                    <h2 class="h6 fw-bold mb-0 text-dark">Odontograma 2D Anatómico Completo (Sistema FDI · 32 Piezas)</h2>
+                </div>
+                <!-- Leyenda de colores -->
+                <div class="d-flex flex-wrap gap-2.5 align-items-center small" style="font-size: 11px;">
+                    <span class="d-inline-flex align-items-center gap-1"><span class="badge rounded-circle p-1 bg-primary"></span> Curado / Obturación (Azul)</span>
+                    <span class="d-inline-flex align-items-center gap-1"><span class="badge rounded-circle p-1 bg-danger"></span> Caries (Rojo)</span>
+                    <span class="d-inline-flex align-items-center gap-1"><span class="badge rounded-circle p-1 bg-success"></span> Sellante / Sano</span>
+                    <span class="d-inline-flex align-items-center gap-1"><span class="badge rounded-circle p-1 bg-secondary"></span> Ausente (Gris)</span>
+                    <span class="d-inline-flex align-items-center gap-1"><span class="badge rounded-circle p-1 bg-warning text-dark"></span> Endodoncia / Corona</span>
+                </div>
+            </div>
+
+            <!-- Tablero 2D con las 32 piezas anatómicamente modeladas -->
+            <div class="overflow-x-auto p-2 bg-light rounded-3 border text-center">
+                <div class="d-inline-flex flex-column gap-2" style="min-width: 860px;">
+                    <!-- Arcada Superior (Maxilar) -->
+                    <div class="d-flex justify-content-center align-items-center">
+                        <span class="badge bg-light text-muted border me-2" style="font-size: 10px; width: 44px;">SUP</span>
+                        <!-- Cuadrante 1: 18..11 -->
+                        <div class="odonto-quadrant-group divider-right" id="odontoBoardQ1"></div>
+                        <!-- Cuadrante 2: 21..28 -->
+                        <div class="odonto-quadrant-group divider-left" id="odontoBoardQ2"></div>
+                    </div>
+
+                    <!-- Línea de oclusión dental -->
+                    <div class="border-top border-secondary-subtle my-1"></div>
+
+                    <!-- Arcada Inferior (Mandibular) -->
+                    <div class="d-flex justify-content-center align-items-center">
+                        <span class="badge bg-light text-muted border me-2" style="font-size: 10px; width: 44px;">INF</span>
+                        <!-- Cuadrante 4: 48..41 -->
+                        <div class="odonto-quadrant-group divider-right" id="odontoBoardQ4"></div>
+                        <!-- Cuadrante 3: 31..38 -->
+                        <div class="odonto-quadrant-group divider-left" id="odontoBoardQ3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Caja Informativa de la pieza seleccionada / inspeccionada -->
+            <div class="odonto-inspector-box mt-2.5" id="odontoInspectorInfo">
+                <span><i class="bi bi-cursor me-1 text-teal"></i> Pasa el cursor o haz clic en cualquier diente para ver su anatomía y tratamientos registrados.</span>
+            </div>
+        </div>
+
+        <!-- 3. Detalle de Piezas con Hallazgos o Tratamientos (Paginado de 10 en 10) -->
+        <div class="fch-card">
+            <div class="fch-card-header">
+                <span class="fch-card-title text-dark"><i class="bi bi-list-check text-teal"></i> Detalle de Piezas con Hallazgos o Tratamientos</span>
+                <span class="badge bg-light text-secondary border" id="badgeTotalPiezasHallazgo">0 piezas</span>
+            </div>
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 90px;">Pieza FDI</th>
+                            <th>Nombre Anatómico</th>
+                            <th>Superficie / Cara</th>
+                            <th>Condición Clínica</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyOdontoDetallePiezas">
+                        <tr><td colspan="5" class="text-center text-muted py-3">Cargando estado de las piezas dentales...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacionPiezas"></div>
+        </div>
+
+        <!-- 4. Historial Cronológico de Evolución Dental (Paginado de 10 en 10) -->
+        <div class="fch-card mb-0">
+            <div class="fch-card-header">
+                <span class="fch-card-title text-dark"><i class="bi bi-clock-history text-secondary"></i> Historial Cronológico de Evolución Dental</span>
+                <span class="badge bg-light text-secondary border" id="badgeTotalHistorial">0 registros</span>
+            </div>
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Fecha y Hora</th>
+                            <th style="width: 80px;">Pieza</th>
+                            <th>Cara</th>
+                            <th>Condición / Acción</th>
+                            <th>Notas Clínicas</th>
+                            <th>Registrado Por</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyOdontoHistorial">
+                        <tr><td colspan="6" class="text-center text-muted py-3">Cargando historial de cambios en piezas dentales...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacionHistorial"></div>
+        </div>
+
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PESTAÑA 3: HISTORIAL DE CITAS (Paginado de 10 en 10)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="ficha-tab-panel" id="tab-content-citas">
+        <div class="fch-card mb-3">
+            <div class="fch-card-header">
+                <div>
+                    <h2 class="fch-card-title text-dark"><i class="bi bi-calendar-range text-teal"></i> Registro Histórico de Citas</h2>
+                    <p class="text-secondary small mb-0 mt-0.5">Consulta cronológica de citas programadas y atendidas. Haz clic en "Ver Detalle" para ver el procedimiento y receta.</p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 160px;">Fecha y Hora</th>
+                            <th>Profesional Odontólogo</th>
+                            <th>Motivo / Tipo de Cita</th>
+                            <th style="width: 130px;">Estado</th>
+                            <th class="text-end" style="width: 140px;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyCitas">
+                        <!-- Llenado con paginación de 10 en 10 -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacionCitas"></div>
+        </div>
+
+        <!-- Atenciones y Consultas Directas (Sin Cita Previa) -->
+        <div class="fch-card mb-0" id="seccionAtencionesDirectas" style="display:none;">
+            <div class="fch-card-header">
+                <div>
+                    <h3 class="fch-card-title text-dark"><i class="bi bi-shield-check text-teal"></i> Consultas y Atenciones Directas en Sillón</h3>
+                    <p class="text-secondary small mb-0 mt-0.5">Procedimientos clínicos registrados directamente para este paciente.</p>
+                </div>
+                <span class="badge bg-teal-subtle text-teal border border-teal-subtle" id="badgeCountAtencionesDirectas">0 atenciones</span>
+            </div>
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 150px;">Fecha</th>
+                            <th>Profesional Odontólogo</th>
+                            <th>Procedimiento / Motivo</th>
+                            <th style="width: 130px;">Piezas</th>
+                            <th class="text-end" style="width: 140px;">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyAtencionesDirectas"></tbody>
+                </table>
+            </div>
+            <div id="paginacionAtencionesDirectas"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PESTAÑA 4: PRESUPUESTOS (Paginado de 10 en 10, no cartas gigantes)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="ficha-tab-panel" id="tab-content-presupuestos">
+
+        <!-- Indicadores Rápidos -->
+        <div class="row g-2 mb-3" id="presIndicadores">
+            <!-- Renderizado dinámico -->
+        </div>
+
+        <div class="fch-card mb-0">
+            <!-- Filtros de estado y acción -->
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                <div class="d-flex flex-wrap gap-1.5" id="presFilterBar">
+                    <button class="btn btn-sm btn-outline-teal active" data-estado="">Todos</button>
+                    <button class="btn btn-sm btn-outline-teal" data-estado="BORRADOR">Borrador</button>
+                    <button class="btn btn-sm btn-outline-teal" data-estado="APROBADO">Aprobados</button>
+                    <button class="btn btn-sm btn-outline-teal" data-estado="RECHAZADO">Rechazados</button>
+                    <button class="btn btn-sm btn-outline-teal" data-estado="ANULADO">Anulados</button>
+                </div>
+                <button class="btn btn-teal btn-sm fw-semibold shadow-xs" id="btnNuevoPresupuesto"
+                        th:if="${permisosUsuario!=null and permisosUsuario['presupuestos']==true}">
+                    <i class="bi bi-plus-lg me-1"></i>Nuevo presupuesto
+                </button>
+            </div>
+
+            <div id="presAviso" class="alert alert-danger py-2 small" style="display:none;"></div>
+
+            <!-- Tabla compacta de presupuestos (Paginada de 10 en 10) -->
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 80px;"># ID</th>
+                            <th>Título del Presupuesto</th>
+                            <th>Creado</th>
+                            <th>Vigencia</th>
+                            <th class="text-end">Total</th>
+                            <th class="text-end">Abonado</th>
+                            <th class="text-end">Saldo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end" style="width: 160px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyPresupuestos">
+                        <tr><td colspan="9" class="text-center text-muted py-3">Cargando presupuestos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacionPresupuestos"></div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         PESTAÑA 5: CUENTAS Y PAGOS (Paginado de 10 en 10)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="ficha-tab-panel" id="tab-content-pagos">
+        <!-- KPIs Financieros -->
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Total Presupuestado Aprobado</span>
+                    <div class="fch-stat-value text-dark" id="fichaFinTotal">S/ 0.00</div>
+                    <span class="fch-stat-sub" id="fichaFinPresCount">0 presupuestos aprobados</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Total Abonado / Pagado</span>
+                    <div class="fch-stat-value text-success" id="fichaFinPagado">S/ 0.00</div>
+                    <span class="fch-stat-sub" id="fichaFinPagosCount">0 abonos registrados</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Saldo Deudor Pendiente</span>
+                    <div class="fch-stat-value text-danger" id="fichaFinDeuda">S/ 0.00</div>
+                    <span class="fch-stat-sub">Por cobrar al paciente</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Abonos (Paginada de 10 en 10) -->
+        <div class="fch-card mb-0">
+            <div class="fch-card-header">
+                <span class="fch-card-title text-dark"><i class="bi bi-clock-history text-teal"></i> Historial de Abonos y Comprobantes de Pago</span>
+                <span class="badge bg-light text-secondary border" id="badgeTotalAbonos">0 pagos</span>
+            </div>
+            <div class="table-responsive">
+                <table class="fch-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 140px;">Fecha de Pago</th>
+                            <th>Comprobante / Concepto</th>
+                            <th>Método de Pago</th>
+                            <th class="text-end">Monto Abonado</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaFichaPagosBody">
+                        <tr><td colspan="5" class="text-center text-secondary py-3 small">Cargando historial de pagos…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div id="paginacionPagos"></div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Crear / Editar Presupuesto
+════════════════════════════════════════════════ -->
+<div class="pres-modal-backdrop" id="modalPresBackdrop">
+    <div class="pres-modal" role="dialog" aria-labelledby="modalPresTitle" aria-modal="true">
+        <div class="pres-modal-head">
+            <h5 id="modalPresTitle">Nuevo presupuesto</h5>
+            <button type="button" class="btn-close" id="btnCerrarModalPres" aria-label="Cerrar"></button>
+        </div>
+        <div class="pres-modal-body">
+            <form id="formPresupuesto" novalidate>
+                <input type="hidden" id="presId" value="">
+                <input type="hidden" id="presVersion" value="">
+                <input type="hidden" id="presPacienteId" th:value="${paciente.idPaciente}">
+                <div class="row g-3 mb-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Título del presupuesto <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="presTitulo" maxlength="180" placeholder="Ej: Tratamiento de ortodoncia completo" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Vigencia hasta <span class="text-danger">*</span></label>
+                        <input type="date" class="form-control" id="presVence" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold text-muted">Total estimado</label>
+                        <div class="form-control bg-light fw-bold text-success" id="presTotalDisplay">S/ 0.00</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Notas / Observaciones</label>
+                        <textarea class="form-control" id="presNotas" rows="2" maxlength="2000" placeholder="Instrucciones, condiciones, etc."></textarea>
+                    </div>
+                </div>
+
+                <!-- Tabla de conceptos -->
+                <div class="mb-2">
+                    <div class="d-flex align-items-center justify-content-between mb-1">
+                        <span class="fw-semibold" style="font-size:.92rem;">Conceptos <span class="text-danger">*</span></span>
+                        <button type="button" class="btn btn-outline-teal btn-sm" id="btnAgregarItem">
+                            <i class="bi bi-plus-lg me-1"></i>Agregar concepto
+                        </button>
+                    </div>
+                    <table class="pres-items-table" id="tablaItems">
+                        <thead>
+                            <tr>
+                                <th style="width:50%">Descripción</th>
+                                <th style="width:12%">Cant.</th>
+                                <th style="width:18%">Precio unit.</th>
+                                <th style="width:15%">Subtotal</th>
+                                <th style="width:5%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody"></tbody>
+                    </table>
+                    <div class="pres-total-line" id="totalLine">Total: <span class="text-success" id="totalValue">S/ 0.00</span></div>
+                </div>
+
+                <div class="pres-error" id="presFormError" style="display:none;"></div>
+            </form>
+        </div>
+        <div class="pres-modal-footer">
+            <button type="button" class="btn btn-light" id="btnCancelarPres">Cancelar</button>
+            <button type="submit" form="formPresupuesto" class="btn btn-teal fw-semibold" id="btnGuardarPres">
+                <i class="bi bi-floppy me-1"></i>Guardar presupuesto
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Cambiar Estado
+════════════════════════════════════════════════ -->
+<div class="pres-modal-backdrop" id="modalEstadoBackdrop">
+    <div class="pres-modal" style="max-width:440px;" role="dialog" aria-labelledby="modalEstadoTitle" aria-modal="true">
+        <div class="pres-modal-head">
+            <h5 id="modalEstadoTitle">Cambiar estado</h5>
+            <button type="button" class="btn-close" id="btnCerrarModalEstado" aria-label="Cerrar"></button>
+        </div>
+        <div class="pres-modal-body">
+            <form id="formEstado" novalidate>
+                <input type="hidden" id="estadoPresId" value="">
+                <input type="hidden" id="estadoVersion" value="">
+                <input type="hidden" id="estadoNuevo" value="">
+                <p class="mb-3" id="estadoDescripcion" style="font-size:.9rem; color:#475569;"></p>
+                <div id="estadoMotivoWrap">
+                    <label class="form-label fw-semibold" id="estadoMotivoLabel">Motivo</label>
+                    <textarea class="form-control" id="estadoMotivo" rows="3" maxlength="1000" placeholder="Escribe el motivo o comentario…"></textarea>
+                </div>
+                <div class="pres-error" id="estadoFormError" style="display:none;"></div>
+            </form>
+        </div>
+        <div class="pres-modal-footer">
+            <button type="button" class="btn btn-light" id="btnCancelarEstado">Cancelar</button>
+            <button type="submit" form="formEstado" class="btn fw-semibold" id="btnConfirmarEstado">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════
+     MODAL: Detalle Informativo de la Cita / Procedimiento
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalDetalleCitaAtencion" tabindex="-1" aria-labelledby="modalDetalleCitaTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header p-3 px-4 text-white" style="background: linear-gradient(135deg, #0f172a, #1e293b) !important;">
+                <div class="d-flex align-items-center gap-2">
+                    <div style="width:36px;height:36px;border-radius:8px;background:rgba(11,127,134,0.25);color:#06b6d4;display:flex;align-items:center;justify-content:center;">
+                        <i class="bi bi-file-earmark-medical fs-5"></i>
+                    </div>
+                    <div>
+                        <h5 class="modal-title fw-bold text-white mb-0" id="modalDetalleCitaTitle">Registro de Atención Clínica</h5>
+                        <small class="text-white-50" id="modalCitaSubtitulo">Detalle informativo de la sesión y prescripción médica</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body p-3 px-4 bg-light-subtle">
+                <!-- Resumen Cita -->
+                <div class="card border-0 shadow-sm rounded-3 p-3 mb-3 bg-white">
+                    <div class="row g-2 align-items-center">
+                        <div class="col-sm-6">
+                            <span class="text-secondary small d-block">Fecha y Hora:</span>
+                            <strong class="text-dark fs-6" id="modalCitaFechaHora">—</strong>
+                        </div>
+                        <div class="col-sm-6 text-sm-end">
+                            <span class="badge px-3 py-1.5" id="modalCitaEstadoBadge">Estado</span>
+                        </div>
+                        <div class="col-sm-6 mt-2">
+                            <span class="text-secondary small d-block">Profesional Odontólogo:</span>
+                            <span class="fw-semibold text-dark" id="modalCitaProfesional">—</span>
+                        </div>
+                        <div class="col-sm-6 mt-2">
+                            <span class="text-secondary small d-block">Motivo / Tipo de Cita:</span>
+                            <span class="fw-semibold text-dark" id="modalCitaMotivo">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Procedimiento Realizado -->
+                <div class="card border-0 shadow-sm rounded-3 p-3 mb-3 bg-white">
+                    <h6 class="fw-bold text-dark mb-2.5 d-flex align-items-center gap-2">
+                        <i class="bi bi-tools text-primary"></i> Procedimiento Realizado en el Sillón
+                    </h6>
+                    <div class="mb-2.5">
+                        <label class="form-label text-secondary small mb-1 fw-semibold">Tratamiento / Procedimiento:</label>
+                        <div class="p-2.5 rounded-2 bg-light border text-dark fw-medium small" id="modalCitaProcedimiento" style="white-space:pre-wrap;">Sin procedimiento clínico detallado aún.</div>
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-sm-6">
+                            <label class="form-label text-secondary small mb-1 fw-semibold">Piezas Tratadas:</label>
+                            <div class="p-2 rounded-2 bg-light border text-dark small" id="modalCitaPiezas">Ninguna especificada</div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label text-secondary small mb-1 fw-semibold">Evolución / Observaciones:</label>
+                            <div class="p-2 rounded-2 bg-light border text-dark small" id="modalCitaObservaciones" style="white-space:pre-wrap;">Sin observaciones registradas</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Receta Médica -->
+                <div class="card border-0 shadow-sm rounded-3 p-3 bg-white">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-prescription2 text-success"></i> Indicaciones y Receta Médica Entregada
+                        </h6>
+                        <button type="button" class="btn btn-outline-success btn-xs" id="btnCopiarRecetaWA" title="Copiar indicaciones para enviar al paciente por WhatsApp">
+                            <i class="bi bi-whatsapp me-1"></i>Copiar para WhatsApp
+                        </button>
+                    </div>
+                    <div class="p-2.5 rounded-2 bg-light border font-monospace text-dark small" id="modalCitaRecetaTexto" style="white-space:pre-wrap; min-height:45px;">
+                        No se prescribieron medicamentos en esta atención.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-white border-top p-2.5 px-4 d-flex justify-content-end">
+                <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script th:inline="javascript">
+/*<![CDATA[*/
+(function () {
+    'use strict';
+
+    // ── Utilitarios Generales ──────────────────────────────────
+    const pacienteId = /*[[${paciente.idPaciente}]]*/ 0;
+    const todasLasCitasData = /*[[${todasLasCitas}]]*/ [] || [];
+    const csrf = { token: document.querySelector('meta[name="csrf-token"]').content, header: document.querySelector('meta[name="csrf-header"]').content };
+    const $ = id => document.getElementById(id);
+    const money = v => new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN' }).format(Number(v || 0));
+    const dateFmt = v => v ? new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(String(v).length === 10 ? v + 'T12:00:00' : v)) : '—';
+    const dateTimeFmt = v => v ? new Intl.DateTimeFormat('es-PE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(v)) : '—';
+    const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const nextMonthISO = () => { const d = new Date(); d.setMonth(d.getMonth()+1); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+    const estadoLabel = { BORRADOR: 'Borrador', APROBADO: 'Aprobado', RECHAZADO: 'Rechazado', ANULADO: 'Anulado' };
+    const estadoClass = { BORRADOR: 'borrador', APROBADO: 'aprobado', RECHAZADO: 'rechazado', ANULADO: 'anulado' };
+
+    async function api(path, opts = {}) {
+        const headers = new Headers({ 'Accept': 'application/json' });
+        if (opts.body && !(opts.body instanceof FormData)) { headers.set('Content-Type', 'application/json'); opts.body = JSON.stringify(opts.body); }
+        if (opts.method && opts.method !== 'GET') headers.set(csrf.header, csrf.token);
+        const res = await fetch(path, { ...opts, headers, credentials: 'same-origin', cache: 'no-store' });
+        const json = res.headers.get('content-type')?.includes('json') ? await res.json() : null;
+        if (!res.ok) throw new Error(json?.error || 'Error en la operación.');
+        return json;
+    }
+
+    // ── Helper Reutilizable de Paginación (10 en 10) ────────────
+    function renderPaginatedTable({
+        items,
+        pageSize = 10,
+        currentPage = 1,
+        tableBodyId,
+        paginationId,
+        emptyHtml = '<tr><td colspan="100%" class="text-center text-muted py-3">No hay registros disponibles.</td></tr>',
+        rowRenderer
+    }) {
+        const total = (items || []).length;
+        const totalPages = Math.max(1, Math.ceil(total / pageSize));
+        if (currentPage > totalPages) currentPage = totalPages;
+        if (currentPage < 1) currentPage = 1;
+
+        const tbody = $(tableBodyId);
+        const pag = $(paginationId);
+        if (!tbody) return;
+
+        if (total === 0) {
+            tbody.innerHTML = emptyHtml;
+            if (pag) pag.innerHTML = '';
+            return;
+        }
+
+        const startIdx = (currentPage - 1) * pageSize;
+        const endIdx = Math.min(total, startIdx + pageSize);
+        const pageItems = items.slice(startIdx, endIdx);
+
+        tbody.innerHTML = pageItems.map((item, idx) => rowRenderer(item, startIdx + idx)).join('');
+
+        if (pag) {
+            pag.innerHTML = `
+                <div class="fch-pagination-bar">
+                    <span>Mostrando <strong>${startIdx + 1} - ${endIdx}</strong> de <strong>${total}</strong> registros</span>
+                    <div class="d-flex align-items-center gap-1.5">
+                        <button type="button" class="fch-page-btn btn-prev" ${currentPage <= 1 ? 'disabled' : ''}>
+                            <i class="bi bi-chevron-left"></i> Anterior
+                        </button>
+                        <span class="px-2 fw-semibold">Pág. ${currentPage} de ${totalPages}</span>
+                        <button type="button" class="fch-page-btn btn-next" ${currentPage >= totalPages ? 'disabled' : ''}>
+                            Siguiente <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            pag.querySelector('.btn-prev')?.addEventListener('click', () => {
+                renderPaginatedTable({ items, pageSize, currentPage: currentPage - 1, tableBodyId, paginationId, emptyHtml, rowRenderer });
+            });
+            pag.querySelector('.btn-next')?.addEventListener('click', () => {
+                renderPaginatedTable({ items, pageSize, currentPage: currentPage + 1, tableBodyId, paginationId, emptyHtml, rowRenderer });
+            });
+        }
+    }
+
+    // ── Navegación de Pestañas ──────────────────────────────────
+    let presLoaded = false;
+    document.querySelectorAll('.ficha-nav-link[data-tab]').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('.ficha-nav-link').forEach(a => a.classList.remove('active'));
+            document.querySelectorAll('.ficha-tab-panel').forEach(t => t.classList.remove('active'));
+            link.classList.add('active');
+            const targetId = 'tab-content-' + link.dataset.tab;
+            if ($(targetId)) $(targetId).classList.add('active');
+            if (link.dataset.tab === 'presupuestos' && !presLoaded) {
+                presLoaded = true;
+                cargarPresupuestos();
+            }
+        });
+    });
+
+    // ── Nombres Anatómicos FDI ──────────────────────────────────
+    const NOMBRES_PIEZAS = {
+        18: 'Tercer Molar Sup. Der.', 17: 'Segundo Molar Sup. Der.', 16: 'Primer Molar Sup. Der.',
+        15: 'Segundo Premolar Sup. Der.', 14: 'Primer Premolar Sup. Der.', 13: 'Canino Sup. Der.',
+        12: 'Incisivo Lateral Sup. Der.', 11: 'Incisivo Central Sup. Der.',
+        21: 'Incisivo Central Sup. Izq.', 22: 'Incisivo Lateral Sup. Izq.', 23: 'Canino Sup. Izq.',
+        24: 'Primer Premolar Sup. Izq.', 25: 'Segundo Premolar Sup. Izq.', 26: 'Primer Molar Sup. Izq.',
+        27: 'Segundo Molar Sup. Izq.', 28: 'Tercer Molar Sup. Izq.',
+        48: 'Tercer Molar Inf. Der.', 47: 'Segundo Molar Inf. Der.', 46: 'Primer Molar Inf. Der.',
+        45: 'Segundo Premolar Inf. Der.', 44: 'Primer Premolar Inf. Der.', 43: 'Canino Inf. Der.',
+        42: 'Incisivo Lateral Inf. Der.', 41: 'Incisivo Central Inf. Der.',
+        31: 'Incisivo Central Inf. Izq.', 32: 'Incisivo Lateral Inf. Izq.', 33: 'Canino Inf. Izq.',
+        34: 'Primer Premolar Inf. Izq.', 35: 'Segundo Premolar Inf. Izq.', 36: 'Primer Molar Inf. Izq.',
+        37: 'Segundo Molar Inf. Izq.', 38: 'Tercer Molar Inf. Izq.'
+    };
+
+    // ── Generador de Silueta Anatómica (Corona y Raíz) ──────────
+    function siluetaOdontologica(pieza) {
+        const posicion = pieza % 10;
+        const corona = posicion >= 6
+            ? 'M6 39 Q10 34 14 38 Q19 33 23 37 Q28 33 33 38 Q38 34 42 39 L40 51 Q24 57 8 51 Z'
+            : posicion >= 4
+            ? 'M9 39 Q16 33 23 38 Q31 33 38 39 L36 52 Q23 57 11 52 Z'
+            : posicion === 3
+                ? 'M10 39 L23 32 L36 39 L34 53 Q23 57 12 53 Z'
+                : 'M13 38 Q23 35 33 38 L33 53 Q23 57 13 53 Z';
+        const raices = posicion >= 6
+            ? 'M9 39 Q6 23 5 4 L18 33 L23 8 L28 33 L42 4 Q40 25 37 39 Z'
+            : posicion >= 4
+                ? 'M12 39 Q11 23 13 6 L23 31 L34 6 Q35 24 34 39 Z'
+                : 'M17 39 Q18 20 23 3 Q29 22 29 39 Z';
+        return `<svg class="odonto-shape-svg" viewBox="0 0 48 60" aria-hidden="true">
+            <defs><linearGradient id="esm-${pieza}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fffef8"/><stop offset=".6" stop-color="#fff5db"/><stop offset="1" stop-color="#ead8ae"/></linearGradient></defs>
+            <path class="odonto-root" d="${raices}"/>
+            <path class="odonto-crown" d="${corona}" style="fill:url(#esm-${pieza})"/>
+            <path d="M15 45 Q23 48 32 45 M23 39 L23 51" stroke="#64748b" stroke-width="0.8" fill="none"/>
+        </svg>`;
+    }
+
+    function crearToothUnit(pieza, arcada, findings) {
+        const isAusente = findings.some(f => f.condicion === 'AUSENTE' || f.condicion === 'EXTRACCION');
+        const hasCaries = findings.some(f => f.condicion === 'CARIES');
+        const hasTratamiento = findings.some(f => ['OBTURACION', 'SELLANTE', 'ENDODONCIA', 'CORONA', 'IMPLANTE'].includes(f.condicion));
+
+        let extraClass = '';
+        if (isAusente) extraClass += ' ausente';
+        else if (hasCaries) extraClass += ' tiene-caries';
+        else if (hasTratamiento) extraClass += ' tiene-tratamiento';
+
+        const getSurfClass = s => {
+            const f = findings.find(x => x.superficie === s);
+            return f ? (f.condicion || '').toLowerCase() : '';
+        };
+
+        const topSurf = arcada === 'SUP' ? 'VESTIBULAR' : 'LINGUAL';
+        const bottomSurf = arcada === 'SUP' ? 'PALATINO' : 'VESTIBULAR';
+        const patientRight = [1, 4, 5, 8].includes(Math.floor(pieza / 10));
+        const leftSurf = patientRight ? 'DISTAL' : 'MESIAL';
+        const rightSurf = patientRight ? 'MESIAL' : 'DISTAL';
+        const centerSurf = (pieza % 10 <= 3) ? 'INCISAL' : 'OCLUSAL';
+
+        const numero = `<span class="odonto-tooth-num">${pieza}</span>`;
+        const silueta = siluetaOdontologica(pieza);
+        const caras = `
+            <svg class="odonto-geom-svg" viewBox="0 0 44 44">
+                <polygon class="odonto-surf-poly ${getSurfClass(topSurf)}" points="0,0 44,0 32,12 12,12"/>
+                <polygon class="odonto-surf-poly ${getSurfClass(leftSurf)}" points="0,0 12,12 12,32 0,44"/>
+                <polygon class="odonto-surf-poly ${getSurfClass(centerSurf)}" points="12,12 32,12 32,32 12,32"/>
+                <polygon class="odonto-surf-poly ${getSurfClass(rightSurf)}" points="44,0 44,44 32,32 32,12"/>
+                <polygon class="odonto-surf-poly ${getSurfClass(bottomSurf)}" points="12,32 32,32 44,44 0,44"/>
+            </svg>
+        `;
+
+        return `
+            <div class="odonto-tooth-unit ${extraClass}" data-pieza="${pieza}" data-arcada="${arcada}" title="Pieza ${pieza} (${NOMBRES_PIEZAS[pieza] || 'Diente'})">
+                ${arcada === 'SUP' ? numero + silueta + caras : caras + silueta + numero}
+            </div>
+        `;
+    }
+
+    // ── Carga y Renderizado del Expediente Clínico ──────────────
+    let expedienteData = null;
+    let currentRecetaTexto = '';
+
+    async function cargarExpediente() {
+        try {
+            expedienteData = await api(`/interno/clinica/api/expediente/${pacienteId}`);
+            renderExpedienteEnFicha();
+        } catch (err) {
+            console.warn('No se pudo cargar el expediente clínico:', err);
+            if ($('fichaAlertasMedicas')) {
+                $('fichaAlertasMedicas').innerHTML = `<span class="badge bg-light text-secondary border px-2.5 py-1.5 fw-normal small"><i class="bi bi-shield-check me-1 text-success"></i>Sin alertas médicas registradas</span>`;
+            }
+        }
+    }
+
+    function renderExpedienteEnFicha() {
+        if (!expedienteData) return;
+
+        // 1. Alertas Médicas
+        const alertasContainer = $('fichaAlertasMedicas');
+        const boxAlertas = $('boxAlertasMedicas');
+        if (alertasContainer) {
+            const alertas = expedienteData.alertas || [];
+            if (alertas.length > 0) {
+                if (boxAlertas) boxAlertas.classList.remove('safe');
+                alertasContainer.innerHTML = alertas.map(a => `<span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 fw-bold">${esc(a)}</span>`).join('');
+            } else {
+                if (boxAlertas) boxAlertas.classList.add('safe');
+                alertasContainer.innerHTML = '<span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 fw-semibold"><i class="bi bi-shield-check me-1"></i>Sin antecedentes ni alergias médicas de riesgo reportadas</span>';
+            }
+        }
+
+        // 2. Finanzas en Resumen y Pagos
+        const fin = expedienteData.finanzas || {};
+        const totalPres = Number(fin.totalPresupuestado || 0);
+        const totalPag = Number(fin.totalPagado || 0);
+        const saldoDeuda = Number(fin.saldoDeudor || 0);
+
+        if ($('resumenFinTotal')) $('resumenFinTotal').textContent = money(totalPres);
+        if ($('resumenFinPagado')) $('resumenFinPagado').textContent = money(totalPag);
+        if ($('resumenFinDeuda')) {
+            $('resumenFinDeuda').textContent = money(saldoDeuda);
+            $('resumenFinDeuda').className = 'fch-stat-value ' + (saldoDeuda > 0 ? 'text-danger' : 'text-success');
+        }
+
+        if ($('fichaFinTotal')) $('fichaFinTotal').textContent = money(totalPres);
+        if ($('fichaFinPagado')) $('fichaFinPagado').textContent = money(totalPag);
+        if ($('fichaFinDeuda')) $('fichaFinDeuda').textContent = money(saldoDeuda);
+
+        const presupuestos = fin.presupuestos || [];
+        const aprobados = presupuestos.filter(p => p.estado === 'APROBADO').length;
+        if ($('fichaFinPresCount')) $('fichaFinPresCount').textContent = `${aprobados} presupuesto${aprobados === 1 ? '' : 's'} aprobado${aprobados === 1 ? '' : 's'}`;
+
+        const pagos = fin.pagos || [];
+        const pagosRegistrados = pagos.filter(p => p.estado === 'REGISTRADO').length;
+        if ($('fichaFinPagosCount')) $('fichaFinPagosCount').textContent = `${pagosRegistrados} abono${pagosRegistrados === 1 ? '' : 's'} registrado${pagosRegistrados === 1 ? '' : 's'}`;
+        if ($('badgeTotalAbonos')) $('badgeTotalAbonos').textContent = `${pagos.length} pago${pagos.length === 1 ? '' : 's'}`;
+
+        // Renderizado Paginado de Pagos / Abonos (10 en 10)
+        renderPaginatedTable({
+            items: pagos,
+            pageSize: 10,
+            tableBodyId: 'tablaFichaPagosBody',
+            paginationId: 'paginacionPagos',
+            emptyHtml: '<tr><td colspan="5" class="text-center text-secondary py-3 small"><i class="bi bi-inbox me-1"></i>No hay pagos registrados para este paciente aún.</td></tr>',
+            rowRenderer: p => `
+                <tr>
+                    <td><strong class="text-dark">${dateFmt(p.fecha)}</strong></td>
+                    <td>
+                        <span class="fw-semibold text-dark">${esc(p.presupuestoTitulo || 'Presupuesto #' + p.presupuestoId)}</span>
+                        ${p.referencia ? `<small class="text-muted d-block">${esc(p.referencia)}</small>` : ''}
+                    </td>
+                    <td><span class="badge bg-light text-dark border">${esc(p.metodo || 'EFECTIVO')}</span></td>
+                    <td class="text-end fw-bold text-success">${money(p.monto)}</td>
+                    <td class="text-center">
+                        <span class="badge ${p.estado === 'REGISTRADO' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-danger-subtle text-danger border border-danger-subtle'}">${esc(p.estado)}</span>
+                    </td>
+                </tr>
+            `
+        });
+
+        // 3. Atenciones y Consultas Directas
+        const atenciones = expedienteData.atenciones || [];
+        const directas = atenciones.filter(a => !a.citaId);
+        const secDirectas = $('seccionAtencionesDirectas');
+        const badgeDirectas = $('badgeCountAtencionesDirectas');
+        if (secDirectas) {
+            if (directas.length > 0) {
+                secDirectas.style.display = 'block';
+                if (badgeDirectas) badgeDirectas.textContent = `${directas.length} atención${directas.length === 1 ? '' : 'es'}`;
+                renderPaginatedTable({
+                    items: directas,
+                    pageSize: 10,
+                    tableBodyId: 'tbodyAtencionesDirectas',
+                    paginationId: 'paginacionAtencionesDirectas',
+                    rowRenderer: a => `
+                        <tr>
+                            <td><strong class="text-dark">${dateFmt(a.fechaAtencion || a.fechaHora || a.creadoEn)}</strong></td>
+                            <td><span class="fw-semibold text-dark">${esc(a.nombreProfesional || a.creadoPor || 'Profesional odontólogo')}</span></td>
+                            <td>
+                                <span class="badge bg-teal-subtle text-teal border border-teal-subtle me-1">Directa</span>
+                                <span class="small text-dark fw-medium">${esc(a.planProcedimiento || a.motivoConsulta || 'Consulta clínica')}</span>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">${esc(a.piezasTratadas || 'General')}</span></td>
+                            <td class="text-end">
+                                <button type="button" class="btn btn-xs btn-outline-teal fw-semibold btn-ver-detalle-atencion" data-atencion-id="${a.id}">
+                                    <i class="bi bi-eye me-1"></i>Ver Detalle
+                                </button>
+                            </td>
+                        </tr>
+                    `
+                });
+            } else {
+                secDirectas.style.display = 'none';
+            }
+        }
+
+        // 4. Renderizado del Estado Dental y Odontograma 2D
+        renderEstadoDentalYOdontograma();
+    }
+
+    // ── Renderizado del Odontograma 2D Completo y Tablas 10 en 10
+    function renderEstadoDentalYOdontograma() {
+        if (!expedienteData) return;
+
+        const piezas = expedienteData.piezasOdontograma || [];
+        const atenciones = expedienteData.atenciones || [];
+        const historial = expedienteData.historialOdontograma || [];
+
+        const piezasMap = new Map();
+        piezas.forEach(p => {
+            const num = Number(p.numeroPieza);
+            if (!piezasMap.has(num)) piezasMap.set(num, []);
+            piezasMap.get(num).push(p);
+        });
+
+        // 1. Renderizar Cuadrantes en el Tablero 2D Anatómico
+        const cuadrantes = [
+            ['odontoBoardQ1', [18, 17, 16, 15, 14, 13, 12, 11], 'SUP'],
+            ['odontoBoardQ2', [21, 22, 23, 24, 25, 26, 27, 28], 'SUP'],
+            ['odontoBoardQ4', [48, 47, 46, 45, 44, 43, 42, 41], 'INF'],
+            ['odontoBoardQ3', [31, 32, 33, 34, 35, 36, 37, 38], 'INF']
+        ];
+
+        cuadrantes.forEach(([id, nums, arcada]) => {
+            const el = $(id);
+            if (!el) return;
+            el.innerHTML = nums.map(p => crearToothUnit(p, arcada, piezasMap.get(p) || [])).join('');
+        });
+
+        // Eventos hover / click sobre los dientes 2D
+        document.querySelectorAll('.odonto-tooth-unit').forEach(unit => {
+            const handleInspect = () => {
+                document.querySelectorAll('.odonto-tooth-unit').forEach(u => u.classList.remove('selected'));
+                unit.classList.add('selected');
+                const num = Number(unit.dataset.pieza);
+                const findings = piezasMap.get(num) || [];
+                const nombre = NOMBRES_PIEZAS[num] || `Pieza ${num}`;
+                const inspector = $('odontoInspectorInfo');
+                if (!inspector) return;
+
+                if (findings.length === 0) {
+                    inspector.innerHTML = `<span><strong>Pieza ${num} (${nombre}):</strong> <span class="text-success fw-semibold"><i class="bi bi-shield-check me-1"></i>Sano, sin patologías ni tratamientos.</span></span>`;
+                } else {
+                    const chips = findings.map(f => {
+                        const cond = f.condicion || 'OBTURACION';
+                        const sup = f.superficie || 'GENERAL';
+                        let badgeColor = 'bg-primary';
+                        let condNombre = 'Curación / Resina';
+                        if (cond === 'CARIES') { badgeColor = 'bg-danger'; condNombre = 'Caries por tratar'; }
+                        else if (cond === 'SELLANTE') { badgeColor = 'bg-success'; condNombre = 'Sellante preventivo'; }
+                        else if (cond === 'AUSENTE' || cond === 'EXTRACCION') { badgeColor = 'bg-secondary'; condNombre = 'Pieza ausente'; }
+                        else if (cond === 'ENDODONCIA' || cond === 'CORONA') { badgeColor = 'bg-warning text-dark'; condNombre = cond; }
+                        return `<span class="badge ${badgeColor} me-1">${condNombre} (${sup})</span>`;
+                    }).join(' ');
+
+                    inspector.innerHTML = `<span><strong>Pieza ${num} (${nombre}):</strong> ${chips}</span>`;
+                }
+            };
+
+            unit.addEventListener('mouseenter', handleInspect);
+            unit.addEventListener('click', handleInspect);
+        });
+
+        // 2. Conteo de Estados y KPIs
+        let curadosCount = 0;
+        let cariesCount = 0;
+        let ausentesCount = 0;
+
+        piezasMap.forEach(findings => {
+            const hasAusente = findings.some(f => f.condicion === 'AUSENTE' || f.condicion === 'EXTRACCION');
+            const hasCaries = findings.some(f => f.condicion === 'CARIES');
+            const hasCurado = findings.some(f => ['OBTURACION', 'SELLANTE', 'ENDODONCIA', 'CORONA', 'IMPLANTE'].includes(f.condicion));
+
+            if (hasAusente) ausentesCount++;
+            else if (hasCaries) cariesCount++;
+            else if (hasCurado) curadosCount++;
+        });
+
+        const sanosCount = Math.max(0, 32 - (curadosCount + cariesCount + ausentesCount));
+
+        if ($('kpiDientesCurados')) $('kpiDientesCurados').textContent = curadosCount;
+        if ($('kpiDientesCaries')) $('kpiDientesCaries').textContent = cariesCount;
+        if ($('kpiDientesAusentes')) $('kpiDientesAusentes').textContent = ausentesCount;
+        if ($('kpiDientesSanos')) $('kpiDientesSanos').textContent = sanosCount;
+
+        const badgeOdontoCount = $('badgeFichaOdontoCount');
+        if (badgeOdontoCount) {
+            badgeOdontoCount.textContent = (curadosCount + cariesCount > 0) ? `${curadosCount + cariesCount} registradas` : '';
+        }
+
+        // 3. Resumen de la Última Sesión en Resumen General
+        const ultimaAtencion = atenciones.length > 0 ? atenciones[0] : null;
+        const badgeFecha = $('badgeUltimaAtencionFecha');
+        const lblDetalle = $('lblUltimaAtencionDetalle');
+        const chipsContainer = $('chipsPiezasUltimaAtencion');
+
+        if (ultimaAtencion) {
+            const fAtencion = dateFmt(ultimaAtencion.fechaAtencion || ultimaAtencion.fechaHora || ultimaAtencion.creadoEn);
+            const prof = ultimaAtencion.nombreProfesional || ultimaAtencion.creadoPor || 'Odontólogo tratante';
+            if (badgeFecha) badgeFecha.textContent = fAtencion;
+
+            const proc = ultimaAtencion.planProcedimiento || ultimaAtencion.motivoConsulta || 'Consulta clínica concluida.';
+            if (lblDetalle) {
+                lblDetalle.innerHTML = `<strong>Procedimiento:</strong> ${esc(proc)} &bull; <strong>Doctor:</strong> ${esc(prof)}`;
+            }
+
+            if (chipsContainer) {
+                const piezasStr = String(ultimaAtencion.piezasTratadas || '').trim();
+                if (piezasStr && piezasStr !== 'General') {
+                    const numeros = piezasStr.split(/[\s,]+/).filter(Boolean);
+                    chipsContainer.innerHTML = numeros.map(p => {
+                        const num = Number(p);
+                        const nom = NOMBRES_PIEZAS[num] || `Pieza ${p}`;
+                        return `<span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 small fw-semibold"><i class="bi bi-gem me-1"></i>Pieza ${p} (${nom})</span>`;
+                    }).join(' ');
+                } else {
+                    chipsContainer.innerHTML = '<span class="badge bg-light text-secondary border px-2 py-1 small">Atención general / Limpieza preventiva</span>';
+                }
+            }
+        } else {
+            if (badgeFecha) badgeFecha.textContent = 'Sin atenciones';
+            if (lblDetalle) lblDetalle.innerHTML = '<span class="text-muted"><i class="bi bi-info-circle me-1"></i>El paciente aún no cuenta con atenciones clínicas finalizadas en sus piezas dentales.</span>';
+            if (chipsContainer) chipsContainer.innerHTML = '';
+        }
+
+        // 4. TABLA 1: Detalle de Piezas con Hallazgos (PAGINADA DE 10 EN 10)
+        if ($('badgeTotalPiezasHallazgo')) $('badgeTotalPiezasHallazgo').textContent = `${piezas.length} pieza${piezas.length === 1 ? '' : 's'}`;
+        renderPaginatedTable({
+            items: piezas,
+            pageSize: 10,
+            tableBodyId: 'tbodyOdontoDetallePiezas',
+            paginationId: 'paginacionPiezas',
+            emptyHtml: '<tr><td colspan="5" class="text-center text-muted py-3"><i class="bi bi-shield-check text-success me-1"></i>Todas las piezas se encuentran sanas sin patologías registradas.</td></tr>',
+            rowRenderer: p => {
+                const num = Number(p.numeroPieza);
+                const nom = NOMBRES_PIEZAS[num] || `Pieza ${p.numeroPieza}`;
+                const cond = p.condicion || 'OBTURACION';
+                let badgeClass = 'bg-primary-subtle text-primary border border-primary-subtle';
+                let condLabel = 'Obturación / Curada';
+                if (cond === 'CARIES') { badgeClass = 'bg-danger-subtle text-danger border border-danger-subtle'; condLabel = 'Caries Activa'; }
+                else if (cond === 'SELLANTE') { badgeClass = 'bg-success-subtle text-success border border-success-subtle'; condLabel = 'Sellante'; }
+                else if (cond === 'AUSENTE' || cond === 'EXTRACCION') { badgeClass = 'bg-secondary-subtle text-secondary border border-secondary-subtle'; condLabel = 'Ausente / Extraída'; }
+                else if (cond === 'ENDODONCIA' || cond === 'CORONA') { badgeClass = 'bg-warning-subtle text-warning border border-warning-subtle'; condLabel = cond; }
+
+                return `
+                    <tr>
+                        <td><strong class="text-dark">${num}</strong></td>
+                        <td><span class="fw-medium text-dark">${nom}</span></td>
+                        <td><span class="badge bg-light text-secondary border">${esc(p.superficie || 'GENERAL')}</span></td>
+                        <td><span class="badge ${badgeClass}">${condLabel}</span></td>
+                        <td><span class="badge bg-light text-muted border">${esc(p.estado || 'REALIZADO')}</span></td>
+                    </tr>
+                `;
+            }
+        });
+
+        // 5. TABLA 2: Historial Cronológico de Evolución Dental (PAGINADA DE 10 EN 10)
+        if ($('badgeTotalHistorial')) $('badgeTotalHistorial').textContent = `${historial.length} registro${historial.length === 1 ? '' : 's'}`;
+        renderPaginatedTable({
+            items: historial,
+            pageSize: 10,
+            tableBodyId: 'tbodyOdontoHistorial',
+            paginationId: 'paginacionHistorial',
+            emptyHtml: '<tr><td colspan="6" class="text-center text-muted py-3">Sin historial cronológico registrado para esta ficha.</td></tr>',
+            rowRenderer: h => `
+                <tr>
+                    <td><small class="text-dark fw-medium">${dateFmt(h.fecha)}</small></td>
+                    <td><strong class="text-dark">${h.numeroPieza}</strong></td>
+                    <td><span class="badge bg-light text-secondary border">${esc(h.superficie || 'GENERAL')}</span></td>
+                    <td><span class="badge bg-primary-subtle text-primary border border-primary-subtle">${esc(h.condicion || h.accion || 'EVOLUCION')}</span></td>
+                    <td><small class="text-secondary">${esc(h.notas || 'Sin notas')}</small></td>
+                    <td><small class="text-muted">${esc(h.usuario || 'Sistema')}</small></td>
+                </tr>
+            `
+        });
+    }
+
+    // ── Renderizado Paginado del Historial de Citas (10 en 10) ──
+    function renderHistorialCitas() {
+        renderPaginatedTable({
+            items: todasLasCitasData,
+            pageSize: 10,
+            tableBodyId: 'tbodyCitas',
+            paginationId: 'paginacionCitas',
+            emptyHtml: '<tr><td colspan="5" class="text-center text-secondary py-3"><i class="bi bi-calendar2-x me-1"></i>No hay citas registradas para este paciente.</td></tr>',
+            rowRenderer: c => {
+                const fInicio = c.inicio ? dateTimeFmt(c.inicio) : '—';
+                const fFin = c.fin ? dateTimeFmt(c.fin).split(' ')[1] : '';
+                const estado = c.estado || 'PENDIENTE';
+                const prof = c.profesional || 'Profesional por asignar';
+                const motivo = c.motivoConsulta || c.tipoAtencion || 'Consulta general';
+                const badgeClass = estado === 'ATENDIDA'
+                    ? 'bg-success-subtle text-success border border-success-subtle'
+                    : (estado === 'CONFIRMADA'
+                        ? 'bg-primary-subtle text-primary border border-primary-subtle'
+                        : (estado === 'PENDIENTE' ? 'bg-warning-subtle text-warning border border-warning-subtle' : 'bg-light text-secondary border'));
+
+                return `
+                    <tr>
+                        <td>
+                            <strong class="text-dark d-block">${fInicio}</strong>
+                            ${fFin ? `<small class="text-muted">Hasta ${fFin}</small>` : ''}
+                        </td>
+                        <td>
+                            <span class="fw-semibold text-dark">${esc(prof)}</span>
+                            ${c.especialidad ? `<small class="text-secondary d-block">${esc(c.especialidad)}</small>` : ''}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border me-1">${esc(c.tipoAtencion || 'Consulta')}</span>
+                            ${c.motivoConsulta ? `<span class="small text-secondary">${esc(c.motivoConsulta)}</span>` : ''}
+                        </td>
+                        <td><span class="badge ${badgeClass}">${esc(estado)}</span></td>
+                        <td class="text-end">
+                            <button type="button" class="btn btn-xs btn-outline-teal fw-semibold btn-ver-detalle-cita"
+                                    data-cita-id="${c.idCita || 0}"
+                                    data-fecha="${fInicio}"
+                                    data-prof="${esc(prof)}"
+                                    data-motivo="${esc(motivo)}"
+                                    data-estado="${esc(estado)}">
+                                <i class="bi bi-eye me-1"></i>Ver Detalle
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }
+        });
+    }
+
+    // ── Módulo Presupuestos: Paginado de 10 en 10 ──────────────
+    let filtroEstado = '';
+    let presupuestosData = [];
+
+    $('presFilterBar')?.addEventListener('click', e => {
+        const btn = e.target.closest('button[data-estado]');
+        if (!btn) return;
+        $('presFilterBar').querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filtroEstado = btn.dataset.estado;
+        renderPresupuestos();
+    });
+
+    async function cargarPresupuestos() {
+        $('tbodyPresupuestos').innerHTML = '<tr><td colspan="9" class="text-center text-muted py-3"><i class="bi bi-hourglass-split me-1"></i>Cargando presupuestos...</td></tr>';
+        $('presAviso').style.display = 'none';
+        try {
+            const params = new URLSearchParams({ paciente: pacienteId });
+            const data = await api('/interno/gestion/presupuestos/datos?' + params);
+            presupuestosData = data.filas || [];
+            renderIndicadores(data.resumen || {});
+            renderPresupuestos();
+        } catch (err) {
+            $('presAviso').textContent = err.message;
+            $('presAviso').style.display = 'block';
+            $('tbodyPresupuestos').innerHTML = '<tr><td colspan="9" class="text-center text-danger py-3">No se pudo cargar la lista de presupuestos.</td></tr>';
+        }
+    }
+
+    function renderIndicadores(r) {
+        const wrap = $('presIndicadores');
+        if (!wrap) return;
+        wrap.innerHTML = `
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Total Registrados</span>
+                    <div class="fch-stat-value text-dark">${r.registros ?? 0}</div>
+                    <span class="fch-stat-sub">Planes generados</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Importe Aprobado</span>
+                    <div class="fch-stat-value text-success">${money(r.aprobado)}</div>
+                    <span class="fch-stat-sub">Tratamientos aceptados</span>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="fch-stat-box">
+                    <span class="fch-stat-label">Saldo por Cobrar</span>
+                    <div class="fch-stat-value text-danger">${money(r.pendiente)}</div>
+                    <span class="fch-stat-sub">Pendiente de pago</span>
+                </div>
+            </div>
+        `;
+    }
+
+    function renderPresupuestos() {
+        const filtrados = filtroEstado ? presupuestosData.filter(p => p.estado === filtroEstado) : presupuestosData;
+        const perm = /*[[${permisosUsuario!=null and permisosUsuario['presupuestos']==true}]]*/ true;
+
+        renderPaginatedTable({
+            items: filtrados,
+            pageSize: 10,
+            tableBodyId: 'tbodyPresupuestos',
+            paginationId: 'paginacionPresupuestos',
+            emptyHtml: '<tr><td colspan="9" class="text-center text-muted py-3">No se encontraron presupuestos en este estado.</td></tr>',
+            rowRenderer: p => {
+                const esBorrador = p.estado === 'BORRADOR';
+                const esAprobado = p.estado === 'APROBADO';
+                const saldo = (Number(p.total || 0) - Number(p.pagado || 0)).toFixed(2);
+
+                const acciones = !perm ? '—' : `
+                    <div class="d-inline-flex gap-1 justify-content-end">
+                        ${esBorrador ? `<button class="btn btn-xs btn-outline-primary" data-action="editar" data-id="${p.id}" title="Editar"><i class="bi bi-pencil"></i></button>` : ''}
+                        ${esBorrador ? `<button class="btn btn-xs btn-success" data-action="aprobar" data-id="${p.id}" data-version="${p.version}" title="Aprobar"><i class="bi bi-check-lg"></i></button>` : ''}
+                        ${esBorrador ? `<button class="btn btn-xs btn-outline-warning" data-action="rechazar" data-id="${p.id}" data-version="${p.version}" title="Rechazar"><i class="bi bi-x-lg"></i></button>` : ''}
+                        ${(esBorrador || esAprobado) ? `<button class="btn btn-xs btn-outline-danger" data-action="anular" data-id="${p.id}" data-version="${p.version}" title="Anular"><i class="bi bi-slash-circle"></i></button>` : ''}
+                    </div>
+                `;
+
+                return `
+                    <tr>
+                        <td><strong class="text-dark">#${esc(p.id)}</strong></td>
+                        <td><span class="fw-semibold text-dark">${esc(p.titulo)}</span></td>
+                        <td><small class="text-secondary">${dateFmt(p.fecha)}</small></td>
+                        <td><small class="text-secondary">${dateFmt(p.vence)}</small></td>
+                        <td class="text-end fw-bold text-dark">${money(p.total)}</td>
+                        <td class="text-end text-success fw-semibold">${money(p.pagado)}</td>
+                        <td class="text-end text-danger fw-semibold">${money(saldo)}</td>
+                        <td class="text-center">
+                            <span class="pres-estado ${estadoClass[p.estado] || ''}">${esc(estadoLabel[p.estado] || p.estado)}</span>
+                        </td>
+                        <td class="text-end">${acciones}</td>
+                    </tr>
+                `;
+            }
+        });
+
+        // Listeners en acciones de la tabla
+        $('tbodyPresupuestos')?.querySelectorAll('[data-action]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const action = btn.dataset.action;
+                const id = Number(btn.dataset.id);
+                const version = Number(btn.dataset.version);
+                if (action === 'editar') abrirEditar(id);
+                else if (action === 'aprobar') abrirEstado(id, version, 'APROBADO');
+                else if (action === 'rechazar') abrirEstado(id, version, 'RECHAZADO');
+                else if (action === 'anular') abrirEstado(id, version, 'ANULADO');
+            });
+        });
+    }
+
+    // ── Modales de Presupuestos (Crear / Editar / Estado) ───────
+    let itemIndex = 0;
+
+    function abrirCrear() {
+        $('modalPresTitle').textContent = 'Nuevo presupuesto';
+        $('presId').value = '';
+        $('presVersion').value = '';
+        $('presTitulo').value = '';
+        $('presVence').value = nextMonthISO();
+        $('presNotas').value = '';
+        $('presFormError').style.display = 'none';
+        $('itemsBody').innerHTML = '';
+        itemIndex = 0;
+        agregarItem();
+        calcularTotal();
+        $('modalPresBackdrop').classList.add('open');
+        $('presTitulo').focus();
+    }
+
+    async function abrirEditar(id) {
+        try {
+            const d = await api(`/interno/gestion/presupuestos/${id}`);
+            $('modalPresTitle').textContent = 'Editar presupuesto';
+            $('presId').value = d.id;
+            $('presVersion').value = d.version;
+            $('presTitulo').value = d.titulo || '';
+            $('presVence').value = d.vence || '';
+            $('presNotas').value = d.notas || '';
+            $('presFormError').style.display = 'none';
+            $('itemsBody').innerHTML = '';
+            itemIndex = 0;
+            (d.items || []).forEach(item => agregarItem(item.descripcion, item.cantidad, item.precio));
+            if (!d.items || !d.items.length) agregarItem();
+            calcularTotal();
+            $('modalPresBackdrop').classList.add('open');
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+
+    function agregarItem(desc = '', qty = 1, price = '') {
+        const idx = itemIndex++;
+        const tr = document.createElement('tr');
+        tr.dataset.itemIdx = idx;
+        tr.innerHTML = `
+            <td><input type="text" class="item-desc form-control form-control-sm" placeholder="Descripción del concepto" maxlength="250" value="${esc(desc)}" required></td>
+            <td><input type="number" class="item-qty form-control form-control-sm" min="1" max="1000" step="1" value="${esc(qty)}" required></td>
+            <td><input type="number" class="item-price form-control form-control-sm" min="0.01" step="0.01" placeholder="0.00" value="${price !== '' ? esc(price) : ''}" required></td>
+            <td class="item-sub text-end" style="font-weight:600;font-size:.85rem;">—</td>
+            <td class="text-center"><button type="button" class="btn btn-sm btn-link text-danger p-0 btn-rm-item" title="Quitar" aria-label="Quitar"><i class="bi bi-trash"></i></button></td>
+        `;
+        $('itemsBody').appendChild(tr);
+        tr.querySelectorAll('input').forEach(i => i.addEventListener('input', calcularTotal));
+        tr.querySelector('.btn-rm-item').addEventListener('click', () => { tr.remove(); calcularTotal(); });
+        calcularTotal();
+    }
+
+    function calcularTotal() {
+        let total = 0;
+        $('itemsBody').querySelectorAll('tr').forEach(tr => {
+            const qty = parseFloat(tr.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(tr.querySelector('.item-price')?.value) || 0;
+            const sub = qty * price;
+            const subCell = tr.querySelector('.item-sub');
+            if (subCell) subCell.textContent = sub > 0 ? money(sub) : '—';
+            total += sub;
+        });
+        $('totalValue').textContent = money(total);
+        $('presTotalDisplay').textContent = money(total);
+    }
+
+    $('btnAgregarItem')?.addEventListener('click', () => agregarItem());
+    $('btnNuevoPresupuesto')?.addEventListener('click', abrirCrear);
+
+    function cerrarModalPres() { $('modalPresBackdrop').classList.remove('open'); }
+    $('btnCerrarModalPres')?.addEventListener('click', cerrarModalPres);
+    $('btnCancelarPres')?.addEventListener('click', cerrarModalPres);
+    $('modalPresBackdrop')?.addEventListener('click', e => { if (e.target === $('modalPresBackdrop')) cerrarModalPres(); });
+
+    $('formPresupuesto')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        $('presFormError').style.display = 'none';
+        const items = [];
+        let valid = true;
+        $('itemsBody').querySelectorAll('tr').forEach(tr => {
+            const desc = tr.querySelector('.item-desc')?.value?.trim() || '';
+            const qty = parseInt(tr.querySelector('.item-qty')?.value) || 0;
+            const price = parseFloat(tr.querySelector('.item-price')?.value) || 0;
+            if (!desc || qty < 1 || price <= 0) { valid = false; return; }
+            items.push({ descripcion: desc, cantidad: qty, precio: price });
+        });
+        if (!valid || !items.length) {
+            $('presFormError').textContent = 'Completa todos los conceptos con descripción, cantidad y precio válidos.';
+            $('presFormError').style.display = 'block';
+            return;
+        }
+        const titulo = $('presTitulo').value.trim();
+        const vence = $('presVence').value;
+        const notas = $('presNotas').value.trim();
+        if (!titulo || !vence) {
+            $('presFormError').textContent = 'El título y la fecha de vigencia son obligatorios.';
+            $('presFormError').style.display = 'block';
+            return;
+        }
+
+        const id = $('presId').value;
+        const version = $('presVersion').value;
+        const payload = { pacienteId, titulo, vence, notas, items, ...(id ? { version: parseInt(version) } : {}) };
+        $('btnGuardarPres').disabled = true;
+        $('btnGuardarPres').textContent = 'Guardando…';
+        try {
+            if (id) await api(`/interno/gestion/presupuestos/${id}`, { method: 'PUT', body: payload });
+            else await api('/interno/gestion/presupuestos', { method: 'POST', body: payload });
+            cerrarModalPres();
+            await cargarPresupuestos();
+        } catch (err) {
+            $('presFormError').textContent = err.message;
+            $('presFormError').style.display = 'block';
+        } finally {
+            $('btnGuardarPres').disabled = false;
+            $('btnGuardarPres').innerHTML = '<i class="bi bi-floppy me-1"></i>Guardar presupuesto';
+        }
+    });
+
+    const estadoConfig = {
+        APROBADO:  { titulo: 'Aprobar presupuesto',  desc: 'Al aprobar el presupuesto se habilitará para recibir abonos.', btnClass: 'btn-success',  btnTxt: 'Sí, aprobar',   motivoRequired: false },
+        RECHAZADO: { titulo: 'Rechazar presupuesto', desc: 'Indica el motivo por el cual el presupuesto fue rechazado.',  btnClass: 'btn-warning',  btnTxt: 'Rechazar',      motivoRequired: true  },
+        ANULADO:   { titulo: 'Anular presupuesto',   desc: 'La anulación es irreversible. Se cancelará la cotización.',    btnClass: 'btn-danger',   btnTxt: 'Sí, anular',    motivoRequired: true  },
+    };
+
+    function abrirEstado(id, version, nuevoEstado) {
+        const cfg = estadoConfig[nuevoEstado];
+        if (!cfg) return;
+        $('estadoPresId').value = id;
+        $('estadoVersion').value = version;
+        $('estadoNuevo').value = nuevoEstado;
+        $('modalEstadoTitle').textContent = cfg.titulo;
+        $('estadoDescripcion').textContent = cfg.desc;
+        $('estadoMotivo').value = '';
+        $('estadoMotivoWrap').style.display = cfg.motivoRequired ? '' : (nuevoEstado === 'APROBADO' ? 'none' : '');
+        $('estadoMotivoLabel').textContent = cfg.motivoRequired ? 'Motivo *' : 'Motivo (opcional)';
+        $('estadoFormError').style.display = 'none';
+        const btn = $('btnConfirmarEstado');
+        btn.className = 'btn fw-semibold ' + cfg.btnClass;
+        btn.textContent = cfg.btnTxt;
+        $('modalEstadoBackdrop').classList.add('open');
+    }
+
+    function cerrarModalEstado() { $('modalEstadoBackdrop').classList.remove('open'); }
+    $('btnCerrarModalEstado')?.addEventListener('click', cerrarModalEstado);
+    $('btnCancelarEstado')?.addEventListener('click', cerrarModalEstado);
+    $('modalEstadoBackdrop')?.addEventListener('click', e => { if (e.target === $('modalEstadoBackdrop')) cerrarModalEstado(); });
+
+    $('formEstado')?.addEventListener('submit', async e => {
+        e.preventDefault();
+        $('estadoFormError').style.display = 'none';
+        const id = $('estadoPresId').value;
+        const version = parseInt($('estadoVersion').value);
+        const estado = $('estadoNuevo').value;
+        const motivo = $('estadoMotivo').value.trim();
+        const cfg = estadoConfig[estado];
+        if (cfg.motivoRequired && !motivo) {
+            $('estadoFormError').textContent = 'El motivo es obligatorio.';
+            $('estadoFormError').style.display = 'block';
+            return;
+        }
+        $('btnConfirmarEstado').disabled = true;
+        try {
+            await api(`/interno/gestion/presupuestos/${id}/estado`, { method: 'POST', body: { estado, motivo, version } });
+            cerrarModalEstado();
+            await cargarPresupuestos();
+        } catch (err) {
+            $('estadoFormError').textContent = err.message;
+            $('estadoFormError').style.display = 'block';
+        } finally {
+            $('btnConfirmarEstado').disabled = false;
+        }
+    });
+
+    // ── Modal de Detalle Informativo de Cita / Atención ────────
+    document.addEventListener('click', e => {
+        const btn = e.target.closest('.btn-ver-detalle-cita');
+        if (btn) {
+            abrirDetalleCita(Number(btn.dataset.citaId || 0), btn.dataset.fecha || '', btn.dataset.prof || '', btn.dataset.motivo || '', btn.dataset.estado || 'PENDIENTE');
+            return;
+        }
+        const btnAtencion = e.target.closest('.btn-ver-detalle-atencion');
+        if (btnAtencion) {
+            abrirDetalleAtencion(Number(btnAtencion.dataset.atencionId || 0));
+            return;
+        }
+    });
+
+    function abrirDetalleAtencion(atencionId) {
+        const atenciones = expedienteData?.atenciones || [];
+        const atencion = atenciones.find(a => Number(a.id) === atencionId);
+        if (!atencion) return;
+
+        $('modalCitaFechaHora').textContent = atencion.fechaAtencion ? dateFmt(atencion.fechaAtencion) : '—';
+        $('modalCitaProfesional').textContent = atencion.nombreProfesional || atencion.creadoPor || 'Profesional odontólogo';
+        $('modalCitaMotivo').textContent = atencion.motivoConsulta || 'Consulta directa en consultorio';
+
+        const badge = $('modalCitaEstadoBadge');
+        badge.textContent = 'ATENDIDA';
+        badge.className = 'badge px-3 py-1.5 bg-success-subtle text-success border border-success-subtle';
+
+        $('modalCitaProcedimiento').textContent = atencion.planProcedimiento || atencion.motivoConsulta || 'Procedimiento clínico registrado en atención.';
+        $('modalCitaPiezas').textContent = atencion.piezasTratadas || 'No se registraron piezas dentales específicas';
+        const obs = [atencion.subjetivo, atencion.objetivo, atencion.evaluacion].filter(Boolean).join('\n\n');
+        $('modalCitaObservaciones').textContent = obs || 'Sin observaciones adicionales registradas.';
+        const rec = atencion.receta || atencion.indicacionesReceta || '';
+        $('modalCitaRecetaTexto').textContent = rec.trim() ? rec.trim() : 'No se registraron medicamentos ni indicaciones en esta atención.';
+        currentRecetaTexto = rec.trim();
+
+        const modalEl = document.getElementById('modalDetalleCitaAtencion');
+        if (modalEl && window.bootstrap) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    function abrirDetalleCita(citaId, fecha, prof, motivo, estado) {
+        $('modalCitaFechaHora').textContent = fecha || '—';
+        $('modalCitaProfesional').textContent = prof;
+        $('modalCitaMotivo').textContent = motivo;
+
+        const badge = $('modalCitaEstadoBadge');
+        badge.textContent = estado;
+        badge.className = 'badge px-3 py-1.5 ' + (estado === 'ATENDIDA' ? 'bg-success-subtle text-success border border-success-subtle' : (estado === 'CONFIRMADA' ? 'bg-primary-subtle text-primary border border-primary-subtle' : 'bg-light text-secondary border'));
+
+        const atenciones = expedienteData?.atenciones || [];
+        let atencion = atenciones.find(a => Number(a.citaId) === citaId);
+        if (!atencion && fecha) {
+            const fPart = fecha.split(' ')[0];
+            atencion = atenciones.find(a => a.fechaAtencion && (a.fechaAtencion.includes(fPart) || (a.citaFecha && a.citaFecha.includes(fPart))));
+        }
+
+        if (atencion) {
+            if (atencion.nombreProfesional) $('modalCitaProfesional').textContent = atencion.nombreProfesional;
+            $('modalCitaProcedimiento').textContent = atencion.planProcedimiento || atencion.motivoConsulta || 'Procedimiento clínico registrado.';
+            $('modalCitaPiezas').textContent = atencion.piezasTratadas || 'No se registraron piezas dentales específicas';
+            const obs = [atencion.subjetivo, atencion.objetivo, atencion.evaluacion].filter(Boolean).join('\n\n');
+            $('modalCitaObservaciones').textContent = obs || 'Sin observaciones registradas.';
+            const rec = atencion.receta || atencion.indicacionesReceta || '';
+            $('modalCitaRecetaTexto').textContent = rec.trim() ? rec.trim() : 'No se registraron medicamentos ni indicaciones en esta atención.';
+            currentRecetaTexto = rec.trim();
+        } else {
+            $('modalCitaProcedimiento').textContent = estado === 'ATENDIDA' ? 'Cita concluida y marcada como ATENDIDA.' : 'Cita en estado: ' + estado;
+            $('modalCitaPiezas').textContent = '—';
+            $('modalCitaObservaciones').textContent = 'Motivo de consulta: ' + motivo;
+            $('modalCitaRecetaTexto').textContent = 'Sin prescripción médica registrada.';
+            currentRecetaTexto = '';
+        }
+
+        const modalEl = document.getElementById('modalDetalleCitaAtencion');
+        if (modalEl && window.bootstrap) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+    }
+
+    $('btnCopiarRecetaWA')?.addEventListener('click', async () => {
+        const pacienteNombre = /*[[${paciente.nombreCompleto}]]*/ 'Paciente';
+        const fecha = $('modalCitaFechaHora').textContent;
+        const prof = $('modalCitaProfesional').textContent;
+        const proc = $('modalCitaProcedimiento').textContent;
+        const texto = currentRecetaTexto
+            ? `🦷 *DentIA - Indicaciones y Receta Médica*\nPaciente: ${pacienteNombre}\nFecha: ${fecha}\nDoctor: ${prof}\n\n*Tratamiento realizado:*\n${proc}\n\n*Indicaciones / Medicamentos:*\n${currentRecetaTexto}\n\n_Ante cualquier molestia comuníquese de inmediato con la clínica._`
+            : `🦷 *DentIA*\nEstimado/a ${pacienteNombre}, registro de su cita del ${fecha} con ${prof}.`;
+        try {
+            await navigator.clipboard.writeText(texto);
+            const btn = $('btnCopiarRecetaWA');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<i class="bi bi-check2 me-1"></i>¡Copiado!';
+            btn.classList.replace('btn-outline-success', 'btn-success');
+            setTimeout(() => {
+                btn.innerHTML = orig;
+                btn.classList.replace('btn-success', 'btn-outline-success');
+            }, 2000);
+        } catch {
+            alert('No se pudo copiar automáticamente.');
+        }
+    });
+
+    // ── Inicialización ─────────────────────────────────────────
+    renderHistorialCitas();
+    cargarExpediente();
+})();
+/*]]>*/
+</script>
+</body>
+</html>

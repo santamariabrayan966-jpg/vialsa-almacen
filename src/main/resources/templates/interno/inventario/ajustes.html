@@ -1,0 +1,780 @@
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Inventario / Ajustes | DentIA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+<link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+<link rel="stylesheet" th:href="@{/css/interno/inventario.css}">
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light inventario-module">
+
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="container-fluid px-4 py-4 flex-grow-1">
+
+    <!-- TÍTULO -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <div class="bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center"
+                 style="width:58px;height:58px;">
+                <i class="bi bi-sliders fs-2"></i>
+            </div>
+
+            <div>
+                <h2 class="fw-bold text-primary mb-1">Inventario / Ajustes</h2>
+                <p class="text-muted mb-0">
+                    Realiza ajustes manuales de inventario únicamente sobre la sede activa seleccionada.
+                </p>
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a th:href="@{/interno/inventario/ajustes/pdf}"
+               class="btn btn-outline-primary rounded-3 px-4">
+                <i class="bi bi-file-earmark-pdf me-1"></i>
+                Exportar PDF
+            </a>
+
+            <button type="button"
+                    id="btnIrNuevoAjuste"
+                    class="btn btn-primary rounded-3 px-4 fw-semibold">
+                <i class="bi bi-plus-lg me-1"></i>
+                Nuevo Ajuste
+            </button>
+        </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="row g-4 inventario-layout">
+
+        <!-- IZQUIERDA -->
+        <div id="colHistorialAjustes" class="col-xl-12 order-xl-1">
+
+            <!-- CARDS -->
+            <div class="row g-3 mb-4 inventario-resumen-grid">
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border border-primary-subtle shadow-sm rounded-4 h-100 bg-white">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:65px;height:65px;">
+                                <i class="bi bi-arrow-left-right fs-2"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold mb-0" th:text="${totalAjustes}">0</h3>
+                                <small class="fw-semibold">Total Ajustes</small>
+                                <p class="text-muted small mb-0">Registrados en sede activa</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:65px;height:65px;">
+                                <i class="bi bi-check-circle fs-2"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold mb-0 text-success" th:text="${totalAumentos}">0</h3>
+                                <small class="fw-semibold">Aumentos</small>
+                                <p class="text-muted small mb-0">Ajustes positivos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:65px;height:65px;">
+                                <i class="bi bi-arrow-down-circle fs-2"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold mb-0 text-danger" th:text="${totalDisminuciones}">0</h3>
+                                <small class="fw-semibold">Disminuciones</small>
+                                <p class="text-muted small mb-0">Ajustes negativos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-xl-3 col-md-6">
+                    <div class="card border-0 shadow-sm rounded-4 h-100">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width:65px;height:65px;">
+                                <i class="bi bi-box-seam fs-2"></i>
+                            </div>
+                            <div>
+                                <h3 class="fw-bold mb-0 text-warning" th:text="${totalConEvidencia}">0</h3>
+                                <small class="fw-semibold">Con evidencia</small>
+                                <p class="text-muted small mb-0">Fotos adjuntas</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLA -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-4">
+
+                    <div class="row g-3 align-items-center mb-3 inventario-filtros-grid">
+                        <div class="col-lg-3">
+                            <div class="input-group">
+                                <input type="text"
+                                       id="buscarAjuste"
+                                       class="form-control rounded-start-3"
+                                       placeholder="Buscar producto, código, motivo...">
+                                <span class="input-group-text bg-white rounded-end-3">
+                <i class="bi bi-search"></i>
+            </span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <div class="bg-primary-subtle text-primary rounded-3 px-3 py-2 fw-semibold small">
+                                <i class="bi bi-geo-alt-fill me-1"></i>
+                                <span th:text="${sedeActivaNombre != null ? sedeActivaNombre : 'Sin sede'}">
+                Sede activa
+            </span>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <select id="filtroMotivoAjuste" class="form-select rounded-3">
+                                <option value="">Todos los motivos</option>
+                                <option value="CONTEO_FISICO">Conteo físico</option>
+                                <option value="PERDIDA">Pérdida</option>
+                                <option value="DANO">Daño</option>
+                                <option value="VENCIMIENTO">Vencimiento</option>
+                                <option value="ROTURA">Rotura</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-2">
+                            <select id="filtroTipoAjuste" class="form-select rounded-3">
+                                <option value="">Todos los tipos</option>
+                                <option value="AUMENTO">Aumento</option>
+                                <option value="DISMINUCION">Disminución</option>
+                            </select>
+                        </div>
+
+                        <div class="col-lg-3 d-flex gap-2">
+                            <button type="button"
+                                    id="btnLimpiarFiltrosAjuste"
+                                    class="btn btn-outline-secondary rounded-3 w-100">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Limpiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <h5 class="fw-bold mb-3">Historial de Ajustes</h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Fecha / Hora</th>
+                                <th>Producto</th>
+                                <th>Motivo</th>
+                                <th>Cantidad</th>
+                                <th>Stock</th>
+                                <th>Impacto</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr th:each="a, iter : ${ajustes}"
+                                class="fila-ajuste"
+                                th:classappend="${iter.index >= 5} ? ' d-none ajuste-extra' : ''"
+                                th:attr="
+        data-motivo=${a.motivo},
+        data-tipo=${a.tipoAjuste},
+        data-texto=${a.codigo + ' ' + a.motivo + ' ' + a.tipoAjuste + ' ' + a.nombreSede}
+    ">
+                                <td class="fw-bold" th:text="${a.codigo}"></td>
+
+                                <td>
+                                    <div th:text="${#temporals.format(a.fechaAjuste, 'dd/MM/yyyy')}"></div>
+                                    <small class="text-muted"
+                                           th:text="${#temporals.format(a.fechaAjuste, 'hh:mm a')}"></small>
+                                </td>
+
+                                <td>
+                                    <div th:each="d : ${a.detalles}">
+                                        <strong th:text="${d.nombreProducto}"></strong><br>
+                                        <small class="text-muted" th:text="${d.codigoProducto}"></small>
+                                    </div>
+                                </td>
+
+                                <td>
+    <span class="badge bg-warning-subtle text-warning px-3 py-2 d-block mb-1"
+          th:text="${a.motivo}">
+    </span>
+
+                                    <span class="badge px-3 py-2"
+                                          th:classappend="${a.tipoAjuste == 'AUMENTO'} ? ' text-bg-success' : ' text-bg-danger'"
+                                          th:text="${a.tipoAjuste}">
+    </span>
+                                </td>
+
+                                <td>
+                                    <div th:each="d : ${a.detalles}">
+                                        <strong th:text="${d.cantidad}">0</strong>
+                                        <span class="badge text-bg-light border"
+                                              th:text="${
+                d.tipoPresentacion == 'PIE2' ? 'Pie²' :
+                (d.tipoPresentacion == 'METRO_LINEAL' ? 'Metro lineal' :
+                (d.tipoPresentacion == 'MEDIA' ? 'Media unidad' : 'Unidad completa'))
+              }">
+        </span>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div th:each="d : ${a.detalles}">
+                                        <small class="text-muted">Antes:</small>
+                                        <strong th:text="${d.stockAnterior}">0</strong><br>
+
+                                        <small class="text-muted">Ahora:</small>
+                                        <strong th:text="${d.stockNuevo}">0</strong>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div th:each="d : ${a.detalles}" class="mb-1">
+                                        <strong th:if="${d.valorPerdida != null and d.valorPerdida > 0}"
+                                                class="text-danger">
+                                            S/
+                                            <span th:text="${#numbers.formatDecimal(d.valorPerdida, 1, 2)}">0.00</span>
+                                        </strong>
+
+                                        <span th:if="${d.valorPerdida == null or d.valorPerdida <= 0}"
+                                              class="text-muted">
+            Sin pérdida
+        </span>
+                                    </div>
+                                </td>
+
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-secondary rounded-3 btnDetalleAjuste"
+                                            type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDetalleAjuste"
+                                            th:data-id="${a.idAjuste}"
+                                            th:data-codigo="${a.codigo}"
+                                            th:data-fecha="${#temporals.format(a.fechaAjuste, 'dd/MM/yyyy hh:mm a')}"
+                                            th:data-sede="${a.nombreSede}"
+                                            th:data-motivo="${a.motivo}"
+                                            th:data-tipo="${a.tipoAjuste}"
+                                            th:data-usuario="${a.nombreUsuario != null ? a.nombreUsuario : 'Sistema'}"
+                                            th:data-observacion="${a.observacion != null ? a.observacion : 'Sin observación'}"
+                                            th:data-evidencia="${a.evidenciaFoto != null ? a.evidenciaFoto : ''}"
+                                            th:data-producto="${!#lists.isEmpty(a.detalles) ? a.detalles[0].nombreProducto : ''}"
+                                            th:data-codigo-producto="${!#lists.isEmpty(a.detalles) ? a.detalles[0].codigoProducto : ''}"
+                                            th:data-presentacion="${!#lists.isEmpty(a.detalles) ? a.detalles[0].tipoPresentacion : ''}"
+                                            th:data-cantidad="${!#lists.isEmpty(a.detalles) ? a.detalles[0].cantidad : ''}"
+                                            th:data-equivalente="${!#lists.isEmpty(a.detalles) ? a.detalles[0].cantidadDescontadaStock : ''}"
+                                            th:data-stock-anterior="${!#lists.isEmpty(a.detalles) ? a.detalles[0].stockAnterior : ''}"
+                                            th:data-stock-nuevo="${!#lists.isEmpty(a.detalles) ? a.detalles[0].stockNuevo : ''}"
+                                            th:data-valor-perdida="${!#lists.isEmpty(a.detalles) ? a.detalles[0].valorPerdida : ''}">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(ajustes)}">
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-inbox fs-1"></i>
+                                    <p class="mt-2 mb-0">No hay ajustes registrados todavía.</p>
+                                </td>
+                            </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3">
+                        <small class="text-muted">
+                            Mostrando <span id="contadorAjustesVisibles">0</span>
+                            de <span id="contadorAjustesTotal" th:text="${#lists.size(ajustes)}">0</span> ajuste(s)
+                            <span class="text-muted">
+            | Página <span id="paginaAjustesActual">1</span>
+            de <span id="paginaAjustesTotal">1</span>
+        </span>
+                        </small>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button"
+                                    id="btnAjustesAnterior"
+                                    class="btn btn-sm btn-outline-secondary rounded-3">
+                                <i class="bi bi-chevron-left"></i>
+                                Anterior
+                            </button>
+
+                            <button type="button"
+                                    id="btnAjustesSiguiente"
+                                    class="btn btn-sm btn-outline-secondary rounded-3">
+                                Siguiente
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+
+                            <span class="badge bg-light text-dark border rounded-pill px-3 py-2">
+            <i class="bi bi-database-check me-1"></i>
+            Ajustes actualizados
+        </span>
+                        </div>
+                    </div>
+
+                    <div th:if="${errorSedeActiva != null}"
+                         class="alert alert-warning border-0 rounded-4 mt-4 mb-0"
+                         th:text="${errorSedeActiva}">
+                    </div>
+
+                    <div th:if="${errorSedeActiva == null}"
+                         class="alert alert-primary border-0 rounded-4 mt-4 mb-0">
+                        <i class="bi bi-info-circle me-2"></i>
+                        Los ajustes se registran únicamente en la sede activa y quedan guardados para auditoría.
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- FORMULARIO NUEVO AJUSTE - DERECHA -->
+        <div id="panelNuevoAjuste" class="col-xl-4 d-none order-xl-2 inventario-panel-lateral"
+             tabindex="-1" aria-labelledby="tituloNuevoAjuste" aria-hidden="true">
+            <div class="card ajuste-panel-card rounded-4 h-100">
+            <div class="card-body p-4">
+
+                <form id="formNuevoAjuste"
+                      th:action="@{/interno/inventario/ajustes/guardar}"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-1" id="tituloNuevoAjuste">Nuevo ajuste</h5>
+                            <small class="text-muted">Registra un aumento o disminución.</small>
+                        </div>
+
+                        <button type="button"
+                                id="btnOcultarNuevoAjuste"
+                                class="btn btn-outline-secondary btn-sm rounded-3">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <div th:if="${param.ajusteOk != null}" class="alert alert-success border-0 rounded-4 py-2">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Ajuste registrado correctamente.
+                    </div>
+
+                    <div th:if="${param.errorSede != null}" class="alert alert-warning border-0 rounded-4 py-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        No se encontró sede activa.
+                    </div>
+
+                    <div th:if="${param.errorPresentacion != null}" class="alert alert-danger border-0 rounded-4 py-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Presentación inválida.
+                    </div>
+
+                    <div th:if="${param.errorCantidad != null}" class="alert alert-danger border-0 rounded-4 py-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cantidad inválida.
+                    </div>
+
+                    <div th:if="${param.errorAjuste != null}" class="alert alert-danger border-0 rounded-4 py-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        <span th:text="${param.errorAjuste[0]}">Error al registrar ajuste.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Sede activa</label>
+                        <div class="bg-primary-subtle text-primary rounded-3 px-3 py-2 fw-semibold">
+                            <i class="bi bi-geo-alt-fill me-1"></i>
+                            <span th:text="${sedeActivaNombre != null ? sedeActivaNombre : 'Sin sede activa'}">
+                        Almacén 1
+                    </span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Motivo <span class="text-danger">*</span>
+                        </label>
+                        <select name="motivo"
+                                id="motivoAjusteGeneral"
+                                class="form-select rounded-3"
+                                required>
+                            <option value="">Seleccionar motivo</option>
+                            <option value="CONTEO_FISICO">Conteo físico</option>
+                            <option value="PERDIDA">Pérdida</option>
+                            <option value="DANO">Daño</option>
+                            <option value="VENCIMIENTO">Vencimiento</option>
+                            <option value="ROTURA">Rotura</option>
+                            <option value="OTRO">Otro</option>
+                        </select>
+                        <div class="invalid-feedback" id="errorMotivoAjuste"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            Tipo <span class="text-danger">*</span>
+                        </label>
+                        <select name="tipoAjuste"
+                                id="tipoAjusteGeneral"
+                                class="form-select rounded-3"
+                                required>
+                            <option value="">Seleccionar tipo</option>
+                            <option value="AUMENTO">Aumento (+)</option>
+                            <option value="DISMINUCION">Disminución (-)</option>
+                        </select>
+                        <div class="invalid-feedback" id="errorTipoAjuste"></div>
+                    </div>
+
+                    <div class="mb-3 position-relative">
+                        <label class="form-label fw-semibold">
+                            Producto <span class="text-danger">*</span>
+                        </label>
+
+                        <input type="hidden"
+                               id="idProductoAjuste"
+                               name="idProducto"
+                               th:value="${idProductoSeleccionado != null ? idProductoSeleccionado : ''}">
+
+                        <div class="input-group">
+                            <input type="text"
+                                   id="buscadorProductoAjuste"
+                                   class="form-control rounded-start-3"
+                                   placeholder="Buscar producto..."
+                                   autocomplete="off"
+                                   readonly>
+
+                            <button type="button"
+                                    id="btnAbrirProductosAjuste"
+                                    class="btn btn-outline-secondary rounded-end-3">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                        <div class="invalid-feedback d-block" id="errorProductoAjuste"></div>
+
+                        <div id="listaProductosAjuste"
+                             class="list-group position-absolute top-100 start-0 end-0 bg-white border rounded-3 shadow-sm mt-1 d-none"
+                             style="z-index: 1050; max-height: 280px; overflow-y: auto;">
+
+                            <button type="button"
+                                    class="list-group-item list-group-item-action item-producto-ajuste"
+                                    th:each="e : ${existencias}"
+                                    th:data-id="${e.idProducto}"
+                                    th:data-codigo="${e.codigoProducto}"
+                                    th:data-nombre="${e.nombreProducto}"
+                                    th:data-stock="${e.stockActual}"
+                                    th:data-foto="${e.fotoProducto}"
+                                    th:data-texto="${e.codigoProducto + ' ' + e.nombreProducto + ' ' + e.stockActual}">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-3 border bg-light d-flex align-items-center justify-content-center"
+                                         style="width:46px;height:46px;min-width:46px;overflow:hidden;">
+
+                                        <img th:if="${e.fotoProducto != null and !#strings.isEmpty(e.fotoProducto)}"
+                                             th:src="@{'/uploads/productos/' + ${e.fotoProducto}}"
+                                             alt="Producto"
+                                             style="width:100%;height:100%;object-fit:cover;">
+
+                                        <i th:if="${e.fotoProducto == null or #strings.isEmpty(e.fotoProducto)}"
+                                           class="bi bi-box-seam text-primary fs-4"></i>
+                                    </div>
+
+                                    <div class="text-start">
+                                        <div class="fw-bold">
+                                            <span th:text="${e.codigoProducto}">COD</span>
+                                            -
+                                            <span th:text="${e.nombreProducto}">Producto</span>
+                                        </div>
+
+                                        <small class="text-muted">
+                                            Stock disponible:
+                                            <span th:text="${e.stockActual}">0</span>
+                                        </small>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-7">
+                            <label class="form-label fw-semibold">
+                                Presentación <span class="text-danger">*</span>
+                            </label>
+                            <select name="tipoPresentacion"
+                                    id="tipoPresentacionAjuste"
+                                    class="form-select rounded-3"
+                                    required
+                                    disabled>
+                                <option value="">Primero selecciona un producto</option>
+                            </select>
+                            <div class="invalid-feedback" id="errorPresentacionAjuste"></div>
+                        </div>
+
+                        <div class="col-5">
+                            <label class="form-label fw-semibold">
+                                Cantidad <span class="text-danger">*</span>
+                            </label>
+                            <input type="number"
+                                   name="cantidad"
+                                   id="cantidadAjuste"
+                                   class="form-control rounded-3"
+                                   min="1"
+                                   step="1"
+                                   placeholder="0"
+                                   required>
+                            <div class="invalid-feedback" id="errorCantidadAjuste"></div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 mb-3">
+                        <label class="form-label fw-semibold">Observación</label>
+                        <textarea name="observacion"
+                                  id="observacionAjuste"
+                                  class="form-control rounded-3"
+                                  rows="2"
+                                  maxlength="250"
+                                  placeholder="Ej: Conteo físico, rotura, pérdida o producto dañado. Si eliges Otro, explica el motivo."></textarea>
+                        <div class="invalid-feedback" id="errorObservacionAjuste"></div>
+                    </div>
+
+                    <div class="mt-3 mb-3">
+                        <label class="form-label fw-semibold">
+                            Evidencia fotográfica
+                            <small class="text-muted">(opcional / cámara o galería)</small>
+                        </label>
+
+                        <input type="file"
+                               name="evidenciaFoto"
+                               id="evidenciaFotoAjuste"
+                               class="form-control rounded-3"
+                               accept="image/*"
+                               capture="environment">
+
+                        <div class="invalid-feedback d-block" id="errorEvidenciaAjuste"></div>
+
+                        <div id="previewEvidenciaAjuste"
+                             class="mt-2 d-none border rounded-4 p-2 bg-light">
+
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="fw-semibold text-muted">
+                                    Vista previa
+                                </small>
+
+                                <button type="button"
+                                        id="btnQuitarEvidenciaAjuste"
+                                        class="btn btn-sm btn-outline-danger rounded-3">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+
+                            <img id="imgPreviewEvidenciaAjuste"
+                                 src=""
+                                 alt="Vista previa evidencia"
+                                 class="img-fluid rounded-3"
+                                 style="max-height:180px; width:100%; object-fit:cover;">
+                        </div>
+
+                        <small class="text-muted">
+                            Obligatorio para rotura, daño, pérdida o vencimiento.
+                        </small>
+                    </div>
+                    <div class="alert alert-light border rounded-4 small py-2">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Actualiza stock, registra kardex y auditoría.
+                    </div>
+
+                    <button type="submit"
+                            class="btn btn-primary rounded-3 w-100 py-2 fw-semibold inventario-panel-submit">
+                        <i class="bi bi-save me-1"></i>
+                        Guardar ajuste
+                    </button>
+
+                </form>
+
+            </div>
+        </div>
+
+    </div>
+    </div>
+
+    <div class="modal fade" id="modalDetalleAjuste" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content rounded-4 border-0 shadow">
+
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            Detalle del ajuste
+                        </h5>
+                        <small class="text-muted" id="detalleCodigoAjuste">AJU-00000</small>
+                    </div>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"
+                            aria-label="Cerrar"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <small class="text-muted">Fecha / hora</small>
+                            <div class="fw-semibold" id="detalleFechaAjuste"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Sede</small>
+                            <div class="fw-semibold" id="detalleSedeAjuste"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Usuario</small>
+                            <div class="fw-semibold" id="detalleUsuarioAjuste"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Motivo</small>
+                            <div>
+                            <span class="badge bg-warning-subtle text-warning px-3 py-2"
+                                  id="detalleMotivoAjuste"></span>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <small class="text-muted">Tipo</small>
+                            <div>
+                            <span class="badge px-3 py-2"
+                                  id="detalleTipoAjuste"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="fw-bold mb-3">Producto afectado</h6>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <small class="text-muted">Producto</small>
+                            <div class="fw-semibold" id="detalleProductoAjuste"></div>
+                            <small class="text-muted" id="detalleCodigoProductoAjuste"></small>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small class="text-muted">Presentación</small>
+                            <div class="fw-semibold" id="detallePresentacionAjuste"></div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <small class="text-muted">Cantidad</small>
+                            <div class="fw-semibold" id="detalleCantidadAjuste"></div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-4">
+                            <small class="text-muted">Equivalente stock</small>
+                            <div class="fw-semibold" id="detalleEquivalenteAjuste"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Stock anterior</small>
+                            <div class="fw-semibold" id="detalleStockAnteriorAjuste"></div>
+                        </div>
+
+                        <div class="col-md-4">
+                            <small class="text-muted">Stock actual</small>
+                            <div class="fw-semibold" id="detalleStockNuevoAjuste"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Valor impacto</small>
+                        <div class="fw-bold text-danger" id="detalleValorPerdidaAjuste"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <small class="text-muted">Observación</small>
+                        <div class="border rounded-4 p-3 bg-light" id="detalleObservacionAjuste"></div>
+                    </div>
+
+                    <div class="mb-2">
+                        <small class="text-muted">Evidencia fotográfica</small>
+
+                        <div id="detalleSinEvidenciaAjuste"
+                             class="border rounded-4 p-3 bg-light text-muted">
+                            Sin evidencia fotográfica.
+                        </div>
+
+                        <a id="detalleLinkEvidenciaAjuste"
+                           href="#"
+                           target="_blank"
+                           class="d-none">
+                            <img id="detalleImagenEvidenciaAjuste"
+                                 src=""
+                                 alt="Evidencia del ajuste"
+                                 class="img-fluid rounded-4 border mt-2"
+                                 style="max-height:320px; width:100%; object-fit:contain;">
+                        </a>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button"
+                            class="btn btn-outline-secondary rounded-3"
+                            data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                    <a id="btnExportarDetalleAjuste"
+                       href="#"
+                       class="btn btn-primary rounded-3 px-4">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+                        Exportar detalle PDF
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+<script th:src="@{/js/interno/inventario-ajustes.js}"></script>
+
+</body>
+</html>

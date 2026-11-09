@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo != null ? titulo : ((marcaConfig != null and !#strings.isEmpty(marcaConfig.nombreComercial) ? marcaConfig.nombreComercial : 'DentIA') + ' | Dashboard')}">DentIA | Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/interno/dashboard.css(v='mobile-20261108')}">
+</head>
+<body>
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+<main class="dentia-page dashboard-inicio container-fluid">
+    <div class="dashboard-heading d-flex flex-wrap align-items-end justify-content-between gap-3 mb-4">
+        <div>
+            <span class="text-success fw-semibold">Panel del consultorio</span>
+            <h1 class="display-6 fw-bold mb-1">Buenos días</h1>
+            <p class="text-secondary mb-0">Atendidos hoy: <strong th:text="${resumenDashboard.atendidosHoy}">0</strong></p>
+        </div>
+        <span class="badge rounded-pill text-bg-light border px-3 py-2">
+            <i class="bi bi-building-check me-2 text-success"></i>Consultorio activo
+        </span>
+    </div>
+
+    <div class="row g-4 dashboard-grid">
+        <div class="col-6 col-sm-6 col-xl-3 dashboard-stat">
+            <a href="/interno/pacientes" class="card dentia-card h-100 p-4 text-decoration-none text-reset">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-secondary">Pacientes</div>
+                        <div class="display-6 fw-bold mt-2" th:text="${resumenDashboard.pacientes}">0</div>
+                    </div>
+                    <span class="dentia-stat-icon"><i class="bi bi-people"></i></span>
+                </div>
+                <small class="text-secondary mt-3">Registros activos</small>
+            </a>
+        </div>
+        <div class="col-6 col-sm-6 col-xl-3 dashboard-stat">
+            <a href="/interno/citas" class="card dentia-card h-100 p-4 text-decoration-none text-reset">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-secondary">Citas de hoy</div>
+                        <div class="display-6 fw-bold mt-2 text-success" th:text="${resumenDashboard.citasHoy}">0</div>
+                    </div>
+                    <span class="dentia-stat-icon"><i class="bi bi-calendar-event"></i></span>
+                </div>
+                <small class="text-secondary mt-3">Programadas</small>
+            </a>
+        </div>
+        <div class="col-6 col-sm-6 col-xl-3 dashboard-stat">
+            <a href="/interno/citas?vista=proximas" class="card dentia-card h-100 p-4 text-decoration-none text-reset">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-secondary">Próximas citas</div>
+                        <div class="display-6 fw-bold mt-2" th:text="${resumenDashboard.proximasCitas}">0</div>
+                    </div>
+                    <span class="dentia-stat-icon"><i class="bi bi-clock-history"></i></span>
+                </div>
+                <small class="text-secondary mt-3">Siguientes 7 días</small>
+            </a>
+        </div>
+        <div class="col-6 col-sm-6 col-xl-3 dashboard-stat">
+            <a href="/interno/profesionales" class="card dentia-card h-100 p-4 text-decoration-none text-reset">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <div class="text-secondary">Profesionales</div>
+                        <div class="display-6 fw-bold mt-2" th:text="${resumenDashboard.profesionalesActivos}">0</div>
+                    </div>
+                    <span class="dentia-stat-icon"><i class="bi bi-person-badge"></i></span>
+                </div>
+                <small class="text-secondary mt-3">Atendiendo</small>
+            </a>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card dentia-card p-4 h-100">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <h2 class="h5 fw-bold">Agenda de hoy</h2>
+                        <p class="text-secondary mb-0">Citas programadas para hoy.</p>
+                    </div>
+                    <a th:href="@{/interno/citas}" class="dentia-stat-icon" aria-label="Abrir agenda">
+                        <i class="bi bi-calendar-heart"></i>
+                    </a>
+                </div>
+                <div class="d-grid gap-2 mt-4" th:if="${!#lists.isEmpty(agendaHoy)}">
+                    <div class="d-flex flex-wrap align-items-center gap-3 border rounded-4 p-3" th:each="c:${agendaHoy}">
+                        <strong class="text-success" th:text="${#temporals.format(c.inicio,'HH:mm')}"></strong>
+                        <div class="flex-grow-1">
+                            <div class="fw-semibold" th:text="${c.paciente}"></div>
+                            <small class="text-secondary" th:text="${c.profesional + ' · ' + c.tipoAtencion}"></small>
+                        </div>
+                        <span class="badge text-bg-light border" th:text="${c.estado}"></span>
+                        <a th:if="${c.estado.name() != 'ATENDIDA' and c.estado.name() != 'CANCELADA' and c.estado.name() != 'NO_ASISTIO'}" th:href="@{/interno/clinica/odontograma(pacienteId=${c.idPaciente},citaId=${c.idCita})}" class="btn btn-sm btn-success">Atender</a>
+                    </div>
+                </div>
+                <div class="dentia-coming rounded-4 text-center py-5 mt-4" th:if="${#lists.isEmpty(agendaHoy)}">
+                    <i class="bi bi-calendar2-check fs-2 text-success"></i>
+                    <p class="mb-0 mt-3 text-secondary">No hay citas programadas para hoy.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card dentia-card p-4 h-100">
+                <h2 class="h5 fw-bold" th:text="${marcaConfig != null and !#strings.isEmpty(marcaConfig.nombreComercial) ? marcaConfig.nombreComercial : 'DentIA'}">DentIA</h2>
+                <div class="d-flex gap-3 mt-3"><i class="bi bi-check-circle-fill text-success"></i><span>Identidad clínica activa</span></div>
+                <div class="d-flex gap-3 mt-3"><i class="bi bi-check-circle-fill text-success"></i><span>Usuarios y permisos conservados</span></div>
+                <div class="d-flex gap-3 mt-3"><i class="bi bi-check-circle-fill text-success"></i><span>Reserva del paciente habilitada</span></div>
+                <div class="d-flex gap-3 mt-3"><i class="bi bi-check-circle-fill text-success"></i><span>Agenda y disponibilidad en tiempo real</span></div>
+            </div>
+        </div>
+    </div>
+</main>
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

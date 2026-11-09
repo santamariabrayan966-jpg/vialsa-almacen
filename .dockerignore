@@ -2,3 +2,9 @@ target
 .git
 .idea
 *.iml
+uploads
+assets
+docs
+scripts
+verification
+.env*

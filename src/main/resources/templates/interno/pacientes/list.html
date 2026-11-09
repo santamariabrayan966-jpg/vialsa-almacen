@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Pacientes | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/dentia/pacientes.css(v='validacion-20261109')}">
+</head>
+<body>
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="dentia-page container-fluid admin-page pacientes-page">
+    <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <span class="text-success fw-semibold">Consultorio</span>
+            <h1 class="h2 fw-bold mb-1">Pacientes</h1>
+            <p class="text-secondary mb-0">Registro ágil y datos esenciales de tus pacientes.</p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+
+            <button type="button" class="btn btn-success pacientes-primary-action shadow-sm" id="btnNuevoPaciente"
+                    data-bs-toggle="modal" data-bs-target="#modalPaciente">
+                <i class="bi bi-person-plus me-2"></i>Nuevo paciente
+            </button>
+        </div>
+    </div>
+
+    <div class="alert alert-success alert-dismissible fade show" th:if="${ok}" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i><span th:text="${ok}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show" th:if="${error}" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+    </div>
+
+    <nav class="d-flex flex-wrap gap-2 mb-3" aria-label="Vista de pacientes">
+        <a class="btn btn-outline-success" th:href="@{/interno/pacientes}">Todos los pacientes</a>
+        <a class="btn btn-outline-success" th:href="@{/interno/pacientes(mios=true)}">Mis pacientes</a>
+        <a class="btn btn-outline-success" th:href="@{/interno/pacientes/mis-atenciones}">Mis atenciones</a>
+    </nav>
+    <p th:if="${mios}" class="text-secondary small">Pacientes que has atendido. Puedes volver a Todos los pacientes cuando lo necesites.</p>
+    <form class="admin-filter pacientes-filter p-3 mb-3" method="get">
+        <input th:if="${mios}" type="hidden" name="mios" value="true">
+        <div class="form-check mb-2"><input class="form-check-input" id="filtro-atendidos-hoy" type="checkbox" name="atendidosHoy" value="true" th:checked="${atendidosHoy}"><label class="form-check-label" for="filtro-atendidos-hoy">Atendidos hoy (con cita o atención directa)</label></div>
+        <div class="row g-2">
+            <div class="col-lg-8">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-secondary"></i></span>
+                    <input class="form-control border-start-0" name="q" th:value="${q}"
+                           placeholder="Buscar por nombre, DNI o celular" aria-label="Buscar pacientes">
+                </div>
+            </div>
+            <div class="col-sm-7 col-lg-2">
+                <select class="form-select" name="activo" aria-label="Filtrar por estado">
+                    <option value="">Todos</option>
+                    <option value="true" th:selected="${activoFiltro==true}">Activos</option>
+                    <option value="false" th:selected="${activoFiltro==false}">Inactivos</option>
+                </select>
+            </div>
+            <div class="col-sm-5 col-lg-2 d-grid"><button class="btn btn-outline-success">Buscar</button></div>
+        </div>
+    </form>
+
+    <section class="card dentia-card border-0 pacientes-card">
+        <div class="table-responsive d-none d-lg-block">
+            <table class="table align-middle mb-0 pacientes-table">
+                <thead><tr><th>Paciente</th><th>DNI</th><th>Celular</th><th>Estado</th><th class="text-end">Acciones</th></tr></thead>
+                <tbody>
+                <tr th:each="p:${pacientes}">
+                    <td><strong th:text="${p.nombreCompleto}"></strong><small class="d-block text-secondary" th:text="${#strings.isEmpty(p.correo)?'Sin correo':p.correo}"></small></td>
+                    <td th:text="${#strings.isEmpty(p.dni)?'Sin DNI':p.dni}"></td>
+                    <td th:text="${#strings.isEmpty(p.celular)?'Opcional':p.celular}"></td>
+                    <td><span class="badge" th:classappend="${p.activo}?'text-bg-success':'text-bg-secondary'" th:text="${p.activo}?'Activo':'Inactivo'"></span></td>
+                    <td><div class="admin-actions justify-content-end d-flex align-items-center gap-1">
+                        <a class="btn btn-sm btn-success text-white btn-action-icon shadow-xs"
+                           th:href="@{'/interno/clinica?pacienteId='+${p.idPaciente}}"
+                           title="Atender paciente en consulta clínica"
+                           aria-label="Atender paciente">
+                            <i class="bi bi-heart-pulse"></i>
+                        </a>
+                        <button th:if="${!#strings.isEmpty(p.celular)}"
+                                type="button" class="btn btn-sm btn-outline-success btn-action-icon btn-wa-smart"
+                                th:data-wa-phone="${p.celular}"
+                                th:data-wa-message="${'Hola ' + p.nombres + ', te saludamos de la clínica odontológica DentIA. ¿En qué podemos ayudarte hoy?'}"
+                                title="Escribir por WhatsApp"
+                                aria-label="Escribir por WhatsApp">
+                            <i class="bi bi-whatsapp"></i>
+                        </button>
+                        <a class="btn btn-sm btn-outline-teal btn-action-icon"
+                           th:href="@{'/interno/pacientes/'+${p.idPaciente}}"
+                           title="Ver expediente y ficha clínica"
+                           aria-label="Ver ficha">
+                            <i class="bi bi-person-vcard"></i>
+                        </a>
+                        <button type="button" class="btn btn-sm btn-outline-primary btn-action-icon btn-editar-paciente"
+                                data-bs-toggle="modal" data-bs-target="#modalPaciente"
+                                th:attr="data-id=${p.idPaciente},data-dni=${p.dni},data-nombres=${p.nombres},data-apellidos=${p.apellidos},data-fecha=${p.fechaNacimiento},data-direccion=${p.direccion},data-celular=${p.celular},data-correo=${p.correo}"
+                                title="Editar datos del paciente"
+                                aria-label="Editar datos">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <form method="post" th:action="@{'/interno/pacientes/'+${p.idPaciente}+'/estado'}" class="d-inline m-0">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                            <input type="hidden" name="activo" th:value="${!p.activo}">
+                            <button class="btn btn-sm btn-action-icon"
+                                    th:classappend="${p.activo} ? 'btn-outline-danger' : 'btn-outline-secondary'"
+                                    th:title="${p.activo} ? 'Desactivar paciente' : 'Activar paciente'"
+                                    th:aria-label="${p.activo} ? 'Desactivar paciente' : 'Activar paciente'">
+                                <i class="bi" th:classappend="${p.activo} ? 'bi-person-slash' : 'bi-person-check'"></i>
+                            </button>
+                        </form>
+                    </div></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(pacientes)}"><td colspan="5" class="text-center text-secondary py-5">No se encontraron pacientes.</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="pacientes-mobile-list d-lg-none">
+            <article class="paciente-mobile-item" th:each="p:${pacientes}">
+                <div class="d-flex justify-content-between gap-3">
+                    <div><strong th:text="${p.nombreCompleto}"></strong><small class="d-block text-secondary" th:text="${#strings.isEmpty(p.dni)?'Sin DNI':'DNI '+p.dni}"></small></div>
+                    <span class="badge align-self-start" th:classappend="${p.activo}?'text-bg-success':'text-bg-secondary'" th:text="${p.activo}?'Activo':'Inactivo'"></span>
+                </div>
+                <div class="small text-secondary mt-2"><i class="bi bi-phone me-1"></i><span th:text="${#strings.isEmpty(p.celular)?'Celular opcional':p.celular}"></span></div>
+                <div class="d-flex align-items-center justify-content-end gap-2 mt-3 pt-2 border-top">
+                    <a class="btn btn-sm btn-success text-white btn-action-icon" th:href="@{'/interno/clinica?pacienteId='+${p.idPaciente}}" title="Atender paciente" aria-label="Atender"><i class="bi bi-heart-pulse"></i></a>
+                    <button th:if="${!#strings.isEmpty(p.celular)}" type="button" class="btn btn-sm btn-outline-success btn-action-icon btn-wa-smart" th:data-wa-phone="${p.celular}" th:data-wa-message="${'Hola ' + p.nombres + ', te saludamos de DentIA.'}" title="WhatsApp" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></button>
+                    <a class="btn btn-sm btn-outline-teal btn-action-icon" th:href="@{'/interno/pacientes/'+${p.idPaciente}}" title="Ficha" aria-label="Ficha"><i class="bi bi-person-vcard"></i></a>
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-action-icon btn-editar-paciente" data-bs-toggle="modal" data-bs-target="#modalPaciente" th:attr="data-id=${p.idPaciente},data-dni=${p.dni},data-nombres=${p.nombres},data-apellidos=${p.apellidos},data-fecha=${p.fechaNacimiento},data-direccion=${p.direccion},data-celular=${p.celular},data-correo=${p.correo}" title="Editar" aria-label="Editar"><i class="bi bi-pencil"></i></button>
+                    <form method="post" th:action="@{'/interno/pacientes/'+${p.idPaciente}+'/estado'}" class="d-inline m-0">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="activo" th:value="${!p.activo}">
+                        <button class="btn btn-sm btn-action-icon" th:classappend="${p.activo} ? 'btn-outline-danger' : 'btn-outline-secondary'" th:title="${p.activo} ? 'Desactivar' : 'Activar'" th:aria-label="${p.activo} ? 'Desactivar' : 'Activar'"><i class="bi" th:classappend="${p.activo} ? 'bi-person-slash' : 'bi-person-check'"></i></button>
+                    </form>
+                </div>
+            </article>
+            <p class="text-center text-secondary py-5 mb-0" th:if="${#lists.isEmpty(pacientes)}">No se encontraron pacientes.</p>
+        </div>
+    </section>
+</main>
+
+<div class="modal fade" id="modalPaciente" tabindex="-1" aria-labelledby="modalPacienteTitulo" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false"
+     th:attr="data-auto-open=${abrirModalPaciente}">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content paciente-modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span class="text-success fw-semibold small">Datos del paciente</span>
+                    <h2 class="modal-title h4 fw-bold" id="modalPacienteTitulo" th:text="${pacienteFormulario.idPaciente == null ? 'Nuevo paciente' : 'Editar paciente'}">Nuevo paciente</h2>
+                    <p class="text-secondary small mb-0">Consulta el DNI y completa únicamente los datos faltantes.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <form method="post" th:action="@{/interno/pacientes}" th:object="${pacienteFormulario}" id="formPaciente" novalidate>
+                <div class="modal-body pt-3">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" th:field="*{idPaciente}" id="pacienteId">
+
+                    <div class="dni-consulta-box mb-4">
+                        <label class="form-label fw-semibold" for="pacienteDni">DNI *</label>
+                        <div class="input-group input-group-lg has-validation">
+                            <span class="input-group-text bg-white"><i class="bi bi-person-badge text-success"></i></span>
+                            <input class="form-control" th:field="*{dni}" id="pacienteDni" inputmode="numeric" maxlength="8" autocomplete="off" required placeholder="Ingresa 8 dígitos">
+                            <button class="btn btn-success" type="button" id="btnConsultarDni"><i class="bi bi-search me-1"></i><span class="d-none d-sm-inline">Consultar DNI</span></button>
+                            <div class="invalid-feedback" id="errorPacienteDni">El DNI debe contener exactamente 8 dígitos numéricos.</div>
+                        </div>
+                        <div class="form-text" id="estadoConsultaDni">Se completarán nombres, apellidos y ubicación cuando estén disponibles.</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="pacienteNombres">Nombres *</label>
+                            <input class="form-control" th:field="*{nombres}" id="pacienteNombres" required maxlength="100" autocomplete="given-name" style="text-transform: uppercase;">
+                            <div class="invalid-feedback" id="errorPacienteNombres">Ingrese nombres válidos (solo letras y espacios).</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="pacienteApellidos">Apellidos *</label>
+                            <input class="form-control" th:field="*{apellidos}" id="pacienteApellidos" required maxlength="120" autocomplete="family-name" style="text-transform: uppercase;">
+                            <div class="invalid-feedback" id="errorPacienteApellidos">Ingrese apellidos válidos (solo letras y espacios).</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="pacienteFechaNacimiento">Fecha de nacimiento *</label>
+                            <input type="date" class="form-control" th:field="*{fechaNacimiento}" id="pacienteFechaNacimiento" required min="1900-01-01">
+                            <div class="invalid-feedback" id="errorPacienteFecha">Fecha inválida. No puede ser futura ni anterior a 1900.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="pacienteCorreo">Correo</label>
+                            <input type="email" class="form-control" th:field="*{correo}" id="pacienteCorreo" maxlength="180" autocomplete="email" placeholder="Opcional">
+                            <div class="invalid-feedback" id="errorPacienteCorreo">Ingrese un correo electrónico válido (ej: usuario@dominio.com).</div>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold" for="pacienteDireccion">Ubicación / dirección</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white"><i class="bi bi-geo-alt text-success"></i></span>
+                                <input class="form-control" th:field="*{direccion}" id="pacienteDireccion" maxlength="255" autocomplete="street-address" placeholder="Se completará con la consulta de DNI si el proveedor la entrega" style="text-transform: uppercase;">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold" for="pacienteCelular">Celular <span class="text-secondary fw-normal">(opcional)</span></label>
+                            <input class="form-control" th:field="*{celular}" id="pacienteCelular" maxlength="9" inputmode="tel" autocomplete="tel" placeholder="Ej. 987654321">
+                            <div class="invalid-feedback" id="errorPacienteCelular">El celular debe tener 9 dígitos numéricos (comenzando con 9).</div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-light border small mt-4 mb-0"><i class="bi bi-shield-check text-success me-2"></i>La consulta se realiza desde el servidor; la clave de MiAPI nunca se expone en el navegador.</div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="submit" class="btn btn-success px-4 ms-auto" id="btnGuardarPaciente"><i class="bi bi-check2-circle me-2"></i><span th:text="${pacienteFormulario.idPaciente == null ? 'Guardar paciente' : 'Guardar cambios'}">Guardar paciente</span></button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/dentia/pacientes.js(v='validacion-20261109')}"></script>
+</body>
+</html>

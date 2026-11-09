@@ -1,0 +1,1046 @@
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Recepción de Compra | DentIA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/interno/panel-responsive.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/compras.css}">
+
+    <style>
+        body {
+            background: #f4f6f9;
+        }
+
+        .page-wrap {
+            max-width: 1180px;
+            margin: 30px auto;
+        }
+
+        .card-dentia {
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .08);
+        }
+
+        .header-box {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 22px;
+            box-shadow: 0 8px 22px rgba(15, 23, 42, .08);
+            margin-bottom: 18px;
+        }
+
+        .title-main {
+            font-weight: 800;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-bottom: 0;
+        }
+
+        .badge-soft {
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-weight: 700;
+            font-size: .78rem;
+        }
+
+        .badge-pendiente {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .badge-parcial {
+            background: #eff6ff;
+            color: #1d4ed8;
+        }
+
+        .badge-completa {
+            background: #ecfdf5;
+            color: #047857;
+        }
+
+        .badge-borrador {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .table thead th {
+            background: #f9fafb;
+            color: #374151;
+            font-size: .82rem;
+            text-transform: uppercase;
+            letter-spacing: .03em;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .input-cantidad {
+            max-width: 140px;
+        }
+
+        .info-label {
+            font-size: .78rem;
+            color: #6b7280;
+            margin-bottom: 3px;
+        }
+
+        .info-value {
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .btn-dentia {
+            border-radius: 12px;
+            font-weight: 700;
+            padding: 10px 16px;
+        }
+
+        .section-title {
+            font-weight: 800;
+            color: #111827;
+            font-size: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .empty-box {
+            border: 1px dashed #cbd5e1;
+            border-radius: 14px;
+            padding: 22px;
+            background: #f8fafc;
+            color: #64748b;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .table-responsive {
+                border-radius: 14px;
+            }
+
+            .header-actions {
+                margin-top: 14px;
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body class="panel-interno compras-module compras-recepcion-page">
+
+<div class="page-wrap px-3">
+
+    <div class="header-box">
+        <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+            <div>
+                <h3 class="title-main">
+                    <i class="bi bi-box-seam me-2"></i>
+                    Recepción de compra
+                </h3>
+                <p class="subtitle">
+                    Registra la guía de remisión y las cantidades realmente recibidas.
+                </p>
+            </div>
+
+            <div class="header-actions d-flex flex-column flex-md-row gap-2">
+
+                <button type="button"
+                        th:if="${compra.estado == 'RECIBIDA_PARCIAL'}"
+                        class="btn btn-warning btn-dentia"
+                        data-bs-toggle="modal"
+                        data-bs-target="#modalCerrarFaltante">
+                    <i class="bi bi-clipboard-x me-1"></i>
+                    Cerrar faltante
+                </button>
+
+                <a th:href="@{/interno/compras}" class="btn btn-outline-secondary btn-dentia">
+                    <i class="bi bi-arrow-left me-1"></i>
+                    Volver a compras
+                </a>
+
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${errorRecepcion != null}" class="alert alert-danger card-dentia">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <span th:text="${errorRecepcion}">Error</span>
+    </div>
+
+    <div th:if="${param.errorCerrarFaltante != null}" class="alert alert-danger card-dentia">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i>
+        <span th:text="${param.errorCerrarFaltante[0]}">
+        No se pudo cerrar el faltante.
+    </span>
+    </div>
+
+    <div class="card card-dentia mb-4">
+        <div class="card-body">
+            <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+                <div>
+                    <div class="section-title mb-1">Datos de la compra</div>
+                    <div class="text-muted small">
+                        Esta información corresponde a la factura o boleta registrada.
+                    </div>
+                </div>
+
+                <div>
+                    <span class="badge-soft"
+                          th:classappend="${compra.estado == 'RECIBIDA_COMPLETA'} ? ' badge-completa' :
+                                          (${compra.estado == 'RECIBIDA_PARCIAL'} ? ' badge-parcial' :
+                                          (${compra.estado == 'BORRADOR'} ? ' badge-borrador' : ' badge-pendiente'))"
+                          th:text="${compra.estado == 'BORRADOR'} ? 'PROFORMA' : ${compra.estado}">
+                        PENDIENTE_RECEPCION
+                    </span>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-12 col-md-3">
+                    <div class="info-label">Compra</div>
+                    <div class="info-value">
+                        #<span th:text="${compra.idCompra}">1</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="info-label">Comprobante</div>
+                    <div class="info-value">
+                        <span th:text="${compra.tipoComprobante}">FACTURA</span>
+                        <span th:text="${compra.serie}">F001</span>-<span th:text="${compra.numero}">000001</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="info-label">Sede activa</div>
+                    <div class="info-value" th:text="${sedeActivaNombre != null ? sedeActivaNombre : 'Sede actual'}">
+                        Sede actual
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <div class="info-label">Fecha de emisión</div>
+                    <div class="info-value" th:text="${compra.fechaEmision != null ? compra.fechaEmision : '-'}">
+                        -
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form th:action="@{/interno/compras/recepcion/guardar}" method="post" id="formRecepcion">
+        <input type="hidden" name="idCompra" th:value="${compra.idCompra}">
+
+        <div class="card card-dentia mb-4">
+            <div class="card-body">
+                <div class="section-title">
+                    <i class="bi bi-truck me-1"></i>
+                    Datos de la guía de remisión
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Nro. guía de remisión</label>
+                        <input type="text"
+                               name="nroGuiaRemision"
+                               class="form-control"
+                               placeholder="Ej. T001-000123"
+                               required>
+                        <div class="form-text">
+                            Registra la guía con la que llegó la mercadería.
+                        </div>
+                    </div>
+
+                    <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold">Fecha de recepción</label>
+                        <input type="date"
+                               name="fechaRecepcion"
+                               class="form-control"
+                               th:value="${fechaHoy}"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Observación</label>
+                        <input type="text"
+                               name="observacion"
+                               class="form-control"
+                               placeholder="Ej. Primera entrega parcial, llegó sin daños, etc.">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-dentia mb-4">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-3">
+                    <div>
+                        <div class="section-title mb-1">
+                            <i class="bi bi-boxes me-1"></i>
+                            Productos pendientes por recibir
+                        </div>
+                        <div class="text-muted small">
+                            Ingresa solo la cantidad que llegó con esta guía. No puede superar la cantidad pendiente.
+                        </div>
+                    </div>
+                </div>
+
+                <div th:if="${pendientes == null or #lists.isEmpty(pendientes)}" class="empty-box">
+                    <i class="bi bi-check-circle fs-3 d-block mb-2"></i>
+                    Esta compra ya no tiene productos pendientes por recibir.
+                </div>
+
+                <div th:if="${pendientes != null and !#lists.isEmpty(pendientes)}" class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th>Unidad</th>
+                            <th class="text-end">Comprado</th>
+                            <th class="text-end">Ya recibido</th>
+                            <th class="text-end">Pendiente</th>
+                            <th class="text-end">Recibir ahora</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="d : ${pendientes}">
+                            <td>
+                                <input type="hidden" name="idDetalleCompra" th:value="${d.idDetalleCompra}">
+                                <input type="hidden" name="idProducto" th:value="${d.idProducto}">
+                                <input type="hidden" name="idUnidad" th:value="${d.idUnidad}">
+
+                                <div class="fw-bold" th:text="${d.nombreProducto}">
+                                    Producto
+                                </div>
+                                <div class="text-muted small">
+                                    Detalle compra #<span th:text="${d.idDetalleCompra}">1</span>
+                                </div>
+                            </td>
+
+                            <td th:text="${d.nombreUnidad}">
+                                Unidad
+                            </td>
+
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(d.cantidadComprada, 1, 0)}">
+                                0
+                            </td>
+
+                            <td class="text-end"
+                                th:text="${#numbers.formatDecimal(d.cantidadYaRecibida, 1, 0)}">
+                                0
+                            </td>
+
+                            <td class="text-end fw-bold text-primary cantidad-pendiente"
+                                th:text="${#numbers.formatDecimal(d.cantidadPendiente, 1, 0)}">
+                                0
+                            </td>
+
+                            <td class="text-end">
+                                <input type="number"
+                                       name="cantidadRecibida"
+                                       class="form-control input-cantidad ms-auto cantidad-recibida"
+                                       min="0"
+                                       step="1"
+                                       th:attr="max=${#numbers.formatDecimal(d.cantidadPendiente, 1, 0)}"
+                                       placeholder="0">
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div th:if="${pendientes != null and !#lists.isEmpty(pendientes)}"
+                     class="d-flex flex-column flex-md-row justify-content-end gap-2 mt-3">
+                    <a th:href="@{/interno/compras}" class="btn btn-outline-secondary btn-dentia">
+                        Cancelar
+                    </a>
+
+                    <button type="submit" class="btn btn-primary btn-dentia">
+                        <i class="bi bi-check2-circle me-1"></i>
+                        Registrar recepción y aumentar stock
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="card card-dentia mb-4">
+        <div class="card-body">
+            <div class="section-title">
+                <i class="bi bi-clock-history me-1"></i>
+                Guías registradas para esta compra
+            </div>
+
+            <div th:if="${recepciones == null or #lists.isEmpty(recepciones)}" class="empty-box">
+                Todavía no se ha registrado ninguna guía de recepción para esta compra.
+            </div>
+
+            <div th:if="${recepciones != null and !#lists.isEmpty(recepciones)}" class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th>Guía</th>
+                        <th>Fecha recepción</th>
+                        <th>Sede</th>
+                        <th>Estado</th>
+                        <th>Observación</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+                    <tr th:each="r : ${recepciones}">
+                        <td class="fw-bold" th:text="${r.nroGuiaRemision}">
+                            T001-000001
+                        </td>
+                        <td th:text="${r.fechaRecepcion != null ? #temporals.format(r.fechaRecepcion, 'dd/MM/yyyy') : '-'}">
+                            01/01/2026
+                        </td>
+                        <td th:text="${r.sedeNombre}">
+                            Sede
+                        </td>
+                        <td>
+                            <span class="badge bg-success" th:text="${r.estado}">
+                                REGISTRADA
+                            </span>
+                        </td>
+                        <td th:text="${r.observacion != null ? r.observacion : '-'}">
+                            -
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- MODAL CERRAR FALTANTE -->
+<div class="modal fade" id="modalCerrarFaltante" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4">
+
+            <form th:action="@{/interno/compras/recepcion/cerrar-faltante}" method="post" id="formCerrarFaltante">
+
+                <div class="modal-header bg-warning-subtle border-0 rounded-top-4">
+                    <div>
+                        <h5 class="modal-title fw-bold text-dark mb-1">
+                            <i class="bi bi-clipboard-x me-1"></i>
+                            Cerrar faltante con diferencia
+                        </h5>
+                        <div class="text-muted small">
+                            Usa esta opción cuando el proveedor ya no entregará la cantidad pendiente.
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <input type="hidden" name="idCompra" th:value="${compra.idCompra}">
+
+                    <div class="alert alert-warning border-0 rounded-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta acción no aumentará stock. El sistema cerrará el faltante, validará el monto ajustado contra el valor pendiente y actualizará la deuda si corresponde.
+                    </div>
+
+                    <div id="erroresCerrarFaltante" class="alert alert-danger d-none">
+                        <strong>Revisa el formulario</strong>
+                        <ul class="mb-0 mt-2" id="listaErroresCerrarFaltante"></ul>
+                    </div>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Motivo</label>
+                            <select name="motivo" id="motivoCierre" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="NO_ENTREGADO_PROVEEDOR">No entregado por proveedor</option>
+                                <option value="DEVOLUCION_DINERO">Devolución de dinero</option>
+                                <option value="DESCUENTO_APLICADO">Descuento aplicado</option>
+                                <option value="PRODUCTO_CANCELADO">Producto cancelado</option>
+                                <option value="OTRO">Otro</option>
+                            </select>
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="motivo"></div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Tipo de sustento</label>
+                            <select name="tipoSustento" id="tipoSustentoCierre" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="NOTA_CREDITO">Nota de crédito</option>
+                                <option value="DEVOLUCION_BANCARIA">Devolución bancaria</option>
+                                <option value="ACUERDO_INTERNO">Acuerdo interno</option>
+                                <option value="SIN_DOCUMENTO">Sin documento tributario</option>
+                            </select>
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="tipoSustento"></div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Estado de devolución / ajuste</label>
+                            <select name="estadoDevolucion" id="estadoDevolucionCierre" class="form-select" required>
+                                <option value="">Seleccione...</option>
+                                <option value="NO_APLICA">No aplica devolución económica</option>
+                                <option value="PENDIENTE_DEVOLUCION">Pendiente de devolución / ajuste</option>
+                                <option value="DEVUELTO_AJUSTADO">Devuelto o ajustado</option>
+                            </select>
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="estadoDevolucion"></div>
+
+                            <div class="form-text">
+                                Indica si el proveedor ya devolvió/ajustó el monto o si queda pendiente.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4 bloque-documento-cierre d-none">
+                            <label class="form-label fw-semibold">Serie documento</label>
+                            <input type="text"
+                                   name="serieDocumento"
+                                   class="form-control"
+                                   placeholder="Ej. FC01">
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="serieDocumento"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4 bloque-documento-cierre d-none">
+                            <label class="form-label fw-semibold">Número documento</label>
+                            <input type="text"
+                                   name="numeroDocumento"
+                                   class="form-control"
+                                   placeholder="Ej. 000123">
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="numeroDocumento"></div>
+                        </div>
+
+                        <div class="col-12 col-md-4 bloque-documento-cierre d-none">
+                            <label class="form-label fw-semibold">Fecha documento</label>
+                            <input type="date"
+                                   name="fechaDocumento"
+                                   class="form-control"
+                                   th:value="${fechaHoy}">
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="fechaDocumento"></div>
+                        </div>
+
+                        <div class="col-12 col-md-6 bloque-monto-cierre d-none">
+                            <label class="form-label fw-semibold">Monto ajustado</label>
+                            <input type="number"
+                                   name="montoAjustado"
+                                   id="montoAjustadoCierre"
+                                   class="form-control bg-light"
+                                   min="0"
+                                   step="0.01"
+                                   readonly
+                                   th:value="${#numbers.formatDecimal(valorFaltantePendiente, 1, 2)}"
+                                   th:min="${#numbers.formatDecimal(valorFaltantePendiente, 1, 2)}"
+                                   th:max="${#numbers.formatDecimal(valorFaltantePendiente, 1, 2)}"
+                                   th:attr="data-valor-faltante=${#numbers.formatDecimal(valorFaltantePendiente, 1, 2)}"
+                                   placeholder="0.00">
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="montoAjustado"></div>
+
+                            <div class="form-text"
+                                 th:text="'Monto automático según valor faltante pendiente: S/ ' + ${#numbers.formatDecimal(valorFaltantePendiente, 1, 2)} + '. Este monto no se edita manualmente.'">
+                                Monto automático según valor faltante pendiente: S/ 0.00. Este monto no se edita manualmente.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-6 bloque-fecha-devolucion-cierre d-none">
+                            <label class="form-label fw-semibold">Fecha devolución / ajuste</label>
+                            <input type="date"
+                                   name="fechaDevolucion"
+                                   class="form-control"
+                                   th:value="${fechaHoy}">
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="fechaDevolucion"></div>
+
+                            <div class="form-text">
+                                Obligatorio si el proveedor ya devolvió o ajustó.
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Observación</label>
+                            <textarea name="observacion"
+                                      id="observacionCierre"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Ej. Proveedor confirmó que no entregará el saldo pendiente y emitirá nota de crédito."></textarea>
+
+                            <div class="text-danger small mt-1 error-campo-cierre"
+                                 data-error-cierre="observacion"></div>
+
+                            <div class="form-text">
+                                La observación es obligatoria cuando no hay documento tributario, acuerdo interno o devolución bancaria.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-outline-secondary btn-dentia" data-bs-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <button type="submit" class="btn btn-warning btn-dentia">
+                        <i class="bi bi-check2-circle me-1"></i>
+                        Confirmar cierre
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("formRecepcion");
+
+        document.querySelectorAll(".cantidad-recibida").forEach(input => {
+            input.addEventListener("input", () => {
+                const max = parseFloat(input.getAttribute("max") || "0");
+                let value = parseFloat(input.value || "0");
+
+                if (value < 0) {
+                    input.value = "0";
+                    return;
+                }
+
+                if (value > max) {
+                    input.value = max;
+                }
+            });
+        });
+
+        form?.addEventListener("submit", (e) => {
+            let recibioAlgo = false;
+
+            document.querySelectorAll(".cantidad-recibida").forEach(input => {
+                const value = parseFloat(input.value || "0");
+                if (value > 0) {
+                    recibioAlgo = true;
+                }
+            });
+
+            if (!recibioAlgo) {
+                e.preventDefault();
+                alert("Debes ingresar al menos una cantidad recibida mayor a 0.");
+            }
+        });
+
+      const formCerrarFaltante = document.getElementById("formCerrarFaltante");
+const tipoSustentoCierre = document.getElementById("tipoSustentoCierre");
+const estadoDevolucionCierre = document.getElementById("estadoDevolucionCierre");
+
+const bloquesDocumentoCierre = document.querySelectorAll(".bloque-documento-cierre");
+const bloquesMontoCierre = document.querySelectorAll(".bloque-monto-cierre");
+const bloquesFechaDevolucionCierre = document.querySelectorAll(".bloque-fecha-devolucion-cierre");
+
+const erroresCerrarFaltante = document.getElementById("erroresCerrarFaltante");
+const listaErroresCerrarFaltante = document.getElementById("listaErroresCerrarFaltante");
+
+function obtenerValorFaltantePendiente() {
+    const inputMonto = document.getElementById("montoAjustadoCierre");
+
+    if (!inputMonto) {
+        return 0;
+    }
+
+    const valor = inputMonto.dataset.valorFaltante || inputMonto.getAttribute("max") || "0";
+    return Number(valor.toString().replace(",", ".")) || 0;
+}
+
+function formatearMonto(valor) {
+    return Number(valor || 0).toFixed(2);
+}
+
+function mostrarBloque(lista, mostrar) {
+    lista.forEach(el => el.classList.toggle("d-none", !mostrar));
+}
+
+function limpiarCamposOcultos() {
+    const tipoSustento = tipoSustentoCierre?.value || "";
+    const estadoDev = estadoDevolucionCierre?.value || "";
+    const valorFaltante = obtenerValorFaltantePendiente();
+
+    if (tipoSustento !== "NOTA_CREDITO") {
+        formCerrarFaltante?.querySelector("[name='serieDocumento']") &&
+        (formCerrarFaltante.querySelector("[name='serieDocumento']").value = "");
+
+        formCerrarFaltante?.querySelector("[name='numeroDocumento']") &&
+        (formCerrarFaltante.querySelector("[name='numeroDocumento']").value = "");
+    }
+
+    const monto = formCerrarFaltante?.querySelector("[name='montoAjustado']");
+    const fechaDev = formCerrarFaltante?.querySelector("[name='fechaDevolucion']");
+
+    if (!monto) {
+        return;
+    }
+
+    monto.readOnly = true;
+    monto.classList.add("bg-light");
+
+    if (estadoDev === "NO_APLICA") {
+        monto.value = "0.00";
+        monto.min = "0.00";
+        monto.max = "0.00";
+
+        if (fechaDev) {
+            fechaDev.value = "";
+        }
+    }
+
+    if (estadoDev === "PENDIENTE_DEVOLUCION") {
+        monto.value = formatearMonto(valorFaltante);
+        monto.min = formatearMonto(valorFaltante);
+        monto.max = formatearMonto(valorFaltante);
+    }
+
+    if (estadoDev === "DEVUELTO_AJUSTADO") {
+        monto.value = formatearMonto(valorFaltante);
+        monto.min = formatearMonto(valorFaltante);
+        monto.max = formatearMonto(valorFaltante);
+    }
+}
+
+function actualizarModalCerrarFaltante() {
+    const tipoSustento = tipoSustentoCierre?.value || "";
+    const estadoDev = estadoDevolucionCierre?.value || "";
+
+    const mostrarDocumento =
+        tipoSustento === "NOTA_CREDITO" ||
+        tipoSustento === "DEVOLUCION_BANCARIA";
+
+    const mostrarMonto =
+        estadoDev === "PENDIENTE_DEVOLUCION" ||
+        estadoDev === "DEVUELTO_AJUSTADO" ||
+        tipoSustento === "NOTA_CREDITO" ||
+        tipoSustento === "DEVOLUCION_BANCARIA";
+
+    const mostrarFechaDevolucion =
+        estadoDev === "DEVUELTO_AJUSTADO";
+
+    mostrarBloque(bloquesDocumentoCierre, mostrarDocumento);
+    mostrarBloque(bloquesMontoCierre, mostrarMonto);
+    mostrarBloque(bloquesFechaDevolucionCierre, mostrarFechaDevolucion);
+
+    limpiarCamposOcultos();
+}
+
+function marcarCampoCierre(nombreCampo, mensaje) {
+    const error = document.querySelector(`[data-error-cierre="${nombreCampo}"]`);
+    const campo = formCerrarFaltante?.querySelector(`[name="${nombreCampo}"]`);
+
+    if (error) {
+        error.textContent = mensaje;
+    }
+
+    if (campo) {
+        campo.classList.add("is-invalid");
+    }
+}
+
+function mostrarErroresCierre(errores, erroresCampos = {}) {
+    if (erroresCerrarFaltante && listaErroresCerrarFaltante) {
+        listaErroresCerrarFaltante.innerHTML = "<li>Revisa los campos marcados en rojo.</li>";
+        erroresCerrarFaltante.classList.remove("d-none");
+    }
+
+    Object.entries(erroresCampos).forEach(([campo, mensaje]) => {
+        marcarCampoCierre(campo, mensaje);
+    });
+
+    const primerCampoConError = formCerrarFaltante?.querySelector(".is-invalid");
+
+    if (primerCampoConError) {
+        primerCampoConError.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => primerCampoConError.focus(), 350);
+    } else if (erroresCerrarFaltante) {
+        erroresCerrarFaltante.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+function limpiarErroresCierre() {
+    if (erroresCerrarFaltante) erroresCerrarFaltante.classList.add("d-none");
+    if (listaErroresCerrarFaltante) listaErroresCerrarFaltante.innerHTML = "";
+
+    document.querySelectorAll(".error-campo-cierre").forEach(el => {
+        el.textContent = "";
+    });
+
+    formCerrarFaltante?.querySelectorAll(".is-invalid").forEach(el => {
+        el.classList.remove("is-invalid");
+    });
+}
+
+tipoSustentoCierre?.addEventListener("change", actualizarModalCerrarFaltante);
+estadoDevolucionCierre?.addEventListener("change", actualizarModalCerrarFaltante);
+
+const montoAjustadoCierre = document.getElementById("montoAjustadoCierre");
+
+montoAjustadoCierre?.addEventListener("input", () => {
+    const valorFaltante = obtenerValorFaltantePendiente();
+    const monto = Number(montoAjustadoCierre.value || 0);
+
+    const error = document.querySelector(`[data-error-cierre="montoAjustado"]`);
+
+    montoAjustadoCierre.classList.remove("is-invalid");
+
+    if (error) {
+        error.textContent = "";
+    }
+
+    if (monto < 0) {
+        montoAjustadoCierre.classList.add("is-invalid");
+        if (error) {
+            error.textContent = "El monto ajustado no puede ser negativo.";
+        }
+        return;
+    }
+
+    if (monto > valorFaltante) {
+        montoAjustadoCierre.classList.add("is-invalid");
+        if (error) {
+            error.textContent = "El monto máximo permitido es S/ " + formatearMonto(valorFaltante) + ".";
+        }
+    }
+});
+
+actualizarModalCerrarFaltante();
+
+formCerrarFaltante?.querySelectorAll("input, select, textarea").forEach(campo => {
+    campo.addEventListener("input", () => {
+        campo.classList.remove("is-invalid");
+
+        const error = document.querySelector(`[data-error-cierre="${campo.name}"]`);
+        if (error) {
+            error.textContent = "";
+        }
+    });
+
+    campo.addEventListener("change", () => {
+        campo.classList.remove("is-invalid");
+
+        const error = document.querySelector(`[data-error-cierre="${campo.name}"]`);
+        if (error) {
+            error.textContent = "";
+        }
+    });
+});
+
+formCerrarFaltante?.addEventListener("submit", (e) => {
+    limpiarErroresCierre();
+
+    const motivo = formCerrarFaltante.querySelector("[name='motivo']")?.value || "";
+    const tipoSustento = formCerrarFaltante.querySelector("[name='tipoSustento']")?.value || "";
+    const estadoDev = formCerrarFaltante.querySelector("[name='estadoDevolucion']")?.value || "";
+
+    const serie = formCerrarFaltante.querySelector("[name='serieDocumento']")?.value.trim().toUpperCase() || "";
+    const numero = formCerrarFaltante.querySelector("[name='numeroDocumento']")?.value.trim() || "";
+    const fechaDocumento = formCerrarFaltante.querySelector("[name='fechaDocumento']")?.value || "";
+    const fechaDevolucion = formCerrarFaltante.querySelector("[name='fechaDevolucion']")?.value || "";
+    const monto = Number(formCerrarFaltante.querySelector("[name='montoAjustado']")?.value || 0);
+    const observacion = formCerrarFaltante.querySelector("[name='observacion']")?.value.trim() || "";
+
+    let errores = [];
+    let erroresCampos = {};
+
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const fechaDocDate = fechaDocumento ? new Date(fechaDocumento + "T00:00:00") : null;
+    const fechaDevDate = fechaDevolucion ? new Date(fechaDevolucion + "T00:00:00") : null;
+
+    const serieNotaCreditoValida = /^(FC|BC)\d{2}$/.test(serie);
+    const numeroDocumentoValido = /^\d{1,8}$/.test(numero);
+    const observacionValida = /^[A-Za-zÁÉÍÓÚáéíóúÑñ0-9\s.,;:()\-\/]{10,500}$/.test(observacion);
+
+   if (!motivo) {
+    errores.push("Debe seleccionar el motivo del cierre.");
+    erroresCampos.motivo = "Selecciona el motivo del cierre.";
+}
+
+if (!tipoSustento) {
+    errores.push("Debe seleccionar el tipo de sustento.");
+    erroresCampos.tipoSustento = "Selecciona el tipo de sustento.";
+}
+
+if (!estadoDev) {
+    errores.push("Debe seleccionar el estado de devolución o ajuste.");
+    erroresCampos.estadoDevolucion = "Selecciona el estado de devolución o ajuste.";
+}
+
+if (fechaDocDate && fechaDocDate > hoy) {
+    errores.push("La fecha del documento no puede ser futura.");
+    erroresCampos.fechaDocumento = "La fecha del documento no puede ser futura.";
+}
+
+if (fechaDevDate && fechaDevDate > hoy) {
+    errores.push("La fecha de devolución o ajuste no puede ser futura.");
+    erroresCampos.fechaDevolucion = "La fecha de devolución no puede ser futura.";
+}
+
+if (monto < 0) {
+    errores.push("El monto ajustado no puede ser negativo.");
+    erroresCampos.montoAjustado = "El monto no puede ser negativo.";
+}
+
+const valorFaltantePendiente = obtenerValorFaltantePendiente();
+
+if (estadoDev === "NO_APLICA" && monto !== 0) {
+    errores.push("Si no aplica devolución, el monto ajustado debe ser 0.");
+    erroresCampos.montoAjustado = "El monto debe ser exactamente S/ 0.00.";
+}
+
+if (
+    (estadoDev === "PENDIENTE_DEVOLUCION" || estadoDev === "DEVUELTO_AJUSTADO")
+    && monto !== valorFaltantePendiente
+) {
+    errores.push("El monto ajustado debe ser igual al valor faltante pendiente.");
+    erroresCampos.montoAjustado =
+        "El monto debe ser exactamente S/ " + formatearMonto(valorFaltantePendiente) + ".";
+}
+
+if (tipoSustento === "NOTA_CREDITO") {
+    if (!serie) {
+        errores.push("La serie de la nota de crédito es obligatoria.");
+        erroresCampos.serieDocumento = "Ingresa la serie. Ejemplo: FC01 o BC01.";
+    } else if (!serieNotaCreditoValida) {
+        errores.push("La serie de nota de crédito debe tener formato FC01 o BC01.");
+        erroresCampos.serieDocumento = "Formato inválido. Usa FC01 o BC01.";
+    }
+
+    if (!numero) {
+        errores.push("El número de la nota de crédito es obligatorio.");
+        erroresCampos.numeroDocumento = "Ingresa el número del documento.";
+    } else if (!numeroDocumentoValido) {
+        errores.push("El número de documento debe contener solo números, máximo 8 dígitos.");
+        erroresCampos.numeroDocumento = "Solo números, máximo 8 dígitos.";
+    }
+
+    if (!fechaDocumento) {
+        errores.push("La fecha de la nota de crédito es obligatoria.");
+        erroresCampos.fechaDocumento = "Selecciona la fecha del documento.";
+    }
+
+    if (monto <= 0) {
+        errores.push("El monto ajustado debe ser mayor a 0 para nota de crédito.");
+        erroresCampos.montoAjustado = "Para nota de crédito, el monto debe ser mayor a 0.";
+    }
+}
+
+if (tipoSustento === "DEVOLUCION_BANCARIA") {
+    if (!fechaDocumento) {
+        errores.push("La fecha de devolución bancaria es obligatoria.");
+        erroresCampos.fechaDocumento = "Selecciona la fecha de devolución bancaria.";
+    }
+
+    if (monto <= 0) {
+        errores.push("El monto devuelto debe ser mayor a 0.");
+        erroresCampos.montoAjustado = "El monto devuelto debe ser mayor a 0.";
+    }
+
+    if (!observacion) {
+        errores.push("Debe ingresar una observación para la devolución bancaria.");
+        erroresCampos.observacion = "Explica brevemente la devolución bancaria.";
+    } else if (!observacionValida) {
+        errores.push("La observación debe tener mínimo 10 caracteres y no debe contener símbolos extraños.");
+        erroresCampos.observacion = "Mínimo 10 caracteres. Evita símbolos extraños.";
+    }
+}
+
+if (tipoSustento === "ACUERDO_INTERNO" || tipoSustento === "SIN_DOCUMENTO") {
+    if (!observacion) {
+        errores.push("Debe ingresar una observación que justifique el cierre.");
+        erroresCampos.observacion = "Justifica el cierre del faltante.";
+    } else if (!observacionValida) {
+        errores.push("La observación debe tener mínimo 10 caracteres y no debe contener símbolos extraños.");
+        erroresCampos.observacion = "Mínimo 10 caracteres. Evita símbolos extraños.";
+    }
+}
+
+if (estadoDev === "DEVUELTO_AJUSTADO") {
+    if (monto <= 0) {
+        errores.push("Si ya fue devuelto o ajustado, el monto ajustado debe ser mayor a 0.");
+        erroresCampos.montoAjustado = "Si ya fue devuelto, el monto debe ser mayor a 0.";
+    }
+
+    if (!fechaDevolucion) {
+        errores.push("Debe ingresar la fecha de devolución o ajuste.");
+        erroresCampos.fechaDevolucion = "Selecciona la fecha de devolución o ajuste.";
+    }
+}
+
+if (estadoDev === "PENDIENTE_DEVOLUCION") {
+    if (monto <= 0) {
+        errores.push("Si la devolución está pendiente, el monto ajustado debe ser mayor a 0.");
+        erroresCampos.montoAjustado = "Si queda pendiente, indica el monto pendiente.";
+    }
+}
+
+if (estadoDev === "NO_APLICA") {
+    if (monto > 0) {
+        errores.push("Si no aplica devolución, el monto ajustado debe ser 0.");
+        erroresCampos.montoAjustado = "Si no aplica devolución, el monto debe ser 0.";
+    }
+
+    if (!observacion) {
+        errores.push("Debe justificar por qué no aplica devolución o ajuste.");
+        erroresCampos.observacion = "Justifica por qué no aplica devolución.";
+    } else if (!observacionValida) {
+        errores.push("La observación debe tener mínimo 10 caracteres y no debe contener símbolos extraños.");
+        erroresCampos.observacion = "Mínimo 10 caracteres. Evita símbolos extraños.";
+    }
+}
+    if (errores.length > 0) {
+        e.preventDefault();
+       mostrarErroresCierre(errores, erroresCampos);
+        return;
+    }
+
+    const confirmar = confirm(
+        "¿Seguro que deseas cerrar el faltante? El sistema no aumentará stock y ajustará la deuda según el monto reconocido."
+    );
+
+    if (!confirmar) {
+        e.preventDefault();
+    }
+});
+    });
+</script>
+
+</body>
+</html>

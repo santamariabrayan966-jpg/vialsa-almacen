@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- clientes/cards.html -->
+<div th:fragment="cardsContenido" class="row g-3">
+
+    <div class="col-12 col-sm-6 col-md-4 col-lg-3"
+         th:each="c : ${clientes}"
+         th:with="resumen=${resumenesClientes != null ? resumenesClientes.get(c.idClientes) : null}">
+
+        <div class="card shadow-sm h-100">
+
+            <div class="card-body text-center">
+
+                <!-- FOTO: misma lógica que en la tabla y en el perfil -->
+                <!-- SIN FOTO -->
+                <div th:if="${c.foto == null or #strings.isEmpty(c.foto)}"
+                     class="rounded-circle bg-light border shadow-sm mx-auto d-flex align-items-center justify-content-center mb-3"
+                     style="width:80px;height:80px;">
+
+                    <i class="bi bi-person-circle text-secondary"
+                       style="font-size:2.5rem;"></i>
+
+                </div>
+
+                <!-- CON FOTO -->
+                <img th:if="${c.foto != null and !#strings.isEmpty(c.foto)}"
+
+                     th:src="${#strings.startsWith(c.foto,'http')
+        ? c.foto
+        : '/uploads/clientes/' + c.foto}"
+
+                     class="rounded-circle mb-3 shadow-sm"
+
+                     style="width:80px; height:80px; object-fit:cover;"
+
+                     alt="Foto cliente">
+
+
+                <h5 class="fw-bold" th:text="${c.nombres + ' ' + c.apellidos}"></h5>
+
+                <!-- Etiquetas -->
+                <div class="mb-2">
+                    <span class="badge bg-warning text-dark" th:if="${c.vip}">
+                        <i class="bi bi-star-fill"></i> VIP
+                    </span>
+
+                    <span class="badge bg-danger" th:if="${c.moroso}">
+                        <i class="bi bi-exclamation-octagon-fill"></i> Moroso
+                    </span>
+
+                    <span class="badge bg-success" th:if="${c.activo}">Activo</span>
+                    <span class="badge bg-secondary" th:if="${!c.activo}">Inactivo</span>
+                    <span class="badge cliente-tipo-badge"
+                          th:classappend="${resumen == null or resumen.clasificacion == 'SIN COMPRAS'} ? ' text-bg-secondary' : (${resumen.clasificacion == 'ONLINE'} ? ' text-bg-primary' : (${resumen.clasificacion == 'PRESENCIAL'} ? ' text-bg-success' : ' text-bg-info'))"
+                          th:text="${resumen != null ? resumen.clasificacion : 'SIN COMPRAS'}">SIN COMPRAS</span>
+                </div>
+
+                <!-- DOCUMENTO -->
+                <p class="text-muted mb-1"
+                   th:text="${(c.idTipoDocumento == 2 ? 'RUC: ' : 'DNI: ') + c.nro_documento}"></p>
+
+                <!-- ACCIONES -->
+                <div class="cliente-card-actions">
+
+                    <!-- Perfil -->
+                    <button class="btn btn-info btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalPerfil"
+                            th:attr="data-id=${c.idClientes}"
+                            title="Ver detalle" aria-label="Ver detalle del cliente">
+                        <i class="bi bi-person-vcard"></i>
+                    </button>
+
+                    <button class="btn btn-secondary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalNotas"
+                            th:attr="data-id=${c.idClientes}, data-cliente=${c.idTipoDocumento == 2 ? c.razonSocial : c.nombres + ' ' + c.apellidos}"
+                            title="Observaciones administrativas" aria-label="Ver observaciones administrativas">
+                        <i class="bi bi-journal-text"></i>
+                    </button>
+
+                    <button class="btn btn-warning btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalHistorial"
+                            th:attr="data-id=${c.idClientes}, data-cliente=${c.idTipoDocumento == 2 ? c.razonSocial : c.nombres + ' ' + c.apellidos}"
+                            title="Historial de compras" aria-label="Ver historial de compras">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+
+                    <!-- Editar -->
+                    <button type="button" class="btn btn-primary btn-sm"
+                       th:attr="onclick=|abrirModalEditarCliente(${c.idClientes})|"
+                       title="Editar" aria-label="Editar cliente">
+                        <i class="bi bi-pencil"></i>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

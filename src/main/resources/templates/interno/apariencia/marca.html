@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Marca e identidad | DentIA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css(v=${#dates.createNow().time})}">
+    <link rel="stylesheet" th:href="@{/css/interno/apariencia.css(v=${#dates.createNow().time})}">
+</head>
+
+<body class="apariencia-body d-flex flex-column min-vh-100">
+
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="apariencia-page flex-grow-1">
+
+    <section class="apariencia-hero">
+        <div>
+            <p class="apariencia-kicker">
+                <i class="bi bi-palette2"></i>
+                Apariencia
+            </p>
+            <h1>Marca e identidad</h1>
+            <p>
+                Configura los datos principales de la marca para usarlos luego en el ERP,
+                tienda online, login, documentos y reportes.
+            </p>
+        </div>
+
+        <div class="identity-status-card">
+            <div class="identity-status-icon">
+                <i class="bi bi-check2-circle"></i>
+            </div>
+            <div>
+                <strong>Configuración central</strong>
+                <span>Guarda los cambios y se aplicarán en las vistas conectadas.</span>
+            </div>
+            <span class="status-dot"></span>
+        </div>
+    </section>
+
+    <div th:if="${mensajeExito}" class="alert alert-success apariencia-alert">
+        <i class="bi bi-check-circle"></i>
+        <span th:text="${mensajeExito}">Cambios guardados correctamente.</span>
+    </div>
+
+    <div th:if="${mensajeError}" class="alert alert-danger apariencia-alert">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span th:text="${mensajeError}">No se pudo guardar.</span>
+    </div>
+
+    <section class="identity-tabs">
+        <button class="identity-tab active" type="button" data-section="logos">
+            <i class="bi bi-image"></i>
+            <span>Logo</span>
+            <small>Sube y elige el logo activo</small>
+        </button>
+
+        <button class="identity-tab" type="button" data-section="datos">
+            <i class="bi bi-building"></i>
+            <span>Datos</span>
+            <small>Información empresarial</small>
+        </button>
+
+        <button class="identity-tab" type="button" data-section="comunicacion">
+            <i class="bi bi-megaphone"></i>
+            <span>Comunicación</span>
+            <small>Slogan y contacto</small>
+        </button>
+
+        <button class="identity-tab" type="button" data-section="redes">
+            <i class="bi bi-share"></i>
+            <span>Redes</span>
+            <small>Canales digitales</small>
+        </button>
+    </section>
+
+    <form th:action="@{/interno/apariencia/marca/guardar}"
+          th:object="${config}"
+          method="post"
+          enctype="multipart/form-data"
+          id="formMarcaIdentidad">
+
+        <input type="hidden" th:field="*{idConfig}">
+        <input type="hidden" name="tabActiva" id="tabActiva" value="logos">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" th:if="${_csrf != null}">
+
+        <!-- BOTÓN GLOBAL: visible para todos los apartados -->
+        <div class="identity-save-bar identity-save-bar-sticky">
+            <div class="identity-save-info">
+                <strong>Editar marca e identidad</strong>
+                <span>Los cambios se guardarán y se aplicarán en las vistas conectadas.</span>
+            </div>
+
+            <button type="submit" class="btn-save btn-save-inline">
+                <i class="bi bi-save"></i>
+                <span>Guardar cambios</span>
+                <small>Actualizar marca e identidad</small>
+            </button>
+        </div>
+
+        <section class="identity-editor-shell">
+
+            <!-- LOGOS -->
+            <article class="identity-card identity-panel active" id="logos" data-panel="logos">
+                <div class="card-head-bar">
+                    <div class="card-head">
+                        <i class="bi bi-image"></i>
+                        <div>
+                            <h3>Logos de la marca</h3>
+                            <p>Guarda hasta 3 logos y selecciona cuál será el logo activo del sistema.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" th:field="*{logoPrincipal}" id="previewLogoPrincipal">
+
+                <input type="hidden" th:field="*{logoOpcion1}" id="logoOpcion1">
+                <input type="hidden" th:field="*{logoOpcion2}" id="logoOpcion2">
+                <input type="hidden" th:field="*{logoOpcion3}" id="logoOpcion3">
+
+                <input type="hidden" name="eliminarLogo1" id="eliminarLogo1" value="false">
+                <input type="hidden" name="eliminarLogo2" id="eliminarLogo2" value="false">
+                <input type="hidden" name="eliminarLogo3" id="eliminarLogo3" value="false">
+
+                <div class="logo-options-grid">
+
+                    <!-- LOGO 1 -->
+                    <div class="logo-option-card" th:classappend="${config.logoActivo == 1} ? ' active' : ''">
+                        <div class="logo-option-top">
+                            <span>Logo 1</span>
+
+                            <label class="logo-active-check">
+                                <input type="radio" th:field="*{logoActivo}" value="1">
+                                <b>Usar</b>
+                            </label>
+                        </div>
+
+                        <div class="logo-option-preview">
+                            <img id="logoPreview1"
+                                 th:src="*{logoOpcion1}"
+                                 alt="Logo 1"
+                                 onerror="this.style.display='none'; document.getElementById('logoFallback1').style.display='grid';">
+                            <strong id="logoFallback1">V</strong>
+                        </div>
+
+                        <div class="logo-option-actions">
+                            <label class="btn-upload-logo">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                Subir
+                                <input type="file"
+                                       name="archivoLogo1"
+                                       id="archivoLogo1"
+                                       accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                       hidden>
+                            </label>
+
+                            <button type="button" class="btn-delete-logo" onclick="eliminarLogoOpcion(1)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- LOGO 2 -->
+                    <div class="logo-option-card" th:classappend="${config.logoActivo == 2} ? ' active' : ''">
+                        <div class="logo-option-top">
+                            <span>Logo 2</span>
+
+                            <label class="logo-active-check">
+                                <input type="radio" th:field="*{logoActivo}" value="2">
+                                <b>Usar</b>
+                            </label>
+                        </div>
+
+                        <div class="logo-option-preview">
+                            <img id="logoPreview2"
+                                 th:src="*{logoOpcion2}"
+                                 alt="Logo 2"
+                                 onerror="this.style.display='none'; document.getElementById('logoFallback2').style.display='grid';">
+                            <strong id="logoFallback2">V</strong>
+                        </div>
+
+                        <div class="logo-option-actions">
+                            <label class="btn-upload-logo">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                Subir
+                                <input type="file"
+                                       name="archivoLogo2"
+                                       id="archivoLogo2"
+                                       accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                       hidden>
+                            </label>
+
+                            <button type="button" class="btn-delete-logo" onclick="eliminarLogoOpcion(2)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- LOGO 3 -->
+                    <div class="logo-option-card" th:classappend="${config.logoActivo == 3} ? ' active' : ''">
+                        <div class="logo-option-top">
+                            <span>Logo 3</span>
+
+                            <label class="logo-active-check">
+                                <input type="radio" th:field="*{logoActivo}" value="3">
+                                <b>Usar</b>
+                            </label>
+                        </div>
+
+                        <div class="logo-option-preview">
+                            <img id="logoPreview3"
+                                 th:src="*{logoOpcion3}"
+                                 alt="Logo 3"
+                                 onerror="this.style.display='none'; document.getElementById('logoFallback3').style.display='grid';">
+                            <strong id="logoFallback3">V</strong>
+                        </div>
+
+                        <div class="logo-option-actions">
+                            <label class="btn-upload-logo">
+                                <i class="bi bi-cloud-arrow-up"></i>
+                                Subir
+                                <input type="file"
+                                       name="archivoLogo3"
+                                       id="archivoLogo3"
+                                       accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml"
+                                       hidden>
+                            </label>
+
+                            <button type="button" class="btn-delete-logo" onclick="eliminarLogoOpcion(3)">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="logo-helper-note">
+                    <i class="bi bi-info-circle"></i>
+                    <span>El logo activo será el que se usará como logo principal al guardar.</span>
+                </div>
+            </article>
+
+            <!-- DATOS -->
+            <article class="identity-card identity-panel" id="datos" data-panel="datos">
+                <div class="card-head">
+                    <i class="bi bi-building"></i>
+                    <div>
+                        <h3>Datos corporativos</h3>
+                        <p>Información base para tienda, comprobantes, reportes y comunicación.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <label>
+                        <span>Nombre comercial</span>
+                        <input type="text" th:field="*{nombreComercial}" id="previewNombreComercial">
+                    </label>
+
+                    <label>
+                        <span>Razón social</span>
+                        <input type="text" th:field="*{razonSocial}" id="previewRazonSocial">
+                    </label>
+
+                    <label>
+                        <span>RUC</span>
+                        <input type="text" th:field="*{ruc}" id="previewRuc">
+                    </label>
+
+                    <label>
+                        <span>Sitio web</span>
+                        <input type="text" th:field="*{sitioWeb}" id="previewSitioWeb">
+                    </label>
+
+                    <label>
+                        <span>Correo corporativo</span>
+                        <input type="email" th:field="*{correoContacto}" id="previewCorreoContacto">
+                    </label>
+
+                    <label>
+                        <span>Dirección principal</span>
+                        <input type="text" th:field="*{direccionPrincipal}" id="previewDireccionPrincipal">
+                    </label>
+                </div>
+
+                <div class="section-mini-note">
+                    <i class="bi bi-check-circle"></i>
+                    <span>Estos datos ya se conectan con header, footer, tienda y login.</span>
+                </div>
+            </article>
+            <!-- COMUNICACIÓN -->
+            <article class="identity-card identity-panel" id="comunicacion" data-panel="comunicacion">
+                <div class="card-head">
+                    <i class="bi bi-megaphone"></i>
+                    <div>
+                        <h3>Comunicación corporativa</h3>
+                        <p>Mensaje principal y canales de contacto.</p>
+                    </div>
+                </div>
+
+                <label>
+                    <span>Slogan</span>
+                    <input type="text" th:field="*{slogan}" id="previewSlogan">
+                </label>
+
+                <label>
+                    <span>Descripción corta</span>
+                    <textarea rows="5" th:field="*{descripcionCorta}" id="previewDescripcionCorta"></textarea>
+                </label>
+
+                <div class="form-grid-2">
+                    <label>
+                        <span>WhatsApp principal</span>
+                        <input type="text" th:field="*{whatsappPrincipal}" id="previewWhatsappPrincipal"
+                               placeholder="51987654321">
+                        <small class="text-muted d-block mt-1">
+                            Escríbelo sin +, sin espacios y con código de país. Ejemplo: 51987654321.
+                        </small>
+                    </label>
+
+                    <label>
+                        <span>Teléfono principal</span>
+                        <input type="text" th:field="*{telefonoPrincipal}" id="previewTelefonoPrincipal"
+                               placeholder="+51 987 654 321">
+                        <small class="text-muted d-block mt-1">
+                            Este número se mostrará como contacto visible. Puedes usar espacios y formato legible.
+                        </small>
+                    </label>
+                </div>
+
+                <div class="section-mini-note">
+                    <i class="bi bi-check-circle"></i>
+                    <span>El slogan ya puede usarse en tienda, login y comunicaciones visuales.</span>
+                </div>
+            </article>
+
+            <!-- REDES -->
+            <article class="identity-card identity-panel" id="redes" data-panel="redes">
+                <div class="card-head">
+                    <i class="bi bi-share"></i>
+                    <div>
+                        <h3>Redes sociales</h3>
+                        <p>Enlaces visibles en tienda online y comunicaciones.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid-2">
+                    <label>
+                        <span>Facebook</span>
+                        <input type="text" th:field="*{facebookUrl}" placeholder="https://facebook.com/dentia">
+                    </label>
+
+                    <label>
+                        <span>Instagram</span>
+                        <input type="text" th:field="*{instagramUrl}" placeholder="https://instagram.com/dentia">
+                    </label>
+
+                    <label>
+                        <span>TikTok</span>
+                        <input type="text" th:field="*{tiktokUrl}" placeholder="https://tiktok.com/@dentia">
+                    </label>
+
+                    <label>
+                        <span>LinkedIn</span>
+                        <input type="text" th:field="*{linkedinUrl}" placeholder="https://linkedin.com/company/dentia">
+                    </label>
+                </div>
+
+                <div class="section-mini-note">
+                    <i class="bi bi-info-circle"></i>
+                    <span>Las redes quedan guardadas para usarse en footer, tienda y campañas.</span>
+                </div>
+            </article>
+
+        </section>
+
+    </form>
+
+</main>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/apariencia.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+</body>
+</html>

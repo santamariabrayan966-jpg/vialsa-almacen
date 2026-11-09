@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<div th:fragment="formCliente">
+
+    <form th:action="@{/interno/clientes/guardar}"
+          th:object="${cliente}"
+          method="post"
+          enctype="multipart/form-data">
+
+        <!-- ID OCULTO -->
+        <input type="hidden" th:field="*{idClientes}"/>
+        <input type="hidden" name="paginaRetorno" id="clientePaginaRetorno" value="0">
+        <input type="hidden" name="tamanoRetorno" id="clienteTamanoRetorno" value="10">
+        <input type="hidden" name="buscarRetorno" id="clienteBuscarRetorno" value="">
+        <input type="hidden" name="filtroRetorno" id="clienteFiltroRetorno" value="TODOS">
+        <input type="hidden" name="vistaRetorno" id="clienteVistaRetorno" value="tabla">
+
+        <!-- ERRORES GLOBALES (por ejemplo, duplicado u otros) -->
+        <div class="alert alert-danger py-2"
+             th:if="${#fields.hasGlobalErrors()}">
+            <ul class="mb-0">
+                <li th:each="err : ${#fields.globalErrors()}"
+                    th:text="${err}"></li>
+            </ul>
+        </div>
+
+        <div class="row g-3">
+
+            <!-- FOTO -->
+            <div class="col-12 text-center mb-3">
+                <!-- FOTO -->
+                <div id="foto-placeholder"
+                     th:if="${cliente.foto == null or #strings.isEmpty(cliente.foto)}"
+                     class="rounded-circle border bg-light shadow-sm mx-auto d-flex align-items-center justify-content-center"
+                     style="width:120px;height:120px;">
+
+                    <i class="bi bi-person-circle text-secondary"
+                       style="font-size:4rem;"></i>
+
+                </div>
+
+                <img id="foto-preview"
+
+                     th:src="${cliente.foto != null and !#strings.isEmpty(cliente.foto)
+        ? (#strings.startsWith(cliente.foto,'http')
+            ? cliente.foto
+            : '/uploads/clientes/' + cliente.foto)
+        : ''}"
+
+                     th:classappend="${cliente.foto == null or #strings.isEmpty(cliente.foto)} ? ' d-none' : ''"
+
+                     class="rounded-circle shadow-sm"
+
+                     style="width:120px; height:120px; object-fit:cover;"
+
+                     alt="Foto cliente">
+
+                <br>
+                <label class="btn btn-outline-primary btn-sm mt-2"
+                       th:if="${cliente.googleSub == null or #strings.isEmpty(cliente.googleSub)}">
+                    Subir Foto
+                    <input type="file" name="fileFoto" id="fotoFile" accept="image/jpeg,image/png,image/webp" hidden>
+                </label>
+                <button type="button" class="btn btn-outline-danger btn-sm mt-2"
+                        id="btnQuitarFotoCliente"
+                        th:if="${cliente.googleSub == null or #strings.isEmpty(cliente.googleSub)}"
+                        th:classappend="${cliente.foto == null or #strings.isEmpty(cliente.foto)} ? ' d-none' : ''">
+                    <i class="bi bi-trash3 me-1"></i>Quitar imagen
+                </button>
+                <input type="hidden" name="eliminarFoto" id="eliminarFotoCliente" value="false">
+
+                <small class="text-muted d-block mt-2"
+                       th:if="${cliente.googleSub != null and !#strings.isEmpty(cliente.googleSub)}">
+
+                    <i class="bi bi-google text-danger"></i>
+                    Foto sincronizada con Google.
+                    El cliente debe cambiarla desde su cuenta Google.
+
+                </small>
+            </div>
+
+            <!-- DOCUMENTO -->
+            <div class="col-12 col-md-6">
+                <label class="form-label">DNI o RUC</label>
+                <div class="input-group">
+                    <input type="text"
+                           id="dniCliente"
+                           th:field="*{nro_documento}"
+                           class="form-control"
+                           maxlength="11"
+                           inputmode="numeric"
+                           pattern="[0-9]{8}|[0-9]{11}"
+                           placeholder="8 dígitos para DNI o 11 para RUC"
+                           required>
+
+                    <button type="button"
+                            class="btn btn-outline-secondary"
+                            id="btnBuscarDniCliente">
+                        <i class="bi bi-search"></i> Buscar DNI
+                    </button>
+                </div>
+
+                <!-- error específico del DNI -->
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('nro_documento')}"
+                     th:errors="*{nro_documento}">
+                    <!-- aquí Thymeleaf pinta el mensaje -->
+                </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+                <label class="form-label">Razón social <small class="text-muted">(para RUC)</small></label>
+                <input type="text" th:field="*{razonSocial}" class="form-control" maxlength="160">
+                <div class="text-danger small" th:if="${#fields.hasErrors('razonSocial')}" th:errors="*{razonSocial}"></div>
+            </div>
+
+            <!-- NOMBRES -->
+            <div class="col-12 col-md-6">
+                <label class="form-label">Nombres</label>
+                <input type="text"
+                       id="nombresCliente"
+                       th:field="*{nombres}"
+                       class="form-control" maxlength="100">
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('nombres')}"
+                     th:errors="*{nombres}"></div>
+            </div>
+
+            <!-- APELLIDOS -->
+            <div class="col-12 col-md-6">
+                <label class="form-label">Apellidos</label>
+                <input type="text"
+                       id="apellidosCliente"
+                       th:field="*{apellidos}"
+                       class="form-control" maxlength="100">
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('apellidos')}"
+                     th:errors="*{apellidos}"></div>
+            </div>
+
+            <!-- Correo -->
+            <div class="col-md-6">
+                <label class="form-label">Correo</label>
+                <input type="email" class="form-control"
+                       th:field="*{correo}" maxlength="160">
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('correo')}"
+                     th:errors="*{correo}"></div>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="col-md-6">
+                <label class="form-label">Teléfono</label>
+                <input type="text" class="form-control"
+                       th:field="*{telefono}" inputmode="tel" maxlength="15" pattern="[0-9]{7,15}">
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('telefono')}"
+                     th:errors="*{telefono}"></div>
+            </div>
+
+            <!-- DIRECCIÓN -->
+            <div class="col-12">
+                <label class="form-label">Dirección</label>
+                <input type="text"
+                       id="direccionCliente"
+                       th:field="*{direccion}"
+                       class="form-control" maxlength="250">
+                <div class="text-danger small"
+                     th:if="${#fields.hasErrors('direccion')}"
+                     th:errors="*{direccion}"></div>
+            </div>
+
+            <!-- Estado -->
+            <div class="col-12 col-md-6">
+                <label class="form-label">Estado</label>
+                <select class="form-select" th:field="*{activo}">
+                    <option th:value="true">Activo</option>
+                    <option th:value="false">Inactivo</option>
+                </select>
+            </div>
+
+        </div>
+
+        <div class="cliente-form-acciones mt-3">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary px-4">
+                Guardar
+            </button>
+        </div>
+
+    </form>
+
+</div>
+
+<script>
+(() => {
+    const file = document.getElementById('fotoFile');
+    const remove = document.getElementById('btnQuitarFotoCliente');
+    const flag = document.getElementById('eliminarFotoCliente');
+    const preview = document.getElementById('foto-preview');
+    const placeholder = document.getElementById('foto-placeholder');
+    if (!file || !remove || !flag) return;
+    file.addEventListener('change', () => {
+        if (file.files && file.files.length) {
+            flag.value = 'false';
+            remove.classList.remove('d-none');
+            if (preview) preview.classList.remove('d-none');
+            if (placeholder) placeholder.classList.add('d-none');
+        }
+    });
+    remove.addEventListener('click', () => {
+        file.value = '';
+        flag.value = 'true';
+        remove.classList.add('d-none');
+        if (preview) preview.classList.add('d-none');
+        if (placeholder) placeholder.classList.remove('d-none');
+    });
+})();
+</script>
+
+</body>
+</html>

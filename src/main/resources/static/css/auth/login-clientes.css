@@ -1,0 +1,154 @@
+﻿/* =========================================
+   LOGIN CLIENTES - DentIA
+========================================= */
+
+.login-client-modal {
+    border: none;
+    border-radius: 28px;
+    overflow: hidden;
+    background: #ffffff;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+}
+
+.login-client-modal .modal-body {
+    padding: 42px 34px;
+    position: relative;
+}
+
+.login-close-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    opacity: 0.7;
+    transition: 0.2s ease;
+}
+
+.login-close-btn:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+.login-logo-wrapper {
+    margin-bottom: 16px;
+}
+
+.login-logo {
+    width: 120px;
+    height: auto;
+    object-fit: contain;
+}
+
+.login-title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.login-subtitle {
+    color: #64748b;
+    line-height: 1.6;
+    margin-bottom: 22px;
+}
+
+.login-security {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    color: #16a34a;
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+
+.google-login-btn {
+    width: 100%;
+    min-height: 58px;
+    border-radius: 999px;
+    border: 1px solid #dbe1ea;
+    background: #ffffff;
+    color: #111827;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+    transition: 0.25s ease;
+}
+
+.google-login-btn:hover {
+    transform: translateY(-2px);
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #111827;
+}
+
+.google-icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.login-info {
+    color: #64748b;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    margin: 24px 0 8px;
+}
+
+.privacy-link {
+    color: #2563eb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0;
+    text-decoration: none;
+}
+
+.privacy-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.privacy-modal {
+    border: none;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.16);
+}
+
+.privacy-ok-btn {
+    background: #004aad;
+    color: #ffffff;
+    border-radius: 999px;
+    padding: 10px 24px;
+    font-weight: 700;
+}
+
+.privacy-ok-btn:hover {
+    background: #003a86;
+    color: #ffffff;
+}
+
+@media (max-width: 576px) {
+    #loginModal .modal-dialog {
+        margin: 12px;
+    }
+
+    .login-client-modal .modal-body {
+        padding: 36px 24px;
+    }
+
+    .login-title {
+        font-size: 1.55rem;
+    }
+
+    .login-logo {
+        width: 100px;
+    }
+
+    .google-login-btn {
+        min-height: 54px;
+        font-size: 0.95rem;
+    }
+}

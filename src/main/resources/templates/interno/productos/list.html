@@ -1,0 +1,2405 @@
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${titulo}">Productos | DentIA</title>
+
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:content="${_csrf.headerName}">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Estilos generales -->
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+
+    <!-- Estilos específicos de productos -->
+    <link rel="stylesheet" th:href="@{/css/interno/productos.css}">
+
+    <!-- Navbar interno -->
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+</head>
+
+<body class="bg-light d-flex flex-column min-vh-100 productos-module"
+      th:attr="data-modal-error=${modalError}">
+
+<div th:replace="~{fragments/interno/header :: header}"></div>
+
+<main class="container-fluid productos-page flex-grow-1">
+
+    <!-- MENSAJE FLASH -->
+    <div th:if="${mensaje}" class="mb-3">
+        <div class="alert alert-dismissible fade show border-0 shadow-sm"
+             th:classappend="' alert-' + ${tipoMensaje}">
+            <span th:text="${mensaje}">Mensaje</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- ENCABEZADO PRINCIPAL -->
+    <section class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden productos-hero">
+        <div class="card-body p-4">
+
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 productos-hero-layout">
+
+                <div>
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+    <span class="badge rounded-pill text-bg-primary px-3 py-2">
+        <i class="bi bi-box-seam me-1"></i> Catálogo maestro
+    </span>
+                    </div>
+
+                    <h2 class="fw-bold mb-1">
+                        Gestión de Productos
+                    </h2>
+
+                    <p class="text-muted mb-0">
+                        Administra productos, clasificación, atributos técnicos y estado del catálogo.
+                    </p>
+                </div>
+
+                <div class="d-flex flex-wrap gap-2 justify-content-start justify-content-md-end">
+
+                    <button th:if="${estadoFiltro != 'eliminados'}"
+                            id="btnNuevoProducto"
+                            type="button"
+                            class="btn btn-primary btn-lg shadow-sm px-4">
+                        <i class="bi bi-plus-circle me-1"></i> Nuevo producto
+                    </button>
+
+                    <a th:href="@{/interno/productos}"
+                       class="btn btn-outline-secondary btn-lg px-4"
+                       th:if="${estadoFiltro == 'eliminados'}">
+                        <i class="bi bi-arrow-left me-1"></i> Volver al listado
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- INDICADORES -->
+    <section class="row g-3 mb-4 productos-resumen" aria-label="Resumen de productos">
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-4 bg-primary bg-opacity-10 text-primary p-3">
+                        <i class="bi bi-box-seam fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 small">Total productos</p>
+                        <h4 class="fw-bold mb-0" th:text="${totalProductos}">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-4 bg-success bg-opacity-10 text-success p-3">
+                        <i class="bi bi-check-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 small">Productos activos</p>
+                        <h4 class="fw-bold mb-0" th:text="${productosActivos}">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-4 bg-secondary bg-opacity-10 text-secondary p-3">
+                        <i class="bi bi-pause-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 small">Productos inactivos</p>
+                        <h4 class="fw-bold mb-0" th:text="${productosInactivos}">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card border-0 shadow-sm rounded-4 h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="rounded-4 bg-danger bg-opacity-10 text-danger p-3">
+                        <i class="bi bi-trash3 fs-4"></i>
+                    </div>
+                    <div>
+                        <p class="text-muted mb-1 small">En eliminados</p>
+                        <h4 class="fw-bold mb-0" th:text="${productosEliminados}">0</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </section>
+
+
+    <!-- FILTROS -->
+    <section class="card border-0 shadow-sm rounded-4 mb-4 productos-controles">
+        <div class="card-body p-4">
+
+
+            <!-- CONFIGURACIÓN DEL CATÁLOGO -->
+            <div class="mb-4">
+
+                <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 productos-configuracion">
+
+                    <div th:if="${estadoFiltro != 'eliminados'}"
+                         class="d-flex flex-wrap gap-2 justify-content-start productos-config-botones">
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalCategorias">
+                            <i class="bi bi-tags me-1"></i> Categorías
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalSubcategorias">
+                            <i class="bi bi-diagram-3 me-1"></i> Subcategorías
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalMarcas">
+                            <i class="bi bi-award me-1"></i> Marcas
+                        </button>
+
+
+
+                        <button type="button"
+                                class="btn btn-outline-primary btn-sm px-3"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalAtributos">
+                            <i class="bi bi-sliders me-1"></i> Atributos
+                        </button>
+
+                    </div>
+
+                    <div class="ms-auto">
+
+                        <a th:if="${estadoFiltro != 'eliminados'}"
+                           th:href="@{/interno/productos(estado='eliminados')}"
+                           class="btn btn-outline-danger btn-sm px-3">
+                            <i class="bi bi-trash3 me-1"></i> Ver eliminados
+                        </a>
+
+                        <a th:href="@{/interno/productos}"
+                           class="btn btn-outline-secondary btn-sm px-3"
+                           th:if="${estadoFiltro == 'eliminados'}">
+                            <i class="bi bi-arrow-left me-1"></i> Volver al listado
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="row g-3 align-items-end productos-filtros-grid">
+
+                <div class="col-12 col-lg-3">
+                    <label class="form-label fw-semibold">Buscar producto</label>
+                    <div class="input-group">
+                    <span class="input-group-text bg-white">
+                        <i class="bi bi-search"></i>
+                    </span>
+                        <input id="buscadorProductos"
+                               type="text"
+                               class="form-control"
+                               placeholder="Buscar por código, nombre o marca">
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label fw-semibold">Categoría</label>
+                    <select class="form-select filtro-tabla" id="filtroCategoriaProductos">
+                        <option value="">Todas</option>
+                        <option th:each="c : ${categorias}"
+                                th:value="${c.nombreCategoria}"
+                                th:text="${c.nombreCategoria}">
+                            Categoría
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label fw-semibold">Subcategoría</label>
+                    <select class="form-select filtro-tabla" id="filtroSubcategoriaProductos">
+                        <option value="">Todas</option>
+                        <option th:each="s : ${subcategorias}"
+                                th:value="${s.nombreSubcategoria}"
+                                th:text="${s.nombreSubcategoria}">
+                            Subcategoría
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label fw-semibold">Marca</label>
+                    <select class="form-select filtro-tabla" id="filtroMarcaProductos">
+                        <option value="">Todas</option>
+                        <option th:each="m : ${marcas}"
+                                th:value="${m.nombreMarca}"
+                                th:text="${m.nombreMarca}">
+                            Marca
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-md-4 col-lg-2">
+                    <label class="form-label fw-semibold">Estado</label>
+                    <select class="form-select filtro-tabla" id="filtroEstadoProductos">
+                        <option value="">Todos</option>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                        <option th:if="${estadoFiltro == 'eliminados'}" value="Eliminado">Eliminado</option>
+                    </select>
+                </div>
+
+                <div class="col-12 col-lg-3 d-grid d-md-flex gap-2">
+                    <button type="button" class="btn btn-primary flex-fill" id="btnFiltrarProductos">
+                        <i class="bi bi-funnel me-1"></i> Filtrar
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary flex-fill" id="btnLimpiarFiltrosProductos">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Limpiar
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <section class="row g-4">
+
+        <!-- TABLA PRODUCTOS -->
+        <div class="col-12">
+
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden productos-listado-card">
+
+                <div class="card-header bg-white border-0 px-4 py-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-0">
+                                Listado de productos
+                            </h5>
+                            <small class="text-muted">
+                                Información base del catálogo maestro de productos.
+                            </small>
+                        </div>
+
+                        <span class="badge rounded-pill text-bg-light border px-3 py-2">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Catálogo maestro
+                        </span>
+                    </div>
+                </div>
+
+                <div class="table-responsive tabla-productos-wrap">
+                    <table class="table table-hover align-middle mb-0" id="tablaProductos">
+
+                        <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Producto</th>
+                            <th>Código</th>
+                            <th>Clasificación</th>
+                            <th>Inventario físico</th>
+                            <th class="text-center">Precio</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-center pe-4">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="p : ${productos}"
+                            th:attr="data-nombre=${p.nombreProducto},
+             data-codigo=${p.codigoInterno},
+             data-categoria=${p.nombreCategoria},
+             data-subcategoria=${p.nombreSubcategoria},
+             data-marca=${p.nombreMarca},
+             data-estado=${p.idEstadoProducto == 1 ? 'Activo' : (p.idEstadoProducto == 2 ? 'Inactivo' : 'Eliminado')}">
+
+                            <td class="ps-4 producto-card-header">
+                                <div class="d-flex align-items-center gap-3 producto-card-heading">
+
+                                    <!-- CON FOTO -->
+                                    <img th:if="${p.fotoPortada != null and !#strings.isEmpty(p.fotoPortada)}"
+                                         width="46"
+                                         height="46"
+                                         class="rounded-3 object-fit-cover border producto-thumb producto-card-image"
+                                         th:src="@{/uploads/productos/{f}(f=${p.fotoPortada})}"
+                                         th:alt="${'Imagen de ' + p.nombreProducto}">
+
+                                    <!-- SIN FOTO -->
+                                    <div th:if="${p.fotoPortada == null or #strings.isEmpty(p.fotoPortada)}"
+                                         class="d-flex align-items-center justify-content-center rounded-3 bg-light border producto-thumb producto-thumb-placeholder producto-card-image">
+                                        <i class="bi bi-image text-secondary"></i>
+                                    </div>
+
+                                    <div class="producto-card-title-wrap">
+                                        <h6 class="fw-semibold mb-1 producto-card-title" th:text="${p.nombreProducto}">
+                                            Nombre producto
+                                        </h6>
+
+                                        <div class="small text-muted mb-1"
+                                             th:if="${p.descripcionProducto != null and !#strings.isEmpty(p.descripcionProducto)}"
+                                             th:text="${#strings.abbreviate(p.descripcionProducto, 55)}">
+                                            Descripción corta del producto
+                                        </div>
+
+                                        <div class="d-flex flex-wrap align-items-center gap-2 producto-card-meta">
+                                            <small class="text-muted">
+                                                ID:
+                                                <span th:text="${p.idProducto}">1</span>
+                                            </small>
+
+                                            <small class="text-muted producto-card-codigo">
+                                                Código:
+                                                <span class="fw-semibold text-dark" th:text="${p.codigoInterno}">PRD-001</span>
+                                            </small>
+
+                                            <small class="text-muted producto-card-separator">|</small>
+
+                                            <small class="text-muted">
+                                                Marca:
+                                                <span class="fw-semibold text-dark"
+                                                      th:text="${p.nombreMarca != null ? p.nombreMarca : 'Sin marca'}">
+            Sin marca
+        </span>
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </td>
+
+                            <td>
+                                <span class="badge text-bg-light border"
+                                      th:text="${p.codigoInterno}">
+                                    PRD-001
+                                </span>
+                            </td>
+                            <td>
+    <span class="badge text-bg-light border"
+          th:text="${p.nombreCategoria != null ? p.nombreCategoria : 'Sin categoría'}">
+        Categoría
+    </span>
+
+                                <div class="small text-muted mt-1"
+                                     th:text="${p.nombreSubcategoria != null ? p.nombreSubcategoria : 'Sin subcategoría'}">
+                                    Subcategoría
+                                </div>
+                            </td>
+
+                            <td>
+                                <div class="fw-semibold">
+                                    <i class="bi bi-box-seam me-1 text-primary"></i>
+                                    Unidad física:
+                                    <span th:text="${p.nombreUnidadInventario != null ? p.nombreUnidadInventario : 'Unidad'}">
+            Unidad
+        </span>
+                                </div>
+
+                                <div class="small text-muted mt-1"
+                                     th:if="${p.ventaPorMedida != null and p.ventaPorMedida}">
+                                    Medida:
+                                    <span th:text="${p.tipoMedidaBase == 'AREA' ? 'Área' : 'Longitud'}">
+            Área
+        </span>
+                                </div>
+
+                                <span class="badge text-bg-light border mt-1"
+                                      th:if="${p.ventaPorMedida != null and p.ventaPorMedida and p.medidaVendibleBase != null}"
+                                      th:text="${'Vendible: ' + p.medidaVendibleBase + ' ' + (p.tipoMedidaBase == 'AREA' ? 'pie²' : 'ml')}">
+        Vendible: 51 pie²
+    </span>
+
+                                <div class="small text-muted mt-1"
+                                     th:if="${p.ventaPorMedida == null or !p.ventaPorMedida}">
+                                    Sin medidas físicas.
+                                </div>
+                            </td>
+
+                            <td class="text-center">
+    <span th:if="${p.precioUnitario != null and p.precioUnitario > 0}"
+          class="fw-bold text-success">
+        S/
+        <span th:text="${#numbers.formatDecimal(p.precioUnitario,1,2)}">
+            0.00
+        </span>
+    </span>
+
+                                <span th:if="${p.precioUnitario == null or p.precioUnitario <= 0}"
+                                      class="badge text-bg-warning">
+        Pendiente
+    </span>
+                            </td>
+
+                            <td class="text-center">
+    <span class="badge rounded-pill estado-badge"
+          th:attr="id=${'estado-text-' + p.idProducto}"
+          th:text="${p.idEstadoProducto == 1 ? 'Activo' : (p.idEstadoProducto == 2 ? 'Inactivo' : 'Eliminado')}"
+          th:classappend="${p.idEstadoProducto == 1 ? ' text-bg-success' : (p.idEstadoProducto == 2 ? ' text-bg-secondary' : ' text-bg-danger')}">
+        Activo
+    </span>
+                            </td>
+
+                            <td class="text-center pe-4 producto-card-actions">
+
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- Ver -->
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-ver-producto"
+                                            th:attr="data-id=${p.idProducto}"
+                                            title="Ver detalle">
+                                        <i class="bi bi-eye"></i>
+                                        <span class="producto-action-label">Ver</span>
+                                    </button>
+
+                                    <!-- Editar: solo si NO está eliminado -->
+                                    <button th:if="${p.idEstadoProducto != 3}"
+                                            type="button"
+                                            class="btn btn-outline-primary btn-editar"
+                                            th:attr="data-id=${p.idProducto}"
+                                            title="Editar producto">
+                                        <i class="bi bi-pencil"></i>
+                                        <span class="producto-action-label">Editar</span>
+                                    </button>
+
+                                    <!-- Precios: solo si NO está eliminado -->
+                                    <button th:if="${p.idEstadoProducto != 3}"
+                                            type="button"
+                                            class="btn btn-outline-info btn-precios-producto"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalPreciosProducto"
+                                            th:attr="data-id=${p.idProducto},
+         data-nombre=${p.nombreProducto},
+         data-id-unidad-inventario=${p.idUnidad},
+         data-unidad-stock=${p.nombreUnidadInventario},
+         data-abreviatura-stock=${p.abreviaturaUnidadVenta},
+        data-forma-venta=${p.formaVenta},
+data-unidad-venta=${p.nombreUnidadVenta},
+data-abreviatura-venta=${p.abreviaturaUnidadVenta},
+data-tiene-medida=${p.ventaPorMedida},
+data-tipo-medida-base=${p.tipoMedidaBase},
+data-medida-total=${p.medidaTotalBase},
+data-medida-vendible=${p.medidaVendibleBase},
+data-largo-base=${p.largoBase},
+data-ancho-base=${p.anchoBase},
+         data-costo-promedio=${p.costoPromedio},
+         data-ganancia-sugerida=${p.margenMinimoPorcentaje}"
+                                            title="Precios del producto">
+                                        <i class="bi bi-cash-coin"></i>
+                                        <span class="producto-action-label">Precios</span>
+                                    </button>
+
+                                    <!-- Activar / Desactivar: solo si NO está eliminado -->
+                                    <button th:if="${p.idEstadoProducto != 3}"
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-estado"
+                                            th:attr="data-id=${p.idProducto},data-estado=${p.idEstadoProducto},data-nombre=${p.nombreProducto}"
+                                            title="Cambiar estado">
+                                        <i class="bi"
+                                           th:classappend="${p.idEstadoProducto == 1} ? ' bi-toggle-off' : ' bi-toggle-on'"></i>
+                                        <span class="producto-action-label" th:text="${p.idEstadoProducto == 1 ? 'Desactivar' : 'Activar'}">Estado</span>
+                                    </button>
+
+                                    <!-- Eliminar: solo si NO está eliminado -->
+                                    <form th:if="${p.idEstadoProducto != 3}"
+                                          th:action="@{|/interno/productos/${p.idProducto}/eliminar|}"
+                                          method="post"
+                                          class="d-inline form-eliminar">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                        <button type="button"
+                                                class="btn btn-outline-danger btn-eliminar"
+                                                th:attr="data-nombre=${p.nombreProducto}"
+                                                title="Enviar a eliminados">
+                                            <i class="bi bi-trash"></i>
+                                            <span class="producto-action-label">Eliminar</span>
+                                        </button>
+                                    </form>
+
+                                    <!-- Restaurar: solo si está eliminado -->
+                                    <form th:if="${p.idEstadoProducto == 3}"
+                                          th:action="@{|/interno/productos/${p.idProducto}/restaurar|}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                                        <button type="submit"
+                                                class="btn btn-outline-success"
+                                                title="Restaurar producto">
+                                            <i class="bi bi-arrow-counterclockwise"></i>
+                                            <span class="producto-action-label">Restaurar</span>
+                                        </button>
+                                    </form>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+
+                        <tr th:if="${productos == null or #lists.isEmpty(productos)}">
+                            <td colspan="7" class="text-center py-5">
+                                <div class="text-muted">
+                                    <i class="bi bi-box-seam fs-1 d-block mb-2"></i>
+                                    No hay productos registrados.
+                                </div>
+                            </td>
+                        </tr>
+
+                        </tbody>
+
+                    </table>
+                </div>
+
+                <div class="card-footer bg-white border-0 px-4 py-3">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                        <small class="text-muted" id="contadorProductosListado">
+                            Mostrando 0 productos
+                        </small>
+
+                        <nav aria-label="Paginación productos">
+                            <ul class="pagination pagination-sm mb-0">
+                                <li class="page-item">
+                                    <button type="button"
+                                            class="page-link"
+                                            id="btnProductosAnterior">
+                                        Anterior
+                                    </button>
+                                </li>
+
+                                <li class="page-item active">
+            <span class="page-link">
+                <span id="paginaProductosActual">1</span>
+                /
+                <span id="paginaProductosTotal">1</span>
+            </span>
+                                </li>
+
+                                <li class="page-item">
+                                    <button type="button"
+                                            class="page-link"
+                                            id="btnProductosSiguiente">
+                                        Siguiente
+                                    </button>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+    </section>
+
+</main>
+
+<!-- MODAL PRODUCTO -->
+<div class="modal fade producto-modal producto-modal-editor" id="modalProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header bg-primary text-white rounded-top-4">
+                <div>
+                    <h5 class="modal-title fw-bold" id="tituloModalProducto">
+                        <i class="bi bi-box-seam me-1"></i> Nuevo producto
+                    </h5>
+                    <small class="opacity-75">
+                        Registra la información base del catálogo maestro.
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+
+                <form id="formProducto"
+                      th:object="${productoForm}"
+                      th:action="@{/interno/productos}"
+                      method="post"
+                      class="needs-validation"
+                      novalidate
+                      enctype="multipart/form-data">
+
+                    <input type="hidden" th:field="*{idProducto}" id="idProducto">
+
+                    <!-- DATOS GENERALES -->
+                    <div class="border rounded-4 p-4 mb-4 bg-light bg-opacity-50">
+
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2">
+                                <i class="bi bi-card-checklist"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Datos generales</h6>
+                                <small class="text-muted">Información principal del producto.</small>
+                            </div>
+                        </div>
+
+                        <div class="row g-3">
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Código interno</label>
+                                <input type="text"
+                                       th:field="*{codigoInterno}"
+                                       class="form-control"
+                                       id="codigoInterno"
+                                       readonly>
+                                <div class="form-text">
+                                    Se generará automáticamente.
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-8">
+                                <label class="form-label fw-semibold">Nombre del producto</label>
+                                <input type="text"
+                                       th:field="*{nombreProducto}"
+                                       class="form-control"
+                                       placeholder="Ej: Vidrio crudo incoloro 6 mm"
+                                       required>
+                                <div class="invalid-feedback">
+                                    El nombre es obligatorio.
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Categoría</label>
+
+                                <select th:field="*{idCategoria}"
+                                        class="form-select"
+                                        id="idCategoria"
+                                        required
+                                        onchange="generarCodigo();">
+                                    <option value="">Seleccione...</option>
+                                    <option th:each="c : ${categoriasActivas}"
+                                            th:value="${c.idCategoria}"
+                                            th:text="${c.nombreCategoria}">
+                                        Categoría
+                                    </option>
+                                </select>
+
+                                <div class="invalid-feedback">
+                                    Seleccione una categoría.
+                                </div>
+
+                                <div class="form-text">
+                                    Clasificación principal del catálogo.
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Subcategoría</label>
+
+                                <select th:field="*{idSubcategoria}"
+                                        class="form-select"
+                                        id="idSubcategoria">
+                                    <option value="">Sin subcategoría</option>
+                                    <option th:each="s : ${subcategoriasActivas}"
+                                            th:value="${s.idSubcategoria}"
+                                            th:attr="data-categoria=${s.idCategoria}"
+                                            th:text="${s.nombreSubcategoria}">
+                                        Subcategoría
+                                    </option>
+                                </select>
+
+                                <div class="form-text">
+                                    Se filtrará según la categoría seleccionada.
+                                </div>
+                            </div>
+
+                            <input type="hidden"
+                                   th:field="*{controlInventario}"
+                                   id="controlInventario"
+                                   value="CANTIDAD">
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Unidad física de inventario</label>
+
+                                <input type="text"
+                                       th:field="*{nombreUnidadInventario}"
+                                       class="form-control"
+                                       id="nombreUnidadInventario"
+                                       list="listaUnidadesInventario"
+                                       placeholder="Ej: Plancha, Varilla, Rollo, Bote, Caja"
+                                       required>
+
+                                <datalist id="listaUnidadesInventario">
+                                    <option value="Plancha"></option>
+                                    <option value="Varilla"></option>
+                                    <option value="Rollo"></option>
+                                    <option value="Bote"></option>
+                                    <option value="Caja"></option>
+                                    <option value="Unidad"></option>
+                                    <option value="Bolsa"></option>
+                                    <option value="Paquete"></option>
+                                </datalist>
+
+                                <div class="form-text">
+                                    Indica cómo entra físicamente al almacén. Ej: Unidad, Plancha, Varilla, Rollo o Caja.
+                                </div>
+                            </div>
+
+                            <input type="hidden" th:field="*{idUnidad}" id="idUnidad">
+
+                            <!-- DATOS TÉCNICOS DE LA UNIDAD FÍSICA -->
+                            <div class="col-12">
+                                <div class="border rounded-4 p-4 bg-white mt-2" id="bloqueMedidasFisicasProducto">
+
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="rounded-3 bg-primary bg-opacity-10 text-primary p-2">
+                                            <i class="bi bi-rulers"></i>
+                                        </div>
+
+                                        <div>
+                                            <h6 class="fw-bold mb-0">Datos técnicos de la unidad física</h6>
+                                            <small class="text-muted">
+                                                Registra medidas propias del producto. La venta y los precios se configuran después.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-light border small mb-3">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Si el producto tiene medidas físicas, estos datos se usarán luego en Presentaciones y precios.
+                                    </div>
+
+                                    <div class="row g-3">
+
+                                        <div class="col-12 col-md-4">
+                                            <label class="form-label fw-semibold">¿Tiene medidas físicas?</label>
+
+                                            <select th:field="*{ventaPorMedida}"
+                                                    class="form-select"
+                                                    id="ventaPorMedida">
+                                                <option value="false">No</option>
+                                                <option value="true">Sí</option>
+                                            </select>
+
+                                            <div class="form-text">
+                                                Ej: planchas, varillas o rollos con largo/ancho.
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-4 d-none" id="grupoTipoMedidaBase">
+                                            <label class="form-label fw-semibold">Tipo de medida física</label>
+
+                                            <select th:field="*{tipoMedidaBase}"
+                                                    class="form-select"
+                                                    id="tipoMedidaBase">
+                                                <option value="">Seleccione...</option>
+                                                <option value="AREA">Área</option>
+                                                <option value="LONGITUD">Longitud</option>
+                                            </select>
+
+                                            <div class="form-text">
+                                                Área para planchas. Longitud para varillas o rollos.
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-4 d-none" id="grupoLargoBase">
+                                            <label class="form-label fw-semibold" id="labelLargoBase">
+                                                Largo real
+                                            </label>
+
+                                            <input type="number"
+                                                   th:field="*{largoBase}"
+                                                   class="form-control"
+                                                   id="largoBase"
+                                                   min="0"
+                                                   step="0.001"
+                                                   placeholder="Ej: 4.10">
+
+                                            <div class="form-text" id="ayudaLargoBase">
+                                                Largo real de la unidad física.
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-md-4 d-none" id="grupoAnchoBase">
+                                            <label class="form-label fw-semibold">Ancho real</label>
+
+                                            <input type="number"
+                                                   th:field="*{anchoBase}"
+                                                   class="form-control"
+                                                   id="anchoBase"
+                                                   min="0"
+                                                   step="0.001"
+                                                   placeholder="Ej: 2.00">
+
+                                            <div class="form-text">
+                                                Solo se usa cuando el tipo de medida es área.
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden"
+                                               th:field="*{medidaVendibleBase}"
+                                               id="medidaVendibleBase">
+
+                                        <div class="col-12 d-none" id="grupoResumenMedidaBase">
+                                            <div class="border rounded-4 p-3 bg-light">
+                                                <div class="row g-3 align-items-center">
+
+                                                    <div class="col-12 col-md-4">
+                                                        <small class="text-muted d-block">Medida real calculada</small>
+                                                        <div class="fw-bold text-primary">
+                                                            <span id="textoMedidaReal">0.00</span>
+                                                            <span id="unidadMedidaReal">m²</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-md-4">
+                                                        <small class="text-muted d-block">Medida vendible</small>
+                                                        <div class="fw-bold text-primary">
+                                                            <span id="textoMedidaVendible">0</span>
+                                                            <span id="unidadMedidaVendible">pie²</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="col-12 col-md-4">
+                                                        <small class="text-muted d-block">Uso posterior</small>
+                                                        <div class="small text-muted">
+                                                            Se usará en Presentaciones y precios.
+                                                        </div>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <input type="hidden"
+                                               th:field="*{medidaTotalBase}"
+                                               id="medidaTotalBase">
+
+                                        <div class="col-12 d-none" id="grupoDescripcionMedidaBase">
+                                            <label class="form-label fw-semibold">Descripción técnica de equivalencia</label>
+
+                                            <input type="text"
+                                                   th:field="*{descripcionMedidaBase}"
+                                                   class="form-control"
+                                                   id="descripcionMedidaBase"
+                                                   maxlength="200"
+                                                   placeholder="Ej: 1 plancha equivale a 51 pie² vendibles.">
+
+                                            <div class="form-text">
+                                                Puedes dejarlo vacío y el sistema generará una descripción.
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- CAMPOS ANTIGUOS OCULTOS PARA COMPATIBILIDAD -->
+                                    <input type="hidden" th:field="*{formaVenta}" id="formaVenta" value="CANTIDAD">
+                                    <input type="hidden" th:field="*{nombreUnidadVenta}" id="nombreUnidadVenta" value="Unidad">
+                                    <input type="hidden" th:field="*{abreviaturaUnidadVenta}" id="abreviaturaUnidadVenta" value="und">
+
+                                </div>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Estado</label>
+                                <select th:field="*{idEstadoProducto}"
+                                        class="form-select"
+                                        id="idEstadoProducto">
+                                    <option value="1">Activo</option>
+                                    <option value="2">Inactivo</option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-4">
+                                <label class="form-label fw-semibold">Marca</label>
+                                <div class="input-group">
+                                    <select th:field="*{idMarca}"
+                                            class="form-select"
+                                            id="idMarca">
+                                        <option value="">Sin marca / Genérico</option>
+                                        <option th:each="m : ${marcasActivas}"
+                                                th:value="${m.idMarca}"
+                                                th:text="${m.nombreMarca}">
+                                            Marca
+                                        </option>
+                                    </select>
+
+                                    <button class="btn btn-outline-primary"
+                                            type="button"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalMarcas"
+                                            title="Nueva marca">
+                                        <i class="bi bi-plus-lg"></i>
+                                    </button>
+                                </div>
+                                <div class="form-text">
+                                    Luego se conectará con el mantenedor de marcas.
+                                </div>
+                            </div>
+
+                            <input type="hidden" th:field="*{modeloProducto}" id="modeloProducto">
+
+                            <input type="hidden" th:field="*{dimensiones}" id="dimensiones">
+
+                            <div class="col-12">
+                                <div class="border rounded-4 p-4 bg-white mt-2">
+
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <div class="rounded-3 bg-dark bg-opacity-10 text-dark p-2">
+                                            <i class="bi bi-sliders"></i>
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0">Atributos técnicos</h6>
+                                            <small class="text-muted">
+                                                Se cargan según la categoría seleccionada.
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div id="contenedorAtributosProducto" class="row g-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-light border mb-0 small text-muted">
+                                                Selecciona una categoría para mostrar los atributos técnicos.
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Descripción / uso del producto</label>
+                                <textarea th:field="*{descripcionProducto}"
+                                          class="form-control"
+                                          id="descripcionProducto"
+                                          rows="3"
+                                          placeholder="Ej: Silicona transparente para sellado de vidrio, aluminio y juntas..."></textarea>
+                                <div class="form-text">
+                                    Describe para qué sirve o en qué casos se utiliza el producto.
+                                </div>
+                            </div>
+
+
+                        </div>
+
+                    </div>
+
+                    <!-- CAMPOS COMERCIALES OCULTOS TEMPORALMENTE -->
+                    <input type="hidden" th:field="*{precioUnitario}" id="precioVenta" value="0">
+                    <input type="hidden" th:field="*{descuentoMaximo}" id="descuentoMaximo" value="0">
+
+                    <!-- CAMPOS DE INVENTARIO OCULTOS TEMPORALMENTE -->
+                    <input type="hidden" th:field="*{stockActual}" id="stockActual">
+                    <input type="hidden" th:field="*{stockMinimo}" id="stockMinimo">
+                    <!-- GALERÍA DE IMAGENES -->
+                    <div class="border rounded-4 p-4 mb-4">
+
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <div class="rounded-3 bg-info bg-opacity-10 text-info p-2">
+                                <i class="bi bi-image"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Fotos del producto</h6>
+                                <small class="text-muted">Máximo 3 imágenes. JPG, PNG o WEBP.</small>
+                            </div>
+                        </div>
+
+                        <div id="galeriaFotosProducto" class="row g-3">
+                            <div class="col-12 text-muted small">
+                                Selecciona imágenes para previsualizarlas antes de guardar.
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <label class="form-label fw-semibold">Agregar imagen</label>
+                            <div class="input-group">
+                                <input type="file"
+                                       id="inputGaleriaProductoFoto"
+                                       name="fotosProducto"
+                                       class="form-control"
+                                       accept="image/png, image/jpeg, image/webp"
+                                       multiple>
+                                <input type="hidden"
+                                       id="fotoPortadaTemporal"
+                                       name="fotoPortadaTemporal"
+                                       value="-1">
+                            </div>
+                            <div class="form-text" id="textoGaleriaProductoFoto">
+                                Puedes seleccionar hasta 3 imágenes antes de guardar el producto.
+                            </div>
+                            <div class="text-danger small mt-2 d-none" id="errorGaleriaProductoFoto"></div>
+                        </div>
+
+                    </div>
+                    <!-- BOTONES -->
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="button"
+                                class="btn btn-outline-secondary px-4"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Guardar producto
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL CATEGORÍAS -->
+<div class="modal fade producto-modal producto-modal-mantenedor" id="modalCategorias" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-tags text-primary me-1"></i> Categorías
+                    </h5>
+                    <small class="text-muted">
+                        Gestiona las categorías principales del catálogo.
+                    </small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-light border small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si editas una categoría, el cambio se verá automáticamente en todos los productos conectados.
+                </div>
+
+                <form id="formCategoriaMant"
+                      th:action="@{/interno/productos/categorias}"
+                      method="post"
+                      class="row g-3 mb-3">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <!-- ID OCULTO PARA EDITAR -->
+                    <input type="hidden" name="idCategoria" id="idCategoriaMant">
+
+                    <div class="col-12 col-md-8">
+                        <label class="form-label fw-semibold">Nombre categoría</label>
+                        <input type="text"
+                               name="nombreCategoria"
+                               id="nombreCategoriaMant"
+                               class="form-control"
+                               placeholder="Ej: Vidrios"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-4 d-grid align-items-end">
+                        <button type="submit"
+                                class="btn btn-primary mt-md-4"
+                                id="btnGuardarCategoriaMant">
+                            <i class="bi bi-plus-circle me-1"></i> Agregar
+                        </button>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="btnCancelarEdicionCategoria"
+                                style="display:none;">
+                            Cancelar edición
+                        </button>
+                    </div>
+
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle productos-modal-table">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Categoría</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="c : ${categorias}">
+                            <td class="fw-semibold" th:text="${c.nombreCategoria}">
+                                Categoría
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:text="${c.estado == 1 ? 'Activo' : 'Inactivo'}"
+                                      th:classappend="${c.estado == 1 ? ' text-bg-success' : ' text-bg-secondary'}">
+                                    Activo
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- EDITAR -->
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-editar-categoria"
+                                            th:attr="data-id=${c.idCategoria},
+                                                     data-nombre=${c.nombreCategoria}"
+                                            title="Editar categoría">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <!-- ACTIVAR / DESACTIVAR -->
+                                    <form th:action="@{/interno/productos/categorias/estado}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="idCategoria" th:value="${c.idCategoria}">
+                                        <input type="hidden"
+                                               name="estado"
+                                               th:value="${c.estado == 1 ? 2 : 1}">
+
+                                        <button type="submit"
+                                                class="btn"
+                                                th:classappend="${c.estado == 1 ? ' btn-outline-warning' : ' btn-outline-success'}"
+                                                th:title="${c.estado == 1 ? 'Desactivar categoría' : 'Activar categoría'}">
+                                            <i class="bi"
+                                               th:classappend="${c.estado == 1 ? ' bi-toggle-off' : ' bi-toggle-on'}"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${categorias == null or #lists.isEmpty(categorias)}">
+                            <td colspan="3" class="text-center text-muted py-3">
+                                No hay categorías registradas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL SUBCATEGORÍAS -->
+<div class="modal fade producto-modal producto-modal-mantenedor" id="modalSubcategorias" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-diagram-3 text-primary me-1"></i> Subcategorías
+                    </h5>
+                    <small class="text-muted">Clasificación interna por categoría.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-light border small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si editas una subcategoría, el cambio se verá en todos los productos conectados.
+                </div>
+
+                <form id="formSubcategoriaMant"
+                      th:action="@{/interno/productos/subcategorias}"
+                      method="post"
+                      class="row g-3 mb-3">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                    <input type="hidden" name="idSubcategoria" id="idSubcategoriaMant">
+
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Categoría</label>
+                        <select name="idCategoria"
+                                id="idCategoriaSubMant"
+                                class="form-select"
+                                required>
+                            <option value="">Seleccione...</option>
+                            <option th:each="c : ${categorias}"
+                                    th:value="${c.idCategoria}"
+                                    th:text="${c.nombreCategoria}">
+                                Categoría
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Subcategoría</label>
+                        <input type="text"
+                               name="nombreSubcategoria"
+                               id="nombreSubcategoriaMant"
+                               class="form-control"
+                               placeholder="Ej: Silicona"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit"
+                                class="btn btn-primary mt-md-4"
+                                id="btnGuardarSubcategoriaMant">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="btnCancelarEdicionSubcategoria"
+                                style="display:none;">
+                            Cancelar edición
+                        </button>
+                    </div>
+
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle productos-modal-table">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Subcategoría</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="s : ${subcategorias}">
+                            <td th:text="${s.nombreCategoria}">Categoría</td>
+
+                            <td class="fw-semibold" th:text="${s.nombreSubcategoria}">
+                                Subcategoría
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:text="${s.estado == 1 ? 'Activo' : 'Inactivo'}"
+                                      th:classappend="${s.estado == 1 ? ' text-bg-success' : ' text-bg-secondary'}">
+                                    Activo
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-editar-subcategoria"
+                                            th:attr="data-id=${s.idSubcategoria},
+                                                     data-categoria=${s.idCategoria},
+                                                     data-nombre=${s.nombreSubcategoria}"
+                                            title="Editar subcategoría">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <form th:action="@{/interno/productos/subcategorias/estado}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="idSubcategoria" th:value="${s.idSubcategoria}">
+                                        <input type="hidden"
+                                               name="estado"
+                                               th:value="${s.estado == 1 ? 2 : 1}">
+
+                                        <button type="submit"
+                                                class="btn"
+                                                th:classappend="${s.estado == 1 ? ' btn-outline-warning' : ' btn-outline-success'}"
+                                                th:title="${s.estado == 1 ? 'Desactivar subcategoría' : 'Activar subcategoría'}">
+                                            <i class="bi"
+                                               th:classappend="${s.estado == 1 ? ' bi-toggle-off' : ' bi-toggle-on'}"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${subcategorias == null or #lists.isEmpty(subcategorias)}">
+                            <td colspan="4" class="text-center text-muted py-3">
+                                No hay subcategorías registradas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL MARCAS -->
+<div class="modal fade producto-modal producto-modal-mantenedor" id="modalMarcas" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-award text-primary me-1"></i> Marcas
+                    </h5>
+                    <small class="text-muted">Gestiona las marcas comerciales de los productos.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-light border small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si editas una marca, el cambio se verá automáticamente en todos los productos conectados.
+                </div>
+
+                <form id="formMarcaMant"
+                      th:action="@{/interno/productos/marcas}"
+                      method="post"
+                      class="row g-3 mb-3">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <!-- ID OCULTO PARA EDITAR -->
+                    <input type="hidden" name="idMarca" id="idMarcaMant">
+
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Nombre de marca</label>
+                        <input type="text"
+                               name="nombreMarca"
+                               id="nombreMarcaMant"
+                               class="form-control"
+                               placeholder="Ej: VASA, Tekno, Forte"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-5">
+                        <label class="form-label fw-semibold">Descripción</label>
+                        <input type="text"
+                               name="descripcion"
+                               id="descripcionMarcaMant"
+                               class="form-control"
+                               placeholder="Ej: Marca de siliconas, vidrios o accesorios">
+                    </div>
+
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit"
+                                class="btn btn-primary mt-md-4"
+                                id="btnGuardarMarcaMant">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="btnCancelarEdicionMarca"
+                                style="display:none;">
+                            Cancelar edición
+                        </button>
+                    </div>
+
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 productos-modal-table">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Marca</th>
+                            <th>Oferta</th>
+                            <th>Portada</th>
+                            <th>Sedes</th>
+                            <th>Descripción</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="m : ${marcas}">
+                            <td class="fw-semibold" th:text="${m.nombreMarca}">
+                                Marca
+                            </td>
+
+                            <td class="text-muted"
+                                th:text="${m.descripcion != null ? m.descripcion : 'Sin descripción'}">
+                                Descripción
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:text="${m.estado == 1 ? 'Activo' : 'Inactivo'}"
+                                      th:classappend="${m.estado == 1 ? ' text-bg-success' : ' text-bg-secondary'}">
+                                    Activo
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- EDITAR -->
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-editar-marca"
+                                            th:attr="data-id=${m.idMarca},
+                                                     data-nombre=${m.nombreMarca},
+                                                     data-descripcion=${m.descripcion}"
+                                            title="Editar marca">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <!-- ACTIVAR / DESACTIVAR -->
+                                    <form th:action="@{/interno/productos/marcas/estado}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="idMarca" th:value="${m.idMarca}">
+                                        <input type="hidden"
+                                               name="estado"
+                                               th:value="${m.estado == 1 ? 2 : 1}">
+
+                                        <button type="submit"
+                                                class="btn"
+                                                th:classappend="${m.estado == 1 ? ' btn-outline-warning' : ' btn-outline-success'}"
+                                                th:title="${m.estado == 1 ? 'Desactivar marca' : 'Activar marca'}">
+                                            <i class="bi"
+                                               th:classappend="${m.estado == 1 ? ' bi-toggle-off' : ' bi-toggle-on'}"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${marcas == null or #lists.isEmpty(marcas)}">
+                            <td colspan="4" class="text-center text-muted py-3">
+                                No hay marcas registradas.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL ATRIBUTOS GENERALES -->
+<div class="modal fade producto-modal producto-modal-mantenedor" id="modalAtributos" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-sliders text-primary me-1"></i> Atributos técnicos
+                    </h5>
+                    <small class="text-muted">Crea atributos configurables por categoría.</small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="alert alert-light border small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Si editas un atributo, se actualizará para los productos que lo usan.
+                </div>
+
+                <form id="formAtributoMant"
+                      th:action="@{/interno/productos/atributos}"
+                      method="post"
+                      class="row g-3 mb-3">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                    <!-- ID OCULTO PARA EDITAR -->
+                    <input type="hidden" name="idAtributo" id="idAtributoMant">
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Categoría</label>
+                        <select name="idCategoria"
+                                id="idCategoriaAtributoMant"
+                                class="form-select">
+                            <option value="">General</option>
+                            <option th:each="c : ${categorias}"
+                                    th:value="${c.idCategoria}"
+                                    th:text="${c.nombreCategoria}">
+                                Categoría
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold">Atributo</label>
+                        <input type="text"
+                               name="nombreAtributo"
+                               id="nombreAtributoMant"
+                               class="form-control"
+                               placeholder="Ej: Espesor, Color, Serie"
+                               required>
+                    </div>
+
+                    <div class="col-12 col-md-2">
+                        <label class="form-label fw-semibold">Tipo dato</label>
+                        <select name="tipoDato"
+                                id="tipoDatoAtributoMant"
+                                class="form-select">
+                            <option value="TEXTO">Texto</option>
+                            <option value="NUMERO">Número</option>
+                            <option value="DECIMAL">Decimal</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-2 d-grid">
+                        <button type="submit"
+                                class="btn btn-primary mt-md-4"
+                                id="btnGuardarAtributoMant">
+                            <i class="bi bi-plus-circle"></i>
+                        </button>
+                    </div>
+
+                    <div class="col-12">
+                        <button type="button"
+                                class="btn btn-outline-secondary btn-sm"
+                                id="btnCancelarEdicionAtributo"
+                                style="display:none;">
+                            Cancelar edición
+                        </button>
+                    </div>
+
+                </form>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle mb-0 productos-modal-table">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Categoría</th>
+                            <th>Atributo</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody>
+                        <tr th:each="a : ${atributos}">
+                            <td th:text="${a.nombreCategoria != null ? a.nombreCategoria : 'General'}">
+                                Categoría
+                            </td>
+
+                            <td class="fw-semibold" th:text="${a.nombreAtributo}">
+                                Atributo
+                            </td>
+
+                            <td th:text="${a.tipoDato}">
+                                TEXTO
+                            </td>
+
+                            <td class="text-center">
+                                <span class="badge"
+                                      th:text="${a.estado == 1 ? 'Activo' : 'Inactivo'}"
+                                      th:classappend="${a.estado == 1 ? ' text-bg-success' : ' text-bg-secondary'}">
+                                    Activo
+                                </span>
+                            </td>
+
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+
+                                    <!-- EDITAR -->
+                                    <button type="button"
+                                            class="btn btn-outline-primary btn-editar-atributo"
+                                            th:attr="data-id=${a.idAtributo},
+                                                     data-categoria=${a.idCategoria},
+                                                     data-nombre=${a.nombreAtributo},
+                                                     data-tipo=${a.tipoDato}"
+                                            title="Editar atributo">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+
+                                    <!-- ACTIVAR / DESACTIVAR -->
+                                    <form th:action="@{/interno/productos/atributos/estado}"
+                                          method="post"
+                                          class="d-inline">
+
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <input type="hidden" name="idAtributo" th:value="${a.idAtributo}">
+                                        <input type="hidden"
+                                               name="estado"
+                                               th:value="${a.estado == 1 ? 2 : 1}">
+
+                                        <button type="submit"
+                                                class="btn"
+                                                th:classappend="${a.estado == 1 ? ' btn-outline-warning' : ' btn-outline-success'}"
+                                                th:title="${a.estado == 1 ? 'Desactivar atributo' : 'Activar atributo'}">
+                                            <i class="bi"
+                                               th:classappend="${a.estado == 1 ? ' bi-toggle-off' : ' bi-toggle-on'}"></i>
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr th:if="${atributos == null or #lists.isEmpty(atributos)}">
+                            <td colspan="5" class="text-center text-muted py-3">
+                                No hay atributos registrados.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- MODAL DETALLE PRODUCTO -->
+<div class="modal fade producto-modal producto-modal-detalle" id="modalDetalleProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header bg-dark text-white rounded-top-4">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-eye me-1"></i> Detalle del producto
+                    </h5>
+                    <small class="opacity-75">
+                        Ficha técnica completa del catálogo maestro.
+                    </small>
+                </div>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-4">
+
+                <div class="row g-4">
+
+                    <!-- IMAGEN -->
+                    <div class="col-12 col-lg-4">
+                        <div class="border rounded-4 p-3 h-100 bg-light">
+
+                            <div class="d-flex align-items-center justify-content-center rounded-4 bg-white border mb-3 producto-detalle-imagen-wrap">
+
+                                <img id="detalleImagenProducto"
+                                     src=""
+                                     alt="Imagen producto"
+                                     class="producto-detalle-imagen">
+
+                                <div id="detalleSinImagen"
+                                     class="text-center text-muted">
+                                    <i class="bi bi-image fs-1 d-block mb-2"></i>
+                                    Sin imagen registrada
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <span id="detalleEstadoProducto"
+                                      class="badge rounded-pill px-3 py-2">
+                                    Estado
+                                </span>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- INFORMACIÓN PRINCIPAL -->
+                    <div class="col-12 col-lg-8">
+
+                        <div class="border rounded-4 p-4 mb-4 bg-white">
+
+                            <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-3">
+                                <div>
+                                    <h4 class="fw-bold mb-1" id="detalleNombreProducto">
+                                        Nombre del producto
+                                    </h4>
+
+                                    <div class="text-muted">
+                                        Código:
+                                        <span class="fw-semibold text-dark" id="detalleCodigoProducto">
+                                            PRD-000
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="text-end">
+                                    <small class="text-muted d-block">ID Producto</small>
+                                    <span class="fw-bold" id="detalleIdProducto">0</span>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <div class="row g-3">
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Categoría</small>
+                                    <span class="fw-semibold" id="detalleCategoriaProducto">-</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Subcategoría</small>
+                                    <span class="fw-semibold" id="detalleSubcategoriaProducto">-</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Marca</small>
+                                    <span class="fw-semibold" id="detalleMarcaProducto">-</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Modelo</small>
+                                    <span class="fw-semibold" id="detalleModeloProducto">Sin modelo</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Dimensiones</small>
+                                    <span class="fw-semibold" id="detalleDimensionesProducto">Sin dimensiones</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Unidad de venta referencial</small>
+                                    <span class="fw-semibold" id="detalleUnidadVentaProducto">Unidad</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Abreviatura de venta</small>
+                                    <span class="fw-semibold" id="detalleAbreviaturaVentaProducto">und</span>
+                                </div>
+
+                                <div class="col-12">
+                                    <small class="text-muted d-block">Equivalencia técnica</small>
+                                    <span class="fw-semibold" id="detalleDescripcionMedidaProducto">
+        Sin equivalencia técnica registrada.
+    </span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Inventario físico</small>
+                                    <span class="fw-semibold" id="detalleUnidadProducto">-</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Precio principal</small>
+                                    <span class="fw-semibold" id="detallePrecioProducto">-</span>
+                                </div>
+
+                                <div class="col-12 col-md-6">
+                                    <small class="text-muted d-block">Descuento máximo</small>
+                                    <span class="fw-semibold" id="detalleDescuentoProducto">-</span>
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                        <!-- DESCRIPCIÓN -->
+                        <div class="border rounded-4 p-4 mb-4 bg-light bg-opacity-50">
+                            <h6 class="fw-bold mb-2">
+                                <i class="bi bi-card-text me-1"></i> Descripción / uso
+                            </h6>
+
+                            <p class="mb-0 text-muted" id="detalleDescripcionProducto">
+                                Sin descripción registrada.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- ATRIBUTOS -->
+                    <div class="col-12">
+                        <div class="border rounded-4 p-4 bg-white">
+
+                            <h6 class="fw-bold mb-3">
+                                <i class="bi bi-sliders me-1"></i> Atributos técnicos
+                            </h6>
+
+                            <div id="detalleAtributosProducto" class="row g-3">
+                                <div class="col-12">
+                                    <div class="alert alert-light border mb-0 small text-muted">
+                                        Sin atributos técnicos registrados.
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer bg-light border-0 d-flex justify-content-between">
+
+                <button type="button"
+                        class="btn btn-outline-danger"
+                        id="btnExportarPdfProducto">
+                    <i class="bi bi-file-earmark-pdf me-1"></i> Exportar PDF
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Cerrar
+                </button>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PRECIOS POR PRODUCTO -->
+<div class="modal fade producto-modal producto-modal-presentaciones" id="modalPreciosProducto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-cash-coin text-primary me-1"></i>
+                        Presentaciones de venta y precios
+                    </h5>
+                    <small class="text-muted">
+                        Configura cómo se vende este producto. El sistema calculará cuánto se descuenta del stock.
+                    </small>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="precioIdProducto">
+                <input type="hidden" id="precioIdPrecioPresentacion">
+                <input type="hidden" id="precioTipoCalculoVenta" value="CANTIDAD">
+
+                <input type="hidden" id="precioFormaVentaProducto">
+                <input type="hidden" id="precioNombreUnidadVentaProducto">
+                <input type="hidden" id="precioAbreviaturaUnidadVentaProducto">
+                <input type="hidden" id="precioMedidaTotalProducto">
+                <input type="hidden" id="precioMedidaVendibleProducto">
+
+                <div class="alert alert-danger d-none" id="alertaPrecioProducto"></div>
+
+                <!-- PRODUCTO SELECCIONADO -->
+                <div class="border rounded-4 p-3 mb-3 bg-light bg-opacity-50">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-box-seam me-1"></i> Producto seleccionado
+                    </h6>
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-8">
+                            <label class="form-label fw-semibold">Producto</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="precioNombreProducto"
+                                   readonly>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Inventario</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="precioUnidadStockProducto"
+                                   readonly>
+                            <div class="form-text">
+                                Unidad física de inventario. La venta se define abajo por presentaciones.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- REFERENCIA DE COMPRA -->
+                <div class="border rounded-4 p-3 mb-3 bg-light bg-opacity-50">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-info-circle me-1"></i> Referencia de compra y ganancia
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Costo promedio sin IGV</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="ultimoPrecioCompraModal"
+                                   readonly
+                                   placeholder="Se calculará desde Compras">
+                            <div class="form-text">
+                                Costo neto usado para inventario. No incluye IGV.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">% Ganancia deseada</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="porcentajeGananciaModal"
+                                   min="0"
+                                   step="0.1"
+                                   placeholder="Ej: 30">
+                            <div class="form-text">
+                                En modo normal calcula el precio de venta.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Modo especial</label>
+
+                            <div class="form-check border rounded-3 px-3 py-2 bg-white">
+                                <input class="form-check-input ms-0 me-2"
+                                       type="checkbox"
+                                       id="precioModoRemate">
+                                <label class="form-check-label fw-semibold" for="precioModoRemate">
+                                    Precio en remate
+                                </label>
+                            </div>
+
+                            <div class="form-text">
+                                Solo ADMIN. Bloquea ganancia y descuento.
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- NUEVA PRESENTACION -->
+                <div class="border rounded-4 p-3 mb-3">
+                    <h6 class="fw-bold mb-3">
+                        <i class="bi bi-tags me-1"></i> Nueva presentacion de venta
+                    </h6>
+
+                    <div class="row g-3">
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Nombre de presentacion</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="precioNombrePresentacion"
+                                   placeholder="Ej: Caja x100, Paquete x12, Plancha completa, Media plancha">
+                            <div class="form-text">
+                                Nombre comercial que vera el vendedor.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Tipo de venta</label>
+
+                            <select class="form-select" id="precioIdUnidadVenta">
+                                <option value="">Seleccione...</option>
+
+                                <option th:each="u : ${unidadesActivas}"
+                                        th:value="${u.idUnidad}"
+                                        th:attr="data-tipo=${u.tipoCalculo},
+                         data-nombre=${u.NombreUnidad},
+                         data-abreviatura=${u.abreviatura}"
+                                        th:text="${u.NombreUnidad + (u.abreviatura != null ? ' (' + u.abreviatura + ')' : '')}">
+                                    Unidad
+                                </option>
+                            </select>
+
+                            <div class="form-text" id="ayudaUnidadVenta">
+                                Define como se descontara esta presentacion del inventario.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Cantidad incluida</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="precioCantidadIncluida"
+                                   min="0"
+                                   step="0.01"
+                                   value="1"
+                                   placeholder="Ej: 1, 12">
+                            <div class="form-text">
+                                Unidad: descuenta unidad completa. Mitad: descuenta 0.5. Pie2: usa piezas reales. Metro lineal: descuenta segun metros vendibles.
+                            </div>
+                        </div>
+
+                        <!-- CAMPOS DINAMICOS: AREA -->
+                        <input type="hidden" id="precioLargoBase">
+                        <input type="hidden" id="precioAnchoBase">
+                        <input type="hidden" id="precioMedidaTotalBase">
+
+                        <!-- CAMPOS DINAMICOS: LONGITUD -->
+                        <input type="hidden" id="precioLargoTotalBase">
+                        <input type="hidden" id="precioMedidaTotalLongitud">
+
+                        <!-- RESULTADO AUTOMATICO -->
+                        <div class="col-12">
+                            <div class="alert alert-primary border-0 mb-0">
+                                <div class="row g-3 align-items-center">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label fw-semibold">Cantidad que descuenta del inventario</label>
+                                        <input type="number"
+                                               class="form-control bg-white fw-bold"
+                                               id="precioFactorConversionStock"
+                                               readonly
+                                               step="0.000001"
+                                               value="1.000000">
+                                    </div>
+
+                                    <div class="col-12 col-md-8">
+                                        <div class="fw-semibold" id="textoResultadoStock">
+                                            Vender esta presentacion descontara 1 unidad fisica del inventario.
+                                        </div>
+                                        <div class="small" id="textoAyudaCalculo">
+                                            El calculo se actualiza automaticamente segun la unidad seleccionada.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Precio final con IGV (S/)</label>
+                            <input type="number"
+                                   class="form-control"
+                                   id="precioVentaModal"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="0.00">
+
+                            <div class="form-text">
+                                Este es el precio que vera y pagara el cliente. Incluye IGV.
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Descuento máximo permitido</label>
+
+                            <div class="input-group">
+                                <span class="input-group-text">S/</span>
+                                <input type="number"
+                                       class="form-control"
+                                       id="precioDescuentoMaximo"
+                                       min="0"
+                                       step="0.01"
+                                       value="0.00"
+                                       placeholder="0.00">
+                            </div>
+
+                            <div class="form-text">
+                                <span id="textoDescuentoPorcentaje">Equivale a 0.00%</span>
+                                <br>
+                                <span id="textoLimiteDescuento">Se calculara segun la ganancia.</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-semibold">Descripcion de uso</label>
+                            <input type="text"
+                                   class="form-control"
+                                   id="precioDescripcionUso"
+                                   maxlength="200"
+                                   placeholder="Ej: Venta por pie², media plancha o plancha completa">
+                            <div class="form-text">
+                                Texto corto para entender cuando usar esta presentacion.
+                            </div>
+                        </div>
+
+                        <div class="col-12 d-none" id="bloqueMotivoPrecioBajoCosto">
+                            <div class="alert alert-warning border-0 mb-2">
+                                <strong>Remate autorizado:</strong>
+                                El precio de venta esta por debajo del costo real. El descuento maximo queda en 0 y el motivo es obligatorio.
+                            </div>
+
+                            <label class="form-label fw-semibold">
+                                Motivo del remate
+                            </label>
+
+                            <textarea class="form-control"
+                                      id="precioMotivoBajoCosto"
+                                      rows="2"
+                                      maxlength="255"
+                                      placeholder="Ej: Liquidacion por stock antiguo, producto con dano leve, remate autorizado por gerencia."></textarea>
+
+                            <div class="form-text">
+                                Este motivo quedara registrado como respaldo de la autorizacion.
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-3">
+                        <button type="button"
+                                class="btn btn-outline-secondary"
+                                id="btnLimpiarPrecioProducto">
+                            Limpiar
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-primary"
+                                id="btnGuardarPrecioProducto">
+                            <i class="bi bi-save me-1"></i> Guardar precio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TABLA -->
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="fw-bold mb-0">
+                        Presentaciones registradas
+                    </h6>
+                    <small class="text-muted">
+                        Precios propios de este producto
+                    </small>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-sm align-middle productos-modal-table" id="tablaPresentacionesResponsive">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Presentación</th>
+                            <th>Tipo de venta</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                            <th>Desc. máx.</th>
+                            <th>Oferta</th>
+                            <th>Portada</th>
+                            <th>Descripción</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                        </thead>
+
+                        <tbody id="tablaPreciosProducto">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-3">
+                                Selecciona un producto para ver sus precios.
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<!-- MODAL PEQUEÑO: ACTIVAR / DESACTIVAR -->
+<!-- MODAL: OFERTA POR PRESENTACION -->
+<div class="modal fade producto-modal producto-modal-oferta" id="modalOfertaPresentacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <div>
+                    <h5 class="modal-title fw-bold mb-0">
+                        <i class="bi bi-tags me-1"></i> Oferta
+                    </h5>
+                    <div class="small text-muted" id="ofertaNombrePresentacion">
+                        Presentacion
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="ofertaIdPrecioPresentacion">
+                <input type="hidden" id="ofertaPrecioNormal">
+
+                <div class="alert alert-danger d-none" id="alertaOfertaPresentacion"></div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Precio normal actual</label>
+                    <input type="text"
+                           class="form-control bg-light"
+                           id="ofertaPrecioNormalTexto"
+                           readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Precio oferta</label>
+                    <div class="input-group">
+                        <span class="input-group-text">S/</span>
+                        <input type="number"
+                               class="form-control"
+                               id="ofertaPrecioOferta"
+                               min="0.01"
+                               step="0.01"
+                               placeholder="0.00">
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold">Fecha inicio</label>
+                        <input type="date" class="form-control" id="ofertaFechaInicio">
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label fw-semibold">Fecha fin</label>
+                        <input type="date" class="form-control" id="ofertaFechaFin">
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label class="form-label fw-semibold">Texto oferta</label>
+                    <input type="text"
+                           class="form-control"
+                           id="ofertaTexto"
+                           maxlength="120"
+                           placeholder="Ej: Promocion por temporada">
+                </div>
+
+                <div class="form-check form-switch mt-3">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           role="switch"
+                           id="ofertaActivo"
+                           checked>
+                    <label class="form-check-label fw-semibold" for="ofertaActivo">
+                        Oferta activa
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-danger me-auto d-none"
+                        id="btnDesactivarOfertaPresentacion">
+                    Desactivar oferta
+                </button>
+
+                <button type="button"
+                        class="btn btn-outline-secondary"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-primary"
+                        id="btnGuardarOfertaPresentacion">
+                    <i class="bi bi-save me-1"></i> Guardar oferta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade producto-modal producto-modal-confirmacion" id="modalEstadoProducto" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Cambiar estado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="textoEstadoProducto" class="mb-0"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-primary btn-sm"
+                        id="btnConfirmarEstado">
+                    Confirmar
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PEQUEÑO: ELIMINAR -->
+<div class="modal fade producto-modal producto-modal-confirmacion" id="modalConfirmEliminar" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Enviar a eliminados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p id="textoEliminarProducto" class="mb-0"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button"
+                        class="btn btn-outline-secondary btn-sm"
+                        data-bs-dismiss="modal">
+                    Cancelar
+                </button>
+
+                <button type="button"
+                        class="btn btn-danger btn-sm"
+                        id="btnConfirmarEliminar">
+                    Enviar a eliminados
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Exportar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<!-- SweetAlert -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- JS interno -->
+<script th:src="@{/js/interno/productos.js(v=${#dates.createNow().time})}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+<!-- PIE DE PAGINA GLOBAL -->
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+</body>
+</html>

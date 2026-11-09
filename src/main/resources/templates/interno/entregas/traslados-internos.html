@@ -1,0 +1,1368 @@
+﻿<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Traslados Internos | DentIA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/traslados-internos.css}">
+</head>
+
+<body class="d-flex flex-column min-vh-100 bg-light traslados-module">
+
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="container-fluid px-4 py-4 flex-grow-1">
+
+    <!-- ENCABEZADO -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="fw-bold text-primary mb-1">
+                <i class="bi bi-truck-front me-2"></i>
+                Traslados internos
+            </h2>
+            <p class="text-muted mb-0">
+                Control operativo de traslados de productos entre sedes.
+            </p>
+        </div>
+
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2">
+            Módulo logístico
+        </span>
+    </div>
+
+    <div th:if="${param.error}" class="alert alert-danger border-0 rounded-4 shadow-sm">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${param.error[0]}">Ocurrió un error.</span>
+    </div>
+
+    <div th:if="${param.llegadaOrigen}" class="alert alert-success border-0 rounded-4 shadow-sm">
+        <i class="bi bi-check-circle me-2"></i>
+        Llegada a origen registrada correctamente.
+    </div>
+
+    <div th:if="${param.pedidoListo}" class="alert alert-success border-0 rounded-4 shadow-sm">
+        <i class="bi bi-check-circle me-2"></i>
+        Pedido listo registrado correctamente.
+    </div>
+
+    <div th:if="${param.llegadaDestino}" class="alert alert-success border-0 rounded-4 shadow-sm">
+        <i class="bi bi-check-circle me-2"></i>
+        Llegada a destino registrada correctamente.
+    </div>
+
+    <div th:if="${param.incidenciaReportada}" class="alert alert-warning border-0 rounded-4 shadow-sm">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Imprevisto reportado correctamente.
+    </div>
+
+    <!-- RESUMEN -->
+    <div class="row g-3 mb-4">
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 resumen-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted fw-semibold">Pendientes</small>
+                        <h3 class="fw-bold mb-0" th:text="${#lists.size(pendientes)}">0</h3>
+                        <small class="text-muted">Por aceptar</small>
+                    </div>
+                    <div class="bg-warning-subtle text-warning rounded-4 p-3">
+                        <i class="bi bi-hourglass-split fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 resumen-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted fw-semibold">En proceso</small>
+                        <h3 class="fw-bold mb-0" th:text="${#lists.size(enProceso)}">0</h3>
+                        <small class="text-muted">Traslado activo</small>
+                    </div>
+                    <div class="bg-primary-subtle text-primary rounded-4 p-3">
+                        <i class="bi bi-truck fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 resumen-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted fw-semibold">Por recepción</small>
+                        <h3 class="fw-bold mb-0" th:text="${#lists.size(porRecepcion)}">0</h3>
+                        <small class="text-muted">Esperando validación</small>
+                    </div>
+                    <div class="bg-info-subtle text-info rounded-4 p-3">
+                        <i class="bi bi-clipboard-check fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 resumen-card">
+                <div class="card-body d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-muted fw-semibold">Finalizados</small>
+                        <h3 class="fw-bold mb-0" th:text="${#lists.size(historial)}">0</h3>
+                        <small class="text-muted">Historial</small>
+                    </div>
+                    <div class="bg-success-subtle text-success rounded-4 p-3">
+                        <i class="bi bi-check2-circle fs-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- TABS -->
+    <ul class="nav nav-pills gap-2 mb-4" id="tabsTraslados" role="tablist">
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-3 px-4"
+                    data-bs-toggle="pill"
+                    data-bs-target="#pendientes"
+                    type="button">
+                <i class="bi bi-inbox me-1"></i>
+                Pendientes
+                <span class="badge bg-danger ms-1" th:text="${#lists.size(pendientes)}">0</span>
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 px-4"
+                    data-bs-toggle="pill"
+                    data-bs-target="#proceso"
+                    type="button">
+                <i class="bi bi-truck me-1"></i>
+                En proceso
+                <span class="badge bg-primary ms-1" th:text="${#lists.size(enProceso)}">0</span>
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 px-4"
+                    data-bs-toggle="pill"
+                    data-bs-target="#recepcion"
+                    type="button">
+                <i class="bi bi-clipboard-check me-1"></i>
+                Por recepción
+                <span class="badge bg-info ms-1" th:text="${#lists.size(porRecepcion)}">0</span>
+            </button>
+        </li>
+
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-3 px-4"
+                    data-bs-toggle="pill"
+                    data-bs-target="#historial"
+                    type="button">
+                <i class="bi bi-clock-history me-1"></i>
+                Historial
+                <span class="badge bg-success ms-1" th:text="${#lists.size(historial)}">0</span>
+            </button>
+        </li>
+
+    </ul>
+
+    <div class="tab-content">
+
+        <!-- PENDIENTES -->
+        <section class="tab-pane fade show active" id="pendientes">
+
+            <div class="alert alert-primary border-0 rounded-4 shadow-sm">
+                <i class="bi bi-info-circle me-2"></i>
+                Acepta un traslado cuando estés listo para iniciar el proceso de recojo.
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-1">Cola de traslados pendientes</h5>
+                            <small class="text-muted">
+                                Se atienden por orden de llegada. Solo el primero puede aceptarse.
+                            </small>
+                        </div>
+
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2">
+                    <span th:text="${#lists.size(pendientes)}">0</span>
+                    pendiente(s)
+                </span>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(pendientes)}"
+                         class="list-group">
+
+                        <div class="list-group-item border rounded-4 mb-2 p-3 traslado-vigilado"
+                             th:each="t, iter : ${pendientes}"
+                             th:data-id="${t.idTransferencia}"
+                             th:data-codigo="${t.codigo}"
+                             th:data-estado="${t.estado}">
+
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                                <!-- INFO PRINCIPAL -->
+                                <div class="d-flex align-items-center gap-3 flex-grow-1">
+
+                            <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2">
+                                #<span th:text="${iter.index + 1}">1</span>
+                            </span>
+
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                                            <h6 class="fw-bold text-primary mb-0" th:text="${t.codigo}">
+                                                TRF-00000
+                                            </h6>
+
+                                            <span class="badge bg-warning-subtle text-warning border">
+                                        Pendiente
+                                    </span>
+                                        </div>
+
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-calendar-event me-1"></i>
+                                            <span th:if="${t.fechaTransferencia != null}"
+                                                  th:text="${#temporals.format(t.fechaTransferencia, 'dd/MM/yyyy hh:mm a')}">
+                                        06/06/2026
+                                    </span>
+                                            <span th:if="${t.fechaTransferencia == null}">
+                                        Sin fecha
+                                    </span>
+                                        </small>
+
+                                        <small class="text-muted d-block">
+                                            <strong th:text="${t.nombreSedeOrigen}">Origen</strong>
+                                            →
+                                            <strong th:text="${t.nombreSedeDestino}">Destino</strong>
+                                            ·
+                                            <span th:text="${#lists.size(t.detalles)}">0</span>
+                                            producto(s)
+                                        </small>
+                                    </div>
+
+                                </div>
+
+                                <!-- ACCIONES -->
+                                <div class="d-flex align-items-center gap-2">
+
+                                    <button type="button"
+                                            class="btn btn-outline-secondary btn-sm rounded-3"
+                                            data-bs-toggle="collapse"
+                                            th:data-bs-target="'#detallePendiente' + ${t.idTransferencia}">
+                                        <i class="bi bi-eye me-1"></i>
+                                        Ver detalle
+                                    </button>
+
+                                    <form th:if="${iter.index == 0 and !transportistaTieneTrasladoActivo}"
+                                          th:action="@{'/interno/traslados-internos/' + ${t.idTransferencia} + '/aceptar'}"
+                                          method="post"
+                                          class="m-0">
+
+                                        <input type="hidden"
+                                               th:name="${_csrf.parameterName}"
+                                               th:value="${_csrf.token}">
+
+                                        <button type="submit"
+                                                class="btn btn-primary btn-sm rounded-3 px-3 fw-semibold">
+                                            <i class="bi bi-check2-circle me-1"></i>
+                                            Aceptar
+                                        </button>
+                                    </form>
+
+                                    <button th:if="${iter.index == 0 and transportistaTieneTrasladoActivo}"
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm rounded-3 px-3"
+                                            disabled>
+                                        <i class="bi bi-lock me-1"></i>
+                                        Tienes un traslado activo
+                                    </button>
+
+                                    <button th:if="${iter.index > 0}"
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm rounded-3 px-3"
+                                            disabled>
+                                        <i class="bi bi-clock me-1"></i>
+                                        Esperando
+                                    </button>
+
+                                </div>
+
+                            </div>
+
+                            <!-- DETALLE OCULTO -->
+                            <div class="collapse mt-3"
+                                 th:id="'detallePendiente' + ${t.idTransferencia}">
+
+                                <div class="border rounded-4 bg-light p-3">
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-6">
+                                            <div class="bg-white border rounded-4 p-3 h-100">
+                                                <small class="text-muted">Origen</small>
+                                                <h6 class="fw-bold mb-0" th:text="${t.nombreSedeOrigen}">
+                                                    Almacén
+                                                </h6>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-6">
+                                            <div class="bg-white border rounded-4 p-3 h-100">
+                                                <small class="text-muted">Destino</small>
+                                                <h6 class="fw-bold mb-0" th:text="${t.nombreSedeDestino}">
+                                                    Tienda
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="table-responsive border rounded-4 overflow-hidden">
+                                        <table class="table table-sm align-middle mb-0">
+                                            <thead class="table-light">
+                                            <tr>
+                                                <th>Producto</th>
+                                                <th class="text-center">Cantidad</th>
+                                            </tr>
+                                            </thead>
+
+                                            <tbody>
+                                            <tr th:each="d : ${t.detalles}">
+                                                <td>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <div class="rounded-3 border bg-white d-flex align-items-center justify-content-center"
+                                                             style="width:42px;height:42px;min-width:42px;overflow:hidden;">
+
+                                                            <img th:if="${d.fotoProducto != null and !#strings.isEmpty(d.fotoProducto)}"
+                                                                 th:src="@{'/uploads/productos/' + ${d.fotoProducto}}"
+                                                                 alt="Producto"
+                                                                 style="width:100%;height:100%;object-fit:cover;">
+
+                                                            <i th:if="${d.fotoProducto == null or #strings.isEmpty(d.fotoProducto)}"
+                                                               class="bi bi-box-seam text-primary"></i>
+                                                        </div>
+
+                                                        <div>
+                                                            <strong th:text="${d.nombreProducto}">Producto</strong>
+                                                            <small class="text-muted d-block"
+                                                                   th:text="${d.codigoProducto}">
+                                                                COD
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+
+                                                <td class="text-center fw-bold">
+                                            <span th:text="${d.cantidadEnviada != null ? d.cantidadEnviada : d.cantidad}">
+                                                0
+                                            </span>
+                                                </td>
+                                            </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="small text-muted mt-2">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Al aceptar, este traslado pasará a la pestaña En proceso.
+                                    </div>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(pendientes)}"
+                         class="text-center text-muted py-5">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        <h6 class="fw-bold">No hay traslados pendientes</h6>
+                        <p class="mb-0">
+                            Cuando registres una transferencia con transporte, aparecerá aquí.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+        <!-- EN PROCESO -->
+        <section class="tab-pane fade" id="proceso">
+
+            <div class="alert alert-primary border-0 rounded-4 shadow-sm">
+                <i class="bi bi-truck me-2"></i>
+                Aquí se gestionan los traslados aceptados hasta llegar a destino.
+            </div>
+
+            <div class="row g-4" th:if="${!#lists.isEmpty(enProceso)}">
+
+                <div class="col-12" th:each="t : ${enProceso}">
+                    <div class="card border-0 shadow-sm rounded-4 traslado-vigilado"
+                         th:data-id="${t.idTransferencia}"
+                         th:data-codigo="${t.codigo}"
+                         th:data-estado="${t.estado}">
+                        <div class="card-body">
+
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+                                <div>
+                                    <h4 class="fw-bold text-primary mb-1" th:text="${t.codigo}">
+                                        TRF-00000
+                                    </h4>
+
+                                    <p class="text-muted mb-0">
+                                        <span th:text="${t.nombreSedeOrigen}">Origen</span>
+                                        →
+                                        <span th:text="${t.nombreSedeDestino}">Destino</span>
+                                    </p>
+
+                                    <small class="text-muted">
+                                        Transportista:
+                                        <strong th:text="${t.nombreTransportista != null ? t.nombreTransportista : 'Asignado'}">
+                                            Transportista
+                                        </strong>
+                                    </small>
+                                </div>
+
+                                <span class="badge bg-primary-subtle text-primary border px-3 py-2"
+                                      th:text="${t.estado}">
+                            Estado
+                        </span>
+                            </div>
+
+                            <!-- TIMELINE -->
+                            <div class="timeline-traslado mb-4">
+
+                                <div class="timeline-step"
+                                     th:classappend="${t.fechaAceptacion != null ? ' completed' : ''}">
+                                    <div class="timeline-icon">
+                                        <i class="bi bi-check2"></i>
+                                    </div>
+                                    <strong>Aceptado</strong>
+                                    <small th:text="${t.fechaAceptacion != null ? #temporals.format(t.fechaAceptacion, 'hh:mm a') : 'Pendiente'}">
+                                        Pendiente
+                                    </small>
+                                </div>
+
+                                <div class="timeline-step"
+                                     th:classappend="${t.fechaLlegadaOrigen != null ? ' completed' : (t.estado == 'ACEPTADA' ? ' active' : '')}">
+                                    <div class="timeline-icon">
+                                        <i class="bi bi-geo-alt"></i>
+                                    </div>
+                                    <strong>Llegué a origen</strong>
+                                    <small th:text="${t.fechaLlegadaOrigen != null ? #temporals.format(t.fechaLlegadaOrigen, 'hh:mm a') : 'Pendiente'}">
+                                        Pendiente
+                                    </small>
+                                </div>
+
+                                <div class="timeline-step"
+                                     th:classappend="${t.fechaPedidoListo != null ? ' completed' : (t.estado == 'EN_RECOJO' ? ' active' : '')}">
+                                    <div class="timeline-icon">
+                                        <i class="bi bi-box-seam"></i>
+                                    </div>
+                                    <strong>Pedido listo</strong>
+                                    <small th:text="${t.fechaPedidoListo != null ? #temporals.format(t.fechaPedidoListo, 'hh:mm a') : 'Pendiente'}">
+                                        Pendiente
+                                    </small>
+                                </div>
+
+                                <div class="timeline-step"
+                                     th:classappend="${t.fechaInicioRuta != null ? ' completed' : (t.estado == 'LISTO_PARA_SALIR' ? ' active' : '')}">
+                                    <div class="timeline-icon">
+                                        <i class="bi bi-truck"></i>
+                                    </div>
+                                    <strong>En ruta</strong>
+                                    <small th:text="${t.fechaInicioRuta != null ? #temporals.format(t.fechaInicioRuta, 'hh:mm a') : 'Pendiente'}">
+                                        Pendiente
+                                    </small>
+                                </div>
+
+                                <div class="timeline-step"
+                                     th:classappend="${t.fechaLlegadaDestino != null ? ' completed' : (t.estado == 'EN_RUTA' ? ' active' : '')}">
+                                    <div class="timeline-icon">
+                                        <i class="bi bi-flag"></i>
+                                    </div>
+                                    <strong>Llegué destino</strong>
+                                    <small th:text="${t.fechaLlegadaDestino != null ? #temporals.format(t.fechaLlegadaDestino, 'hh:mm a') : 'Pendiente'}">
+                                        Pendiente
+                                    </small>
+                                </div>
+
+                            </div>
+
+                            <!-- ESTADO OPERATIVO -->
+                            <div class="border rounded-4 p-3 bg-light mb-4">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                                    <div class="bg-primary-subtle text-primary rounded-4 d-flex align-items-center justify-content-center"
+                                         style="width:58px;height:58px;">
+                                        <i class="bi bi-activity fs-3"></i>
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1">Estado operativo del traslado</h6>
+
+                                        <p class="text-muted mb-0"
+                                           th:if="${t.estado == 'ACEPTADA'}">
+                                            El traslado fue aceptado. Ahora debes dirigirte a la sede de origen y registrar tu llegada con evidencia.
+                                        </p>
+
+                                        <p class="text-muted mb-0"
+                                           th:if="${t.estado == 'EN_RECOJO'}">
+                                            Ya llegaste a la sede de origen. Ahora espera o verifica que el pedido esté listo para salir.
+                                        </p>
+
+                                        <p class="text-muted mb-0"
+                                           th:if="${t.estado == 'LISTO_PARA_SALIR'}">
+                                            El pedido ya está preparado. Puedes iniciar la ruta hacia la sede destino.
+                                        </p>
+
+                                        <p class="text-muted mb-0"
+                                           th:if="${t.estado == 'EN_RUTA'}">
+                                            El traslado está en ruta. Al llegar a destino, registra tu llegada con evidencia.
+                                        </p>
+                                    </div>
+
+                                    <span class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2"
+                                          th:text="${t.estado}">
+            Estado
+        </span>
+
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+
+                                <!-- PRODUCTOS -->
+                                <div class="col-lg-8">
+                                    <div class="border rounded-4 p-4 bg-light h-100">
+                                        <h5 class="fw-bold mb-3">Productos en traslado</h5>
+
+                                        <div class="list-group">
+
+                                            <div class="list-group-item d-flex justify-content-between align-items-center"
+                                                 th:each="d : ${t.detalles}">
+
+                                                <div class="d-flex align-items-center gap-3">
+
+                                                    <div class="rounded-3 border bg-white d-flex align-items-center justify-content-center"
+                                                         style="width:48px;height:48px;min-width:48px;overflow:hidden;">
+
+                                                        <img th:if="${d.fotoProducto != null and !#strings.isEmpty(d.fotoProducto)}"
+                                                             th:src="@{'/uploads/productos/' + ${d.fotoProducto}}"
+                                                             alt="Producto"
+                                                             style="width:100%;height:100%;object-fit:cover;">
+
+                                                        <i th:if="${d.fotoProducto == null or #strings.isEmpty(d.fotoProducto)}"
+                                                           class="bi bi-box-seam text-primary fs-4"></i>
+                                                    </div>
+
+                                                    <div>
+                                                        <strong th:text="${d.nombreProducto}">Producto</strong>
+                                                        <small class="text-muted d-block" th:text="${d.codigoProducto}">
+                                                            Código
+                                                        </small>
+                                                    </div>
+                                                </div>
+
+                                                <span class="badge bg-primary-subtle text-primary px-3 py-2">
+                                            <span th:text="${d.cantidadEnviada != null ? d.cantidadEnviada : d.cantidad}">
+                                                0
+                                            </span>
+                                        </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ACCIONES -->
+                                <div class="col-lg-4">
+                                    <div class="border rounded-4 p-4 bg-light">
+                                        <h5 class="fw-bold mb-1">Próxima acción</h5>
+                                        <p class="text-muted small mb-3">
+                                            Continúa el traslado según el estado actual.
+                                        </p>
+
+                                        <!-- ACEPTADA → LLEGADA ORIGEN -->
+                                        <button th:if="${t.estado == 'ACEPTADA'}"
+                                                type="button"
+                                                class="btn btn-outline-primary w-100 rounded-3 mb-2 btnAbrirModalEvidencia"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEvidenciaTraslado"
+                                                th:data-id="${t.idTransferencia}"
+                                                th:data-codigo="${t.codigo}"
+                                                data-accion="llegada-origen"
+                                                data-titulo="Llegué a origen"
+                                                data-descripcion="Sube una foto que demuestre que llegaste a la sede de origen.">
+                                            <i class="bi bi-geo-alt me-1"></i>
+                                            Llegué a origen
+                                        </button>
+
+                                        <!-- EN_RECOJO → PEDIDO LISTO -->
+                                        <button th:if="${t.estado == 'EN_RECOJO'}"
+                                                type="button"
+                                                class="btn btn-outline-primary w-100 rounded-3 mb-2 btnAbrirModalEvidencia"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEvidenciaTraslado"
+                                                th:data-id="${t.idTransferencia}"
+                                                th:data-codigo="${t.codigo}"
+                                                data-accion="pedido-listo"
+                                                data-titulo="Pedido listo"
+                                                data-descripcion="Sube una foto del pedido preparado o de la carga lista para salir.">
+                                            <i class="bi bi-box-seam me-1"></i>
+                                            Pedido listo
+                                        </button>
+
+                                        <!-- LISTO_PARA_SALIR → EN_RUTA -->
+                                        <form th:if="${t.estado == 'LISTO_PARA_SALIR'}"
+                                              th:action="@{'/interno/traslados-internos/' + ${t.idTransferencia} + '/iniciar-ruta'}"
+                                              method="post"
+                                              class="mb-2">
+
+                                            <input type="hidden"
+                                                   th:name="${_csrf.parameterName}"
+                                                   th:value="${_csrf.token}">
+
+                                            <button class="btn btn-outline-primary w-100 rounded-3">
+                                                <i class="bi bi-truck me-1"></i>
+                                                Iniciar ruta
+                                            </button>
+                                        </form>
+
+                                        <!-- EN_RUTA → PENDIENTE_RECEPCION -->
+                                        <button th:if="${t.estado == 'EN_RUTA'}"
+                                                type="button"
+                                                class="btn btn-outline-primary w-100 rounded-3 mb-2 btnAbrirModalEvidencia"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalEvidenciaTraslado"
+                                                th:data-id="${t.idTransferencia}"
+                                                th:data-codigo="${t.codigo}"
+                                                data-accion="llegada-destino"
+                                                data-titulo="Llegué a destino"
+                                                data-descripcion="Sube una foto que demuestre la llegada del traslado a la sede destino.">
+                                            <i class="bi bi-flag me-1"></i>
+                                            Llegué a destino
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-outline-warning w-100 rounded-3 mb-2 btnAbrirModalIncidencia"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalIncidenciaTraslado"
+                                                th:data-id="${t.idTransferencia}"
+                                                th:data-codigo="${t.codigo}">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>
+                                            Reportar imprevisto
+                                        </button>
+
+                                    </div>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div th:if="${#lists.isEmpty(enProceso)}"
+                 class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-truck fs-1 d-block mb-2"></i>
+                    <h6 class="fw-bold">No hay traslados en proceso</h6>
+                    <p class="mb-0">
+                        Cuando aceptes un traslado pendiente, aparecerá aquí.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- RECEPCION -->
+        <section class="tab-pane fade" id="recepcion">
+
+            <div class="alert alert-info border-0 rounded-4 shadow-sm">
+                <i class="bi bi-info-circle me-2"></i>
+                Estos traslados ya llegaron a destino y están esperando validación del encargado en
+                <strong>Inventario / Transferencias</strong>.
+            </div>
+
+            <div class="row g-4" th:if="${!#lists.isEmpty(porRecepcion)}">
+
+                <div class="col-12" th:each="t, iter : ${porRecepcion}">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 traslado-vigilado"
+                         th:data-id="${t.idTransferencia}"
+                         th:data-codigo="${t.codigo}"
+                         th:data-estado="${t.estado}">
+                        <div class="card-body p-4">
+
+                            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-info-subtle text-info rounded-4 d-flex align-items-center justify-content-center"
+                                         style="width:64px;height:64px;min-width:64px;">
+                                        <i class="bi bi-clipboard-check fs-2"></i>
+                                    </div>
+
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="badge bg-primary-subtle text-primary border rounded-pill">
+                        #<span th:text="${iter.index + 1}">1</span>
+                    </span>
+
+                                            <h4 class="fw-bold text-primary mb-0" th:text="${t.codigo}">
+                                                TRF-00000
+                                            </h4>
+                                        </div>
+
+                                        <p class="text-muted mb-1">
+                                            <strong th:text="${t.nombreSedeOrigen}">Origen</strong>
+                                            →
+                                            <strong th:text="${t.nombreSedeDestino}">Destino</strong>
+                                        </p>
+
+                                        <small class="text-muted">
+                                            Transportista:
+                                            <strong th:text="${t.nombreTransportista != null ? t.nombreTransportista : 'Sin asignar'}">
+                                                Transportista
+                                            </strong>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <span class="badge bg-info-subtle text-info border rounded-pill px-3 py-2">
+            <i class="bi bi-hourglass-split me-1"></i>
+            Esperando recepción
+        </span>
+
+                            </div>
+
+                            <div class="row g-3 mb-4">
+
+                                <div class="col-md-4">
+                                    <div class="border rounded-4 p-3 bg-light h-100">
+                                        <small class="text-muted">Llegada a destino</small>
+                                        <div class="fw-bold">
+                    <span th:if="${t.fechaLlegadaDestino != null}"
+                          th:text="${#temporals.format(t.fechaLlegadaDestino, 'dd/MM/yyyy hh:mm a')}">
+                        Fecha
+                    </span>
+
+                                            <span th:if="${t.fechaLlegadaDestino == null}">
+                        Sin fecha
+                    </span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="border rounded-4 p-3 bg-light h-100">
+                                        <small class="text-muted">Productos enviados</small>
+                                        <div class="fw-bold">
+                                            <span th:text="${#lists.size(t.detalles)}">0</span>
+                                            producto(s)
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4">
+                                    <div class="border rounded-4 p-3 bg-light h-100">
+                                        <small class="text-muted">Estado actual</small>
+                                        <div class="fw-bold text-info">
+                                            Pendiente de validación
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            <div class="border rounded-4 p-3 bg-light mb-4">
+                                <div class="d-flex align-items-center gap-3 flex-wrap">
+
+                                    <div class="bg-white border rounded-circle d-flex align-items-center justify-content-center"
+                                         style="width:54px;height:54px;min-width:54px;">
+                                        <i class="bi bi-info-circle text-info fs-4"></i>
+                                    </div>
+
+                                    <div class="flex-grow-1">
+                                        <h6 class="fw-bold mb-1">Pedido en recepción</h6>
+                                        <p class="text-muted mb-0">
+                                            El transportista ya llegó a destino. Ahora el encargado debe confirmar cuánto llegó realmente desde
+                                            <strong>Inventario / Transferencias</strong>.
+                                        </p>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="table-responsive border rounded-4 overflow-hidden">
+                                <table class="table align-middle mb-0">
+                                    <thead class="table-light">
+                                    <tr>
+                                        <th>Producto</th>
+                                        <th class="text-center">Cantidad enviada</th>
+                                    </tr>
+                                    </thead>
+
+                                    <tbody>
+                                    <tr th:each="d : ${t.detalles}">
+                                        <td>
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="rounded-3 border bg-light d-flex align-items-center justify-content-center"
+                                                     style="width:52px;height:52px;min-width:52px;overflow:hidden;">
+
+                                                    <img th:if="${d.fotoProducto != null and !#strings.isEmpty(d.fotoProducto)}"
+                                                         th:src="@{'/uploads/productos/' + ${d.fotoProducto}}"
+                                                         alt="Producto"
+                                                         style="width:100%;height:100%;object-fit:cover;">
+
+                                                    <i th:if="${d.fotoProducto == null or #strings.isEmpty(d.fotoProducto)}"
+                                                       class="bi bi-box-seam text-primary fs-4"></i>
+                                                </div>
+
+                                                <div>
+                                                    <strong th:text="${d.nombreProducto}">Producto</strong>
+                                                    <small class="text-muted d-block" th:text="${d.codigoProducto}">
+                                                        Código
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td class="text-center fw-bold">
+                    <span th:text="${d.cantidadEnviada != null ? d.cantidadEnviada : d.cantidad}">
+                        0
+                    </span>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div th:if="${#lists.isEmpty(porRecepcion)}"
+                 class="card border-0 shadow-sm rounded-4">
+                <div class="card-body text-center text-muted py-5">
+                    <i class="bi bi-clipboard-check fs-1 d-block mb-2"></i>
+                    <h6 class="fw-bold">No hay traslados esperando recepción</h6>
+                    <p class="mb-0">
+                        Cuando un traslado llegue a destino, aparecerá aquí como pendiente de validación.
+                    </p>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- HISTORIAL -->
+        <section class="tab-pane fade" id="historial">
+
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body">
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+                        <div>
+                            <h5 class="fw-bold mb-1">Historial de traslados internos</h5>
+                            <small class="text-muted">
+                                Consulta de traslados finalizados o cancelados.
+                            </small>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-success-subtle text-success border rounded-pill px-3 py-2">
+                        <span th:text="${#lists.size(historial)}">0</span>
+                        finalizado(s)
+                    </span>
+
+                            <input type="text"
+                                   id="buscadorHistorialTraslados"
+                                   class="form-control"
+                                   style="max-width: 280px;"
+                                   placeholder="Buscar código, sede, transportista...">
+                        </div>
+                    </div>
+
+                    <div class="table-responsive" th:if="${!#lists.isEmpty(historial)}">
+                        <table class="table align-middle table-hover mb-0">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Código</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Transportista</th>
+                                <th>Estado</th>
+                                <th>Fecha culminación</th>
+                                <th class="text-center">Productos</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            <tr class="fila-historial-traslado"
+                                th:each="t : ${historial}"
+                                th:attr="data-busqueda=${t.codigo + ' '
+        + t.nombreSedeOrigen + ' '
+        + t.nombreSedeDestino + ' '
+        + (t.nombreTransportista != null ? t.nombreTransportista : '') + ' '
+        + t.estado + ' '
+        + (#temporals.format(t.fechaTransferencia, 'dd/MM/yyyy hh:mm a')) + ' '
+        + (t.fechaFinalizacion != null ? #temporals.format(t.fechaFinalizacion, 'dd/MM/yyyy hh:mm a') : '') + ' '
+        + 'traslado interno completada cancelada finalizada fecha culminacion'}">
+
+                                <td>
+                            <span class="fw-bold text-primary" th:text="${t.codigo}">
+                                TRF-00000
+                            </span>
+                                    <br>
+                                    <small class="text-muted">
+                                <span th:if="${t.fechaTransferencia != null}"
+                                      th:text="${#temporals.format(t.fechaTransferencia, 'dd/MM/yyyy hh:mm a')}">
+                                    Fecha
+                                </span>
+                                        <span th:if="${t.fechaTransferencia == null}">
+                                    Sin fecha
+                                </span>
+                                    </small>
+                                </td>
+
+                                <td>
+                                    <strong th:text="${t.nombreSedeOrigen}">Origen</strong>
+                                </td>
+
+                                <td>
+                                    <strong th:text="${t.nombreSedeDestino}">Destino</strong>
+                                </td>
+
+                                <td>
+                            <span th:text="${t.nombreTransportista != null ? t.nombreTransportista : 'Sin asignar'}">
+                                Transportista
+                            </span>
+                                </td>
+
+                                <td>
+                            <span th:if="${t.estado == 'COMPLETADA'}"
+                                  class="badge bg-success-subtle text-success border px-3 py-2">
+                                <i class="bi bi-check-circle me-1"></i>
+                                Completada
+                            </span>
+
+                                    <span th:if="${t.estado == 'COMPLETADA_CON_DIFERENCIAS'}"
+                                          class="badge bg-warning-subtle text-warning border px-3 py-2">
+                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                Con diferencias
+                            </span>
+
+                                    <span th:if="${t.estado == 'CANCELADA'}"
+                                          class="badge bg-danger-subtle text-danger border px-3 py-2">
+                                <i class="bi bi-x-circle me-1"></i>
+                                Cancelada
+                            </span>
+                                </td>
+
+                                <td>
+    <span th:if="${t.estado == 'COMPLETADA' and t.fechaRecepcion != null}"
+          th:text="${#temporals.format(t.fechaRecepcion, 'dd/MM/yyyy hh:mm a')}">
+        Fecha culminación
+    </span>
+
+                                    <span th:if="${t.estado == 'COMPLETADA_CON_DIFERENCIAS' and t.fechaRecepcion != null}"
+                                          th:text="${#temporals.format(t.fechaRecepcion, 'dd/MM/yyyy hh:mm a')}">
+        Fecha culminación
+    </span>
+
+                                    <span th:if="${t.estado == 'CANCELADA'}"
+                                          class="text-muted">
+        Pendiente fecha cancelación
+    </span>
+
+                                    <span th:if="${t.estado != 'COMPLETADA'
+                  and t.estado != 'COMPLETADA_CON_DIFERENCIAS'
+                  and t.estado != 'CANCELADA'}"
+                                          class="text-muted">
+        -
+    </span>
+                                </td>
+
+                                <td class="text-center">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-primary rounded-3 btnVerDetalleHistorialTraslado"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#modalDetalleHistorialTraslado"
+                                            th:data-id="${t.idTransferencia}"
+                                            th:data-codigo="${t.codigo}">
+                                        <i class="bi bi-eye me-1"></i>
+                                        Ver
+                                    </button>
+                                </td>
+                            </tr>
+
+
+
+                            </tbody>
+
+                        </table>
+                    </div>
+
+                    <div th:if="${!#lists.isEmpty(historial)}"
+                         class="d-flex justify-content-between align-items-center flex-wrap gap-3 mt-3">
+
+                        <small class="text-muted" id="textoPaginacionHistorialTraslados">
+                            Mostrando traslados...
+                        </small>
+
+                        <div class="d-flex align-items-center gap-2">
+                            <button type="button"
+                                    id="btnAnteriorHistorialTraslados"
+                                    class="btn btn-outline-secondary btn-sm rounded-3">
+                                <i class="bi bi-chevron-left"></i>
+                                Anterior
+                            </button>
+
+                            <span id="indicadorPaginaHistorialTraslados"
+                                  class="badge bg-primary-subtle text-primary border rounded-pill px-3 py-2">
+            Página 1
+        </span>
+
+                            <button type="button"
+                                    id="btnSiguienteHistorialTraslados"
+                                    class="btn btn-outline-secondary btn-sm rounded-3">
+                                Siguiente
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <div th:if="${#lists.isEmpty(historial)}"
+                         class="text-center text-muted py-5">
+                        <i class="bi bi-clock-history fs-1 d-block mb-2"></i>
+                        <h6 class="fw-bold">No hay traslados finalizados</h6>
+                        <p class="mb-0">
+                            Cuando una transferencia sea completada o cancelada, aparecerá aquí.
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+
+    <div class="modal fade" id="modalDetalleHistorialTraslado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow">
+
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            Detalle del traslado
+                        </h5>
+                        <small class="text-muted">
+                            Código:
+                            <span id="historialDetalleCodigo">TRF-00000</span>
+                        </small>
+                    </div>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div id="historialDetalleContenido">
+                        <div class="text-center text-muted py-5">
+                            <div class="spinner-border spinner-border-sm me-2"></div>
+                            Cargando detalle...
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer border-0">
+                    <button type="button"
+                            class="btn btn-outline-secondary rounded-3"
+                            data-bs-dismiss="modal">
+                        Cerrar
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalEvidenciaTraslado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold" id="tituloModalEvidencia">
+                            Evidencia del traslado
+                        </h5>
+                        <small class="text-muted">
+                            Traslado:
+                            <span id="codigoModalEvidencia">TRF-00000</span>
+                        </small>
+                    </div>
+
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="formEvidenciaTraslado"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <div class="modal-body">
+
+                        <div class="alert alert-info border-0 rounded-4 small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            <span id="descripcionModalEvidencia">
+                            Sube una foto como evidencia antes de continuar.
+                        </span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Foto de evidencia <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="file"
+                                   name="foto"
+                                   id="fotoEvidenciaTraslado"
+                                   class="form-control rounded-3"
+                                   accept="image/*"
+                                   capture="environment"
+                                   required>
+
+                            <small class="text-muted">
+                                Puedes tomar una foto con la cámara o seleccionar una imagen.
+                            </small>
+                        </div>
+
+                        <div id="previewEvidenciaTraslado" class="d-none">
+                            <small class="text-muted d-block mb-2">Vista previa</small>
+                            <img id="imgPreviewEvidenciaTraslado"
+                                 src=""
+                                 alt="Vista previa"
+                                 class="img-fluid rounded-4 border"
+                                 style="max-height: 260px; width: 100%; object-fit: cover;">
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer border-0">
+                        <button type="button"
+                                class="btn btn-outline-secondary rounded-3"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-primary rounded-3 px-4 fw-semibold">
+                            <i class="bi bi-send-check me-1"></i>
+                            Enviar evidencia
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalIncidenciaTraslado" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">
+                            Reportar imprevisto
+                        </h5>
+                        <small class="text-muted">
+                            Traslado:
+                            <span id="codigoModalIncidencia">TRF-00000</span>
+                        </small>
+                    </div>
+
+                    <button type="button"
+                            class="btn-close"
+                            data-bs-dismiss="modal"></button>
+                </div>
+
+                <form id="formIncidenciaTraslado"
+                      method="post"
+                      enctype="multipart/form-data">
+
+                    <input type="hidden"
+                           th:name="${_csrf.parameterName}"
+                           th:value="${_csrf.token}">
+
+                    <div class="modal-body">
+
+                        <div class="alert alert-warning border-0 rounded-4 small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Registra este imprevisto solo si hubo demora, accidente, tráfico, problema de carga u otra situación importante.
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Motivo <span class="text-danger">*</span>
+                            </label>
+
+                            <select name="motivoIncidencia"
+                                    id="motivoIncidenciaTraslado"
+                                    class="form-select rounded-3"
+                                    required>
+                                <option value="">Seleccionar motivo</option>
+                                <option value="Tráfico">Tráfico</option>
+                                <option value="Accidente">Accidente</option>
+                                <option value="Demora en carga">Demora en carga</option>
+                                <option value="Problema en ruta">Problema en ruta</option>
+                                <option value="Pedido no estaba listo">Pedido no estaba listo</option>
+                                <option value="Sede no disponible">Sede no disponible</option>
+                                <option value="Otro">Otro</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Explicación <span class="text-danger">*</span>
+                            </label>
+
+                            <textarea name="descripcionIncidencia"
+                                      id="descripcionIncidenciaTraslado"
+                                      class="form-control rounded-3"
+                                      rows="4"
+                                      maxlength="250"
+                                      placeholder="Ejemplo: Hay tráfico fuerte en la avenida principal, llegaré con 30 minutos de retraso."
+                                      required></textarea>
+
+                            <small class="text-muted">
+                                Máximo 250 caracteres.
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">
+                                Foto de evidencia <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="file"
+                                   name="fotoIncidencia"
+                                   id="fotoIncidenciaTraslado"
+                                   class="form-control rounded-3"
+                                   accept="image/*"
+                                   capture="environment"
+                                   required>
+
+                            <small class="text-muted">
+                                Toma una foto o selecciona una imagen que justifique el imprevisto.
+                            </small>
+                        </div>
+
+                        <div id="previewIncidenciaTraslado" class="d-none">
+                            <small class="text-muted d-block mb-2">Vista previa</small>
+                            <img id="imgPreviewIncidenciaTraslado"
+                                 src=""
+                                 alt="Vista previa imprevisto"
+                                 class="img-fluid rounded-4 border"
+                                 style="max-height: 240px; width: 100%; object-fit: cover;">
+                        </div>
+
+                    </div>
+
+                    <div class="modal-footer border-0">
+                        <button type="button"
+                                class="btn btn-outline-secondary rounded-3"
+                                data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+
+                        <button type="submit"
+                                class="btn btn-warning rounded-3 px-4 fw-semibold">
+                            <i class="bi bi-send-check me-1"></i>
+                            Guardar imprevisto
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalAvisoCambioTraslado" tabindex="-1" aria-hidden="true"
+         data-bs-backdrop="static" data-bs-keyboard="false">
+
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 rounded-4 shadow-lg">
+
+                <div class="modal-body p-5 text-center">
+
+                    <div id="iconoAvisoCambioTraslado"
+                         class="rounded-circle mx-auto mb-4 d-flex align-items-center justify-content-center bg-warning-subtle text-warning"
+                         style="width:90px;height:90px;">
+                        <i class="bi bi-exclamation-triangle fs-1"></i>
+                    </div>
+
+                    <h3 class="fw-bold mb-2" id="tituloAvisoCambioTraslado">
+                        Pedido actualizado
+                    </h3>
+
+                    <p class="text-muted fs-5 mb-3" id="mensajeAvisoCambioTraslado">
+                        El administrador realizó un cambio en este traslado.
+                    </p>
+
+                    <div class="bg-light border rounded-4 p-3 mb-4">
+                        <small class="text-muted d-block">Transferencia</small>
+                        <h5 class="fw-bold text-primary mb-0" id="codigoAvisoCambioTraslado">
+                            TRF-00000
+                        </h5>
+                    </div>
+
+                    <button type="button"
+                            id="btnEntendidoCambioTraslado"
+                            class="btn btn-primary btn-lg rounded-4 px-5 fw-semibold">
+                        Entendido, actualizar vista
+                    </button>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</main>
+
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+<script th:src="@{/js/interno/traslados-internos.js}"></script>
+
+</body>
+</html>

@@ -1,0 +1,1085 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf.token}">
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}">
+    <title th:text="${titulo}">Ventas | DentIA</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <link rel="stylesheet" th:href="@{/css/shared/theme.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/navbar.css}">
+    <link rel="stylesheet" th:href="@{/css/interno/ventas.css}">
+
+    <style>
+        .venta-page {
+            background: #f6f8fb;
+        }
+
+        .page-title {
+            font-weight: 800;
+            color: #14213d;
+        }
+
+        .filter-card,
+        .table-card,
+        .summary-card {
+            border: 1px solid #e9eef5;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
+        }
+
+        .btn-filter {
+            border-radius: 10px;
+            font-size: .88rem;
+            padding: .45rem .85rem;
+        }
+
+        .btn-filter.active {
+            background: #0d6efd;
+            color: #fff;
+            border-color: #0d6efd;
+        }
+
+        .ventas-table th {
+            font-size: .78rem;
+            text-transform: uppercase;
+            color: #64748b;
+            background: #f8fafc;
+            white-space: nowrap;
+        }
+
+        .ventas-table td {
+            vertical-align: middle;
+            font-size: .9rem;
+        }
+
+      .acciones-venta {
+    display: flex;
+    gap: .4rem;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    min-width: 150px;
+}
+
+.acciones-venta .btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    font-size: .82rem;
+}
+
+.ventas-table th:last-child,
+.ventas-table td:last-child {
+    min-width: 165px;
+}
+
+        .badge-soft {
+            border-radius: 999px;
+            padding: .4rem .65rem;
+            font-weight: 700;
+            font-size: .72rem;
+        }
+
+        .summary-box {
+            border-radius: 14px;
+            padding: .8rem;
+            border: 1px solid #e9eef5;
+            background: #fff;
+        }
+
+        #ventaModalIframe {
+            width: 100%;
+            height: 72vh;
+            border: none;
+        }
+
+        .modal-venta-responsive {
+    max-width: min(1180px, 96vw);
+}
+
+#ventaModal .modal-dialog {
+    margin-top: 4.5rem;
+}
+
+#ventaModalIframe {
+    height: 78vh;
+}
+
+@media (max-width: 768px) {
+    .modal-venta-responsive {
+        max-width: 98vw;
+        margin: .5rem auto;
+    }
+
+   #ventaModalIframe {
+    height: 82vh;
+}
+}
+    </style>
+</head>
+
+<body class="d-flex flex-column min-vh-100 venta-page ventas-module">
+
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="container-fluid px-4 py-4 flex-grow-1">
+
+    <div th:if="${mensajeExito}" class="alert alert-success border-0 rounded-4 shadow-sm">
+        <i class="bi bi-check-circle me-2"></i>
+        <span th:text="${mensajeExito}"></span>
+    </div>
+
+    <div th:if="${mensajeError}" class="alert alert-danger border-0 rounded-4 shadow-sm">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        <span th:text="${mensajeError}"></span>
+    </div>
+
+    <!-- TÍTULO -->
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-4">
+        <div>
+            <h2 class="page-title mb-1">
+                <i class="bi bi-receipt-cutoff me-2"></i> Ventas
+            </h2>
+            <p class="text-muted mb-0">
+                Consulta tus ventas presenciales y online desde un solo módulo.
+            </p>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary px-4 py-2 rounded-3 shadow-sm"
+                th:onclick="|openVentaModal('@{/interno/ventas/nueva}', 'Registrar nueva venta')|">
+            <i class="bi bi-plus-lg me-1"></i> Nueva Venta
+        </button>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="mb-3">
+        <div th:if="${param.confirmada}" class="alert alert-success py-2 rounded-3">Venta confirmada.</div>
+        <div th:if="${param.anulada}" class="alert alert-warning py-2 rounded-3">Venta anulada.</div>
+        <div th:if="${param.eliminada}" class="alert alert-info py-2 rounded-3">Proforma eliminada.</div>
+        <div th:if="${param.borrador}" class="alert alert-info py-2 rounded-3">Proforma guardada correctamente.</div>
+        <div th:if="${param.error}" class="alert alert-danger py-2 rounded-3">Ocurrió un error.</div>
+    </div>
+
+    <!-- SEDE ACTIVA DEL LISTADO -->
+    <section class="mb-4">
+        <div class="card summary-card border-0">
+            <div class="card-body py-3 d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center"
+                         style="width: 46px; height: 46px;">
+                        <i class="bi bi-geo-alt-fill fs-5"></i>
+                    </div>
+
+                    <div>
+                        <p class="text-muted mb-1 small fw-semibold">Mostrando ventas de</p>
+
+                        <h5 class="mb-0 fw-bold text-dark"
+                            th:text="${sedeListadoNombre != null ? sedeListadoNombre : sedeActivaNombre}">
+                            Almacen 1
+                        </h5>
+
+                        <small class="text-muted"
+                               th:text="${mensajeSedeListado != null ? mensajeSedeListado : 'El listado se filtra según la sede activa seleccionada.'}">
+                            El listado se filtra según la sede activa seleccionada.
+                        </small>
+                    </div>
+                </div>
+
+                <div class="text-end" th:if="${puedeCambiarSede == true}">
+                <span class="badge rounded-pill bg-light text-dark border px-3 py-2">
+                    <i class="bi bi-person-gear me-1"></i>
+                    Puedes cambiar la sede desde el perfil
+                </span>
+                </div>
+
+            </div>
+        </div>
+
+        <div th:if="${errorSedeActiva != null}"
+             class="alert alert-warning mt-3 mb-0 py-2 rounded-3"
+             th:text="${errorSedeActiva}">
+        </div>
+    </section>
+
+    <!-- BUSCADOR -->
+    <form method="get" th:action="@{/interno/ventas}">
+
+        <!-- FILTROS -->
+        <div class="card filter-card mb-3">
+            <div class="card-body">
+
+                <div class="row g-3">
+
+                    <!-- CANAL -->
+                    <div class="col-xl-3 col-lg-6">
+                        <div class="filter-group-modern">
+                            <div class="filter-title-modern">
+                                <i class="bi bi-shop-window me-1"></i>
+                                Canal
+                            </div>
+
+                            <div class="filter-actions-modern">
+                                <a th:href="@{/interno/ventas(canal='TODOS',estado=${estadoSeleccionado},estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${canalSeleccionado == 'TODOS'} ? ' btn-primary text-white' : ' btn-outline-secondary'">
+                                    Todos
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal='PRESENCIAL',estado=${estadoSeleccionado},estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${canalSeleccionado == 'PRESENCIAL'} ? ' btn-success text-white' : ' btn-outline-success'">
+                                    Presencial
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal='ONLINE',estado=${estadoSeleccionado},estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${canalSeleccionado == 'ONLINE'} ? ' btn-primary text-white' : ' btn-outline-primary'">
+                                    Online
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESTADO VENTA -->
+                    <div class="col-xl-4 col-lg-6">
+                        <div class="filter-group-modern">
+                            <div class="filter-title-modern">
+                                <i class="bi bi-receipt me-1"></i>
+                                Estado venta
+                            </div>
+
+                            <div class="filter-actions-modern">
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado='TODOS',estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoSeleccionado == 'TODOS'} ? ' btn-primary text-white' : ' btn-outline-secondary'">
+                                    Todos
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado='BORRADOR',estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoSeleccionado == 'BORRADOR'} ? ' btn-warning text-dark' : ' btn-outline-warning'">
+                                    Proforma
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado='PAGADO',estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoSeleccionado == 'PAGADO'} ? ' btn-success text-white' : ' btn-outline-success'">
+                                    Pagado
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado='CREDITO',estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoSeleccionado == 'CREDITO'} ? ' btn-warning text-dark' : ' btn-outline-warning'">
+                                    Por cobrar
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado='ANULADA',estadoEntrega=${estadoEntregaSeleccionado},buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoSeleccionado == 'ANULADA'} ? ' btn-danger text-white' : ' btn-outline-danger'">
+                                    Anulada
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ESTADO ENTREGA -->
+                    <div class="col-xl-5 col-lg-12">
+                        <div class="filter-group-modern">
+                            <div class="filter-title-modern">
+                                <i class="bi bi-truck me-1"></i>
+                                Estado entrega
+                            </div>
+
+                            <div class="filter-actions-modern">
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado=${estadoSeleccionado},estadoEntrega='TODOS',buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoEntregaSeleccionado == 'TODOS'} ? ' btn-primary text-white' : ' btn-outline-secondary'">
+                                    Todos
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado=${estadoSeleccionado},estadoEntrega='PENDIENTE',buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoEntregaSeleccionado == 'PENDIENTE'} ? ' btn-warning text-dark' : ' btn-outline-warning'">
+                                    Pendiente
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado=${estadoSeleccionado},estadoEntrega='PREPARANDO',buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoEntregaSeleccionado == 'PREPARANDO'} ? ' btn-info text-white' : ' btn-outline-info'">
+                                    Preparando
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado=${estadoSeleccionado},estadoEntrega='LISTO',buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoEntregaSeleccionado == 'LISTO'} ? ' btn-success text-white' : ' btn-outline-success'">
+                                    Listo
+                                </a>
+
+                                <a th:href="@{/interno/ventas(canal=${canalSeleccionado},estado=${estadoSeleccionado},estadoEntrega='ENTREGADO',buscar=${buscar})}"
+                                   class="btn btn-filter"
+                                   th:classappend="${estadoEntregaSeleccionado == 'ENTREGADO'} ? ' btn-secondary text-white' : ' btn-outline-secondary'">
+                                    Entregado
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FECHAS -->
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold small">Fecha desde</label>
+                        <input type="date"
+                               name="fechaDesde"
+                               class="form-control rounded-3"
+                               th:value="${fechaDesde}">
+                    </div>
+
+                    <div class="col-lg-3 col-md-6">
+                        <label class="form-label fw-semibold small">Fecha hasta</label>
+                        <input type="date"
+                               name="fechaHasta"
+                               class="form-control rounded-3"
+                               th:value="${fechaHasta}">
+                    </div>
+
+                    <div class="col-lg-2 col-md-12 d-grid align-self-end">
+                        <button class="btn btn-primary rounded-3" type="submit">
+                            <i class="bi bi-funnel me-1"></i>
+                            Filtrar
+                        </button>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+
+        <input type="hidden"
+               name="canal"
+               th:value="${canalSeleccionado}">
+
+        <input type="hidden"
+               name="estado"
+               th:value="${estadoSeleccionado}">
+
+        <input type="hidden"
+               name="estadoEntrega"
+               th:value="${estadoEntregaSeleccionado}">
+
+        <div class="input-group mb-3 shadow-sm">
+
+        <span class="input-group-text bg-white border-end-0">
+            <i class="bi bi-search text-muted"></i>
+        </span>
+
+            <input type="text"
+                   name="buscar"
+                   class="form-control border-start-0 py-2"
+                   placeholder="Buscar por código, cliente, comprobante..."
+                   th:value="${buscar}">
+
+            <button class="btn btn-primary px-4">
+                Buscar
+            </button>
+
+        </div>
+
+    </form>
+
+    <div class="row g-4">
+
+        <!-- TABLA -->
+        <div class="col-xl-10 col-lg-9">
+
+            <div class="card table-card">
+                <div class="card-body p-0">
+
+                    <div class="table-responsive ventas-listado-contenedor">
+
+                        <div class="ventas-mobile-list" aria-label="Listado de ventas">
+                            <article class="venta-mobile-card"
+                                     th:each="v, iter : ${ventas}"
+                                     th:if="${iter.index < 10}">
+
+                                <header class="venta-mobile-header">
+                                    <div class="venta-mobile-identidad">
+                                        <small>Comprobante</small>
+                                        <strong th:text="${v.nroComprobante}">REC-00027</strong>
+                                    </div>
+
+                                    <div class="venta-mobile-badges">
+                                        <span class="badge border"
+                                              th:classappend="${v.canalVenta == 'ONLINE'} ? ' bg-primary-subtle text-primary border-primary-subtle' : ' bg-success-subtle text-success border-success-subtle'"
+                                              th:text="${v.canalVenta != null ? v.canalVenta : 'Sin canal'}">
+                                            PRESENCIAL
+                                        </span>
+                                        <span class="badge badge-soft"
+                                              th:classappend="${v.estadoVenta=='BORRADOR'} ? ' bg-secondary-subtle text-secondary' : (${v.estadoVenta=='PAGADO'} ? ' bg-success-subtle text-success' : (${v.estadoVenta=='CREDITO'} ? ' bg-warning-subtle text-warning' : (${v.estadoVenta=='ANULADA'} ? ' bg-danger-subtle text-danger' : ' bg-dark-subtle text-dark')))"
+                                              th:text="${v.estadoVenta == 'BORRADOR' ? 'PROFORMA' : (v.estadoVenta == 'CREDITO' ? 'POR COBRAR' : v.estadoVenta)}">
+                                            PAGADO
+                                        </span>
+                                    </div>
+                                </header>
+
+                                <div class="venta-mobile-body">
+                                    <div class="venta-mobile-dato venta-mobile-dato-ancho">
+                                        <small>Cliente</small>
+                                        <strong th:text="${v.nombreCliente != null and !#strings.isEmpty(v.nombreCliente) ? v.nombreCliente : '—'}">Cliente</strong>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>Fecha y hora</small>
+                                        <span th:text="${#temporals.format(v.fechaVenta,'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>Sede</small>
+                                        <span th:text="${v.nombreSede != null and !#strings.isEmpty(v.nombreSede) ? v.nombreSede : '—'}">—</span>
+                                    </div>
+                                    <div class="venta-mobile-dato venta-mobile-total">
+                                        <small>Total</small>
+                                        <strong th:text="'S/ ' + ${#numbers.formatDecimal(v.totalVenta,1,2)}">S/ 0.00</strong>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>Método de pago</small>
+                                        <span th:text="${v.formaPago=='CREDITO' ? 'CRÉDITO' : (v.metodoPago != null ? v.metodoPago : (v.formaPago != null ? v.formaPago : '—'))}">EFECTIVO</span>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>Vendedor</small>
+                                        <span th:text="${v.nombreUsuario != null and !#strings.isEmpty(v.nombreUsuario) ? v.nombreUsuario : '—'}">—</span>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>Estado de entrega</small>
+                                        <span th:text="${v.nombreEstadoPedido != null ? #strings.replace(v.nombreEstadoPedido, '_', ' ') : 'Sin entrega'}">Sin entrega</span>
+                                    </div>
+                                    <div class="venta-mobile-dato">
+                                        <small>ID</small>
+                                        <span th:text="${v.idVentas}">1</span>
+                                    </div>
+                                </div>
+
+                                <footer class="venta-mobile-footer">
+                                    <div class="acciones-venta venta-mobile-acciones" aria-label="Acciones de la venta">
+                                        <button type="button" class="btn btn-outline-info btn-sm"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/detalle/{id}(id=${v.idVentas})}','Detalle de venta')|"
+                                                title="Ver venta" aria-label="Ver venta">
+                                            <i class="bi bi-eye" aria-hidden="true"></i><span>Ver</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/editar/{id}(id=${v.idVentas})}','Editar venta')|"
+                                                title="Editar venta" aria-label="Editar venta">
+                                            <i class="bi bi-pencil-square" aria-hidden="true"></i><span>Editar</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-success btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/confirmar/{id}(id=${v.idVentas})}', '¿Confirmar esta proforma como venta?')|"
+                                                title="Confirmar venta" aria-label="Confirmar venta">
+                                            <i class="bi bi-check2-circle" aria-hidden="true"></i><span>Confirmar</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                                th:if="${v.puedeAnular}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/anular/{id}(id=${v.idVentas})}', '¿Anular esta venta y devolver automáticamente el stock?')|"
+                                                title="Anular venta" aria-label="Anular venta">
+                                            <i class="bi bi-slash-circle" aria-hidden="true"></i><span>Anular</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/eliminar/{id}(id=${v.idVentas})}', '¿Eliminar proforma?')|"
+                                                title="Eliminar proforma" aria-label="Eliminar proforma">
+                                            <i class="bi bi-trash" aria-hidden="true"></i><span>Eliminar</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-warning btn-sm"
+                                                th:if="${v.formaPago=='CREDITO' and v.estadoVenta!='BORRADOR'}"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/cuotas/{id}(id=${v.idVentas})}','Cuotas de venta')|"
+                                                title="Ver cuotas" aria-label="Ver cuotas">
+                                            <i class="bi bi-cash-stack" aria-hidden="true"></i><span>Cuotas</span>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm"
+                                                th:onclick="|imprimirVenta(${v.idVentas})|"
+                                                title="Imprimir venta" aria-label="Imprimir venta">
+                                            <i class="bi bi-printer" aria-hidden="true"></i><span>Imprimir</span>
+                                        </button>
+                                    </div>
+                                </footer>
+                            </article>
+
+                            <div class="venta-mobile-empty" th:if="${#lists.isEmpty(ventas)}">
+                                <i class="bi bi-inbox" aria-hidden="true"></i>
+                                <span>No hay ventas registradas.</span>
+                            </div>
+                        </div>
+
+                        <table id="tablaVentas" class="table table-hover ventas-table align-middle mb-0">
+                            <thead>
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>Código</th>
+                                <th>Canal</th>
+                                <th>Fecha compra</th>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Método cobro</th>
+                                <th>Estado Venta</th>
+                                <th>Estado Entrega</th>
+                                <th class="text-center pe-4">Acciones</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+
+                            <tr th:each="v, iter : ${ventas}"
+                                th:if="${iter.index < 10}">
+
+                                <td class="ps-4 fw-bold" th:text="${v.idVentas}"></td>
+
+                                <!-- CODIGO -->
+                                <td>
+
+                                    <strong th:text="${v.nroComprobante}">
+                                        REC-00027
+                                    </strong>
+
+                                    <div>
+
+                                        <!-- ONLINE -->
+                                        <span class="badge bg-primary-subtle
+                         text-primary
+                         border
+                         border-primary-subtle small"
+                                              th:if="${v.canalVenta == 'ONLINE'}">
+
+                ONLINE
+
+            </span>
+
+                                        <!-- PRESENCIAL -->
+                                        <span class="badge bg-success-subtle
+                         text-success
+                         border
+                         border-success-subtle small"
+                                              th:if="${v.canalVenta == 'PRESENCIAL'}">
+
+                PRESENCIAL
+
+            </span>
+
+                                    </div>
+
+                                </td>
+
+                                <!-- CANAL -->
+                                <td class="text-center">
+
+                                    <!-- ONLINE -->
+                                    <div th:if="${v.canalVenta == 'ONLINE'}">
+                                        <i class="bi bi-cart3 fs-4 text-primary"></i>
+                                    </div>
+
+                                    <!-- PRESENCIAL -->
+                                    <div th:if="${v.canalVenta == 'PRESENCIAL'}">
+                                        <i class="bi bi-shop fs-4 text-success"></i>
+                                    </div>
+
+                                </td>
+
+                                <!-- FECHA -->
+                                <td>
+                                    <span th:text="${#temporals.format(v.fechaVenta,'dd/MM/yyyy HH:mm')}"></span>
+                                </td>
+
+                                <!-- CLIENTE -->
+                                <td>
+                                    <div class="fw-semibold" th:text="${v.nombreCliente}"></div>
+                                </td>
+
+
+
+
+                                <!-- TOTAL -->
+                                <td class="fw-bold text-nowrap"
+                                    th:text="'S/ ' + ${#numbers.formatDecimal(v.totalVenta,1,2)}"></td>
+
+                                <!-- MÉTODO DE COBRO -->
+                                <td>
+    <span class="badge badge-soft"
+          th:classappend="
+            ${v.formaPago=='CREDITO'} ? ' bg-warning-subtle text-warning' :
+            (${v.metodoPago=='YAPE'} ? ' bg-success-subtle text-success' :
+            (${v.metodoPago=='PLIN'} ? ' bg-primary-subtle text-primary' :
+            (${v.metodoPago=='TARJETA'} ? ' bg-dark-subtle text-dark' :
+            (${v.metodoPago=='TRANSFERENCIA'} ? ' bg-secondary-subtle text-secondary' :
+            ' bg-info-subtle text-info'))))
+          "
+          th:text="${v.formaPago=='CREDITO' ? 'CRÉDITO' : (v.metodoPago != null ? v.metodoPago : v.formaPago)}">
+        EFECTIVO
+    </span>
+                                </td>
+
+                                <!-- ESTADO VENTA -->
+                                <td>
+    <span class="badge badge-soft"
+          th:classappend="
+            ${v.estadoVenta=='BORRADOR'} ? ' bg-secondary-subtle text-secondary' :
+            (${v.estadoVenta=='PAGADO'} ? ' bg-success-subtle text-success' :
+            (${v.estadoVenta=='CREDITO'} ? ' bg-warning-subtle text-warning' :
+            (${v.estadoVenta=='ANULADA'} ? ' bg-danger-subtle text-danger' : ' bg-dark-subtle text-dark')))
+          "
+          th:text="${v.estadoVenta == 'BORRADOR' ? 'PROFORMA' : (v.estadoVenta == 'CREDITO' ? 'POR COBRAR' : v.estadoVenta)}">
+    </span>
+                                </td>
+
+                                <!-- ESTADO ENTREGA -->
+                                <td class="text-center">
+    <span th:if="${v.nombreEstadoPedido == null}"
+          class="badge badge-soft bg-secondary-subtle text-secondary border">
+        Sin entrega
+    </span>
+
+                                    <span th:if="${v.nombreEstadoPedido == 'PENDIENTE'}"
+                                          class="badge badge-soft bg-warning-subtle text-warning border">
+        Pendiente
+    </span>
+
+                                    <span th:if="${v.nombreEstadoPedido == 'PREPARANDO'}"
+                                          class="badge badge-soft bg-info-subtle text-info border">
+        Preparando
+    </span>
+
+                                    <span th:if="${v.nombreEstadoPedido == 'LISTO_RECOJO'}"
+                                          class="badge badge-soft bg-success-subtle text-success border">
+        Listo
+    </span>
+
+                                    <span th:if="${v.nombreEstadoPedido == 'ENTREGADO'}"
+                                          class="badge badge-soft bg-secondary-subtle text-secondary border">
+        Entregado
+    </span>
+
+                                    <span th:if="${v.nombreEstadoPedido == 'ANULADO'}"
+                                          class="badge badge-soft bg-danger-subtle text-danger border">
+        Anulado
+    </span>
+                                </td>
+
+                                <td class="pe-4">
+                                    <div class="acciones-venta">
+
+                                        <button class="btn btn-outline-info btn-sm"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/detalle/{id}(id=${v.idVentas})}','Detalle de venta')|"
+                                                title="Ver venta">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-warning btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/editar/{id}(id=${v.idVentas})}','Editar venta')|"
+                                                title="Editar venta">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-success btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/confirmar/{id}(id=${v.idVentas})}', '¿Confirmar esta proforma como venta?')|"
+                                                title="Confirmar venta">
+                                            <i class="bi bi-check2-circle"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                th:if="${v.puedeAnular}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/anular/{id}(id=${v.idVentas})}', '¿Anular esta venta y devolver automáticamente el stock?')|"
+                                                title="Anular venta">
+                                            <i class="bi bi-slash-circle"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                th:if="${v.estadoVenta=='BORRADOR'}"
+                                                th:onclick="|submitProtectedAction('@{/interno/ventas/eliminar/{id}(id=${v.idVentas})}', '¿Eliminar proforma?')|"
+                                                title="Eliminar proforma">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+
+                                        <button class="btn btn-outline-warning btn-sm"
+                                                th:if="${v.formaPago=='CREDITO' and v.estadoVenta!='BORRADOR'}"
+                                                th:onclick="|openVentaModal('@{/interno/ventas/cuotas/{id}(id=${v.idVentas})}','Cuotas de venta')|"
+                                                title="Ver cuotas">
+                                            <i class="bi bi-cash-stack"></i>
+                                        </button>
+
+                                        <button type="button"
+                                                class="btn btn-outline-secondary btn-sm"
+                                                th:onclick="|imprimirVenta(${v.idVentas})|"
+                                                title="Imprimir venta">
+                                            <i class="bi bi-printer"></i>
+                                        </button>
+
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr th:if="${#lists.isEmpty(ventas)}">
+                                <td colspan="10" class="text-center text-muted py-5">
+                                    <i class="bi bi-inbox fs-2 d-block mb-2"></i>
+                                    No hay ventas registradas.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="d-flex justify-content-between align-items-center p-3 border-top ventas-pagination-bar">
+
+                            <small class="text-muted">
+
+                                Mostrando
+                                <strong th:text="${startItem}">1</strong>
+                                -
+                                <strong th:text="${endItem}">10</strong>
+
+                                de
+
+                                <strong th:text="${totalItems}">27</strong>
+                                ventas
+
+                            </small>
+                            <nav aria-label="Paginación de ventas">
+
+                                <ul class="pagination pagination-sm mb-0">
+
+                                    <!-- ANTERIOR -->
+                                    <li class="page-item"
+                                        th:classappend="${currentPage == 0} ? 'disabled'">
+
+                                        <a class="page-link"
+                                           th:href="@{/interno/ventas(
+                        canal=${canalSeleccionado},
+                        estado=${estadoSeleccionado},
+                        estadoEntrega=${estadoEntregaSeleccionado},
+                        buscar=${buscar},
+                        page=${currentPage - 1}
+                   )}">
+
+                                            Anterior
+
+                                        </a>
+
+                                    </li>
+
+                                    <!-- NUMEROS -->
+                                    <li class="page-item"
+                                        th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+                                        th:classappend="${i == currentPage} ? 'active'">
+
+                                        <a class="page-link"
+                                           th:text="${i + 1}"
+                                           th:href="@{/interno/ventas(
+                        canal=${canalSeleccionado},
+                        estado=${estadoSeleccionado},
+                        estadoEntrega=${estadoEntregaSeleccionado},
+                        buscar=${buscar},
+                        page=${i}
+                   )}">
+                                        </a>
+
+                                    </li>
+
+                                    <!-- SIGUIENTE -->
+                                    <li class="page-item"
+                                        th:classappend="${currentPage + 1 >= totalPages} ? 'disabled'">
+
+                                        <a class="page-link"
+                                           th:href="@{/interno/ventas(
+                        canal=${canalSeleccionado},
+                        estado=${estadoSeleccionado},
+                        estadoEntrega=${estadoEntregaSeleccionado},
+                        buscar=${buscar},
+                        page=${currentPage + 1}
+                   )}">
+
+                                            Siguiente
+
+                                        </a>
+
+                                    </li>
+
+                                </ul>
+
+                            </nav>
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="col-xl-2 col-lg-3">
+
+            <div class="card summary-card">
+                <div class="card-body">
+
+                    <h6 class="fw-bold mb-3">Resumen rápido</h6>
+
+                    <small class="text-muted fw-semibold">Ventas</small>
+
+                    <div class="summary-box mb-2 border-warning bg-warning-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Proformas</span>
+                            <strong class="text-warning" th:text="${totalBorradores}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-box mb-2 border-success bg-success-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Pagadas</span>
+                            <strong class="text-success" th:text="${totalCompletadas}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-box mb-3 border-danger bg-danger-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Anuladas</span>
+                            <strong class="text-danger" th:text="${totalAnuladas}">0</strong>
+                        </div>
+                    </div>
+
+                    <small class="text-muted fw-semibold">Entregas</small>
+
+                    <div class="summary-box mb-2 border-warning bg-warning-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Pendientes</span>
+                            <strong class="text-warning" th:text="${totalPendientesEntrega}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-box mb-2 border-info bg-info-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Preparando</span>
+                            <strong class="text-info" th:text="${totalPreparandoEntrega}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-box mb-2 border-success bg-success-subtle py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Listos</span>
+                            <strong class="text-success" th:text="${totalListosEntrega}">0</strong>
+                        </div>
+                    </div>
+
+                    <div class="summary-box mb-3 border-secondary bg-light py-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small">Entregados</span>
+                            <strong class="text-secondary" th:text="${totalEntregadosEntrega}">0</strong>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <small class="text-muted d-block">Total vendido</small>
+
+                    <h5 class="fw-bold text-primary mb-3"
+                        th:text="'S/ ' + ${#numbers.formatDecimal(totalVendido,1,2)}">
+                        S/ 0.00
+                    </h5>
+
+                    <small class="text-muted d-block">Dinero recibido</small>
+
+                    <h5 class="fw-bold text-success mb-3"
+                        th:text="'S/ ' + ${#numbers.formatDecimal(dineroRecibido,1,2)}">
+                        S/ 0.00
+                    </h5>
+
+                    <small class="text-muted d-block">Crédito pendiente</small>
+
+                    <h5 class="fw-bold text-danger mb-0"
+                        th:text="'S/ ' + ${#numbers.formatDecimal(creditoPendiente,1,2)}">
+                        S/ 0.00
+                    </h5>
+
+                    <hr>
+
+                    <small class="text-muted fw-semibold d-block mb-3">
+                        Canales
+                    </small>
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <div style="width: 90px; height: 90px;">
+                            <canvas id="canalesChart"></canvas>
+                        </div>
+
+                        <div class="small">
+
+                            <div class="mb-2">
+
+            <span class="badge bg-primary me-1">
+                &nbsp;
+            </span>
+
+                                Online:
+                                <strong th:text="${totalOnline}">0</strong>
+
+                                (<span th:text="${porcentajeOnline}">0</span>%)
+
+                            </div>
+
+                            <div>
+
+            <span class="badge bg-success me-1">
+                &nbsp;
+            </span>
+
+                                Presencial:
+                                <strong th:text="${totalPresencial}">0</strong>
+
+                                (<span th:text="${porcentajePresencial}">0</span>%)
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr>
+
+                    <small class="text-muted">
+                        * Las ventas online se administrarán aquí por filtros.
+                    </small>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<!-- MODAL IFRAME -->
+<div class="modal fade" id="ventaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered modal-venta-responsive">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+            <div class="modal-header bg-primary text-white">
+                <h5 id="ventaModalTitle" class="modal-title">Ventas</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body p-0">
+                <iframe id="ventaModalIframe"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL IMPRIMIR -->
+<div class="modal fade" id="modalImprimir" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 rounded-4 overflow-hidden">
+
+            <div class="modal-header bg-secondary text-white">
+                <h5 class="modal-title">Imprimir Venta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body text-center">
+                <p>Seleccione el formato:</p>
+
+                <button id="btnPdf" class="btn btn-danger w-100 mb-3">
+                    <i class="bi bi-file-earmark-pdf"></i> Descargar PDF
+                </button>
+
+                <button id="btnExcel" class="btn btn-success w-100">
+                    <i class="bi bi-file-earmark-excel"></i> Descargar Excel
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/shared/post-action.js}"></script>
+<script th:src="@{/js/interno/ventas.js}"></script>
+<script th:src="@{/js/interno/navbar.js}"></script>
+
+<script>
+    function openVentaModal(url, titulo) {
+        document.getElementById("ventaModalTitle").textContent = titulo;
+        document.getElementById("ventaModalIframe").src = url;
+        new bootstrap.Modal(document.getElementById("ventaModal")).show();
+    }
+
+    function imprimirVenta(idVenta) {
+        window.open("/interno/ventas/pdf/" + idVenta, "_blank");
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script th:inline="javascript">
+
+    const online = [[${totalOnline}]];
+    const presencial = [[${totalPresencial}]];
+
+    const ctx = document.getElementById('canalesChart');
+
+    if (ctx) {
+
+        new Chart(ctx, {
+
+            type: 'doughnut',
+
+            data: {
+
+                labels: ['Online', 'Presencial'],
+
+                datasets: [{
+
+                    data: [online, presencial],
+
+                    backgroundColor: [
+                        '#0d6efd',
+                        '#22c55e'
+                    ],
+
+                    borderWidth: 0
+
+                }]
+            },
+
+            options: {
+
+                responsive: true,
+
+                cutout: '65%',
+
+                plugins: {
+
+                    legend: {
+                        display: false
+                    }
+
+                }
+
+            }
+
+        });
+
+    }
+
+</script>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+
+</body>
+</html>

@@ -1,0 +1,545 @@
+/* ══════════════════════════════════════════════════════════════════════════
+   DentIA - Ficha Informativa del Paciente
+   Diseño ejecutivo, compacto y sin saturación visual
+   ══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --fch-bg: #f8fafc;
+    --fch-card-bg: #ffffff;
+    --fch-border: #e2e8f0;
+    --fch-border-focus: #0b7f86;
+    --fch-teal: #0b7f86;
+    --fch-teal-hover: #08666b;
+    --fch-teal-subtle: #e6fffa;
+    --fch-text-dark: #0f172a;
+    --fch-text-muted: #64748b;
+    --fch-radius: 0.85rem;
+    --fch-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+}
+
+.ficha-container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 1.25rem 1rem 3rem;
+}
+
+/* ── Hero del Paciente (Compacto y Ejecutivo) ── */
+.ficha-hero-compact {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #115e59 100%);
+    border-radius: var(--fch-radius);
+    padding: 1.25rem 1.5rem;
+    color: #ffffff;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.12);
+    margin-bottom: 1.25rem;
+}
+.ficha-hero-compact::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    width: 300px;
+    background: radial-gradient(circle at right, rgba(16, 185, 129, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+.ficha-hero-avatar {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #10b981, #0b7f86);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: #ffffff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.ficha-hero-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.01em;
+    margin: 0;
+}
+.ficha-hero-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1.25rem;
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    margin-top: 0.35rem;
+}
+.ficha-hero-meta span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* ── Pestañas Informativas ── */
+.ficha-nav-bar {
+    display: flex;
+    gap: 0.4rem;
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 1px;
+}
+.ficha-nav-link {
+    padding: 0.6rem 1.15rem;
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.88rem;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    border-radius: 0.4rem 0.4rem 0 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.ficha-nav-link:hover {
+    color: #0b7f86;
+    background: rgba(11, 127, 134, 0.04);
+}
+.ficha-nav-link.active {
+    color: #0b7f86;
+    border-color: #0b7f86;
+    font-weight: 700;
+}
+.ficha-tab-panel {
+    display: none;
+    animation: fadeInTab 0.2s ease-in-out;
+}
+.ficha-tab-panel.active {
+    display: block;
+}
+@keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Tarjetas Informativas Compactas ── */
+.fch-card {
+    background: #ffffff;
+    border: 1px solid var(--fch-border);
+    border-radius: var(--fch-radius);
+    padding: 1.15rem 1.25rem;
+    box-shadow: var(--fch-shadow-sm);
+    margin-bottom: 1rem;
+}
+.fch-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #f1f5f9;
+}
+.fch-card-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--fch-text-dark);
+    margin: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+
+/* Mini stat box */
+.fch-stat-box {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.fch-stat-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #64748b;
+    margin-bottom: 0.25rem;
+}
+.fch-stat-value {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+}
+.fch-stat-sub {
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin-top: 0.2rem;
+}
+
+/* ── Banner de Alertas Médicas ── */
+.fch-alert-strip {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #ef4444;
+    border-radius: 0.65rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.fch-alert-strip.safe {
+    border-left-color: #10b981;
+}
+
+/* ── Odontograma 2D Anatómico Completo ── */
+.odonto-board-wrapper {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: var(--fch-radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--fch-shadow-sm);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.odonto-arch-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 860px;
+    margin: 0 auto;
+}
+.odonto-quadrant-group {
+    display: flex;
+    gap: 0.15rem;
+}
+.odonto-quadrant-group.divider-right {
+    border-right: 2px solid #cbd5e1;
+    padding-right: 0.5rem;
+    margin-right: 0.35rem;
+}
+.odonto-quadrant-group.divider-left {
+    padding-left: 0.35rem;
+}
+
+/* Casilla de cada Diente 2D */
+.odonto-tooth-unit {
+    width: 48px;
+    min-width: 48px;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+    position: relative;
+    border: 1px solid transparent;
+}
+.odonto-tooth-unit:hover, .odonto-tooth-unit.selected {
+    background: #f0fdfa;
+    border-color: #0b7f86;
+    box-shadow: 0 2px 8px rgba(11, 127, 134, 0.18);
+    z-index: 5;
+}
+.odonto-tooth-num {
+    font-size: 11px;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1;
+}
+
+/* Silueta anatómica (raíz + corona) */
+.odonto-shape-svg {
+    width: 42px;
+    height: 48px;
+    overflow: visible;
+}
+.odonto-shape-svg path {
+    fill: #fffdf5;
+    stroke: #64748b;
+    stroke-width: 1;
+    stroke-linejoin: round;
+}
+.odonto-shape-svg .odonto-root {
+    fill: #fffdf7;
+}
+.odonto-tooth-unit[data-arcada="INF"] .odonto-shape-svg {
+    transform: rotate(180deg);
+}
+
+/* Polígono geométrico de 5 caras */
+.odonto-geom-svg {
+    width: 36px;
+    height: 36px;
+    display: block;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 3px;
+}
+.odonto-surf-poly {
+    fill: #ffffff;
+    stroke: #94a3b8;
+    stroke-width: 0.8;
+    transition: fill 0.15s ease;
+}
+.odonto-surf-poly.obturacion { fill: #2563eb !important; }
+.odonto-surf-poly.caries { fill: #ef4444 !important; }
+.odonto-surf-poly.sellante { fill: #16a34a !important; }
+.odonto-surf-poly.endodoncia { fill: #d97706 !important; }
+.odonto-surf-poly.corona { fill: #f59e0b !important; }
+
+/* Diente ausente / extraído */
+.odonto-tooth-unit.ausente::after {
+    content: "✕";
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    color: #dc2626;
+    font-size: 26px;
+    font-weight: 900;
+    pointer-events: none;
+    line-height: 1;
+}
+.odonto-tooth-unit.ausente .odonto-surf-poly {
+    fill: #f1f5f9 !important;
+    stroke: #cbd5e1 !important;
+}
+
+/* ── Inspector de Diente Seleccionado ── */
+.odonto-inspector-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.65rem;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #475569;
+}
+
+/* ── Paginación Reutilizable de Tablas (10 en 10) ── */
+.fch-pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #e2e8f0;
+    background: #fafafa;
+    border-radius: 0 0 var(--fch-radius) var(--fch-radius);
+    font-size: 0.82rem;
+    color: #64748b;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.fch-page-btn {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 0.35rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.fch-page-btn:hover:not(:disabled) {
+    background: #f1f5f9;
+    border-color: #0b7f86;
+    color: #0b7f86;
+}
+.fch-page-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ── Tablas Informativas Limpias ── */
+.fch-table {
+    width: 100%;
+    margin-bottom: 0;
+    font-size: 0.84rem;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+.fch-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 700;
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 0.65rem 0.85rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+.fch-table td {
+    padding: 0.65rem 0.85rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+}
+.fch-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* ── Utilidades de Botones y Badges ── */
+.btn-teal {
+    background-color: #0b7f86;
+    color: #ffffff;
+    border: 1px solid #0b7f86;
+}
+.btn-teal:hover {
+    background-color: #08666b;
+    border-color: #08666b;
+    color: #ffffff;
+}
+.btn-outline-teal {
+    background-color: transparent;
+    color: #0b7f86;
+    border: 1px solid #0b7f86;
+}
+.btn-outline-teal:hover, .btn-outline-teal.active {
+    background-color: #0b7f86;
+    color: #ffffff;
+    border-color: #0b7f86;
+}
+.hover-teal:hover {
+    color: #0b7f86 !important;
+}
+.btn-xs {
+    padding: 0.2rem 0.55rem;
+    font-size: 0.75rem;
+    border-radius: 0.35rem;
+}
+
+/* ── Modal de Presupuestos y Estados ── */
+.pres-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    z-index: 1060;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(2px);
+}
+.pres-modal-backdrop.open {
+    display: flex;
+}
+.pres-modal {
+    background: #ffffff;
+    border-radius: 1rem;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    animation: modalSlideIn 0.2s ease-out;
+}
+@keyframes modalSlideIn {
+    from { opacity: 0; transform: scale(0.97) translateY(8px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.pres-modal-head {
+    padding: 1.15rem 1.4rem;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    z-index: 2;
+}
+.pres-modal-head h5 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0f172a;
+}
+.pres-modal-body {
+    padding: 1.35rem 1.4rem;
+}
+.pres-modal-footer {
+    padding: 0.95rem 1.4rem;
+    border-top: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    position: sticky;
+    bottom: 0;
+    background: #ffffff;
+    z-index: 2;
+}
+.pres-items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.75rem 0;
+}
+.pres-items-table th {
+    font-size: 0.78rem;
+    color: #64748b;
+    padding: 0.35rem 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+.pres-items-table td {
+    padding: 0.35rem 0.5rem;
+    vertical-align: middle;
+}
+.pres-total-line {
+    text-align: right;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.5rem;
+}
+.pres-estado {
+    display: inline-block;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.pres-estado.borrador { background: #f1f5f9; color: #475569; }
+.pres-estado.aprobado { background: #dcfce7; color: #166534; }
+.pres-estado.rechazado { background: #fee2e2; color: #991b1b; }
+.pres-estado.anulado { background: #f1f5f9; color: #94a3b8; }
+
+/* ── Adaptación Móvil para la Ficha ── */
+@media (max-width: 768px) {
+    .ficha-container {
+        padding: 0.75rem 0.5rem 2rem !important;
+    }
+    .ficha-hero-compact {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .ficha-nav-bar {
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .fch-card {
+        padding: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .fch-table th, .fch-table td {
+        padding: 0.5rem 0.65rem !important;
+        font-size: 0.85rem !important;
+    }
+}
+

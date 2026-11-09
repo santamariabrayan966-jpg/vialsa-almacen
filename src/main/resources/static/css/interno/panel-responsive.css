@@ -1,0 +1,258 @@
+/* =========================================================
+   BASE RESPONSIVE COMUN DEL PANEL INTERNO
+   Se activa exclusivamente mediante body.panel-interno.
+========================================================= */
+.panel-interno {
+    --panel-page-inline: clamp(.625rem, 1.5vw, 1.5rem);
+    --panel-page-block: clamp(.75rem, 1.5vw, 1.5rem);
+    --panel-card-padding: clamp(.75rem, 1.25vw, 1.25rem);
+    --panel-section-gap: clamp(.75rem, 1.25vw, 1.25rem);
+    --panel-control-height: 2.625rem;
+    --panel-radius: .875rem;
+}
+
+.panel-interno > main,
+.panel-interno > .container,
+.panel-interno > .container-fluid,
+.panel-interno .panel-page {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+}
+
+.panel-interno > main.container,
+.panel-interno > main.container-fluid,
+.panel-interno > .container,
+.panel-interno > .container-fluid,
+.panel-interno .panel-page {
+    padding-inline: var(--panel-page-inline);
+}
+
+.panel-interno main > *,
+.panel-interno .card,
+.panel-interno .card-body,
+.panel-interno .row > *,
+.panel-interno .table-responsive,
+.panel-interno form {
+    min-width: 0;
+}
+
+.panel-interno .table-responsive {
+    max-width: 100%;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+}
+
+.panel-interno .form-control,
+.panel-interno .form-select,
+.panel-interno .input-group {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.panel-interno .modal-dialog {
+    max-height: calc(100dvh - 1rem);
+}
+
+.panel-interno .modal-content {
+    display: flex;
+    flex-direction: column;
+    max-height: calc(100dvh - 1rem);
+    overflow: hidden;
+}
+
+.panel-interno .modal-header,
+.panel-interno .modal-footer {
+    flex: 0 0 auto;
+}
+
+.panel-interno .modal-body {
+    min-width: 0;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+.panel-interno .modal-body .row > *,
+.panel-interno .modal-body form > * {
+    min-width: 0;
+}
+
+.panel-interno .offcanvas-body,
+.panel-interno .dropdown-menu {
+    overscroll-behavior: contain;
+}
+
+.panel-interno :focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--panel-primary, #0d6efd) 32%, transparent);
+    outline-offset: 2px;
+}
+
+.panel-interno .panel-actions,
+.panel-interno .panel-filter-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .5rem;
+}
+
+.panel-interno .panel-actions > *,
+.panel-interno .panel-filter-actions > * {
+    min-width: 0;
+}
+
+.panel-interno .pagination {
+    flex-wrap: wrap;
+    row-gap: .35rem;
+}
+
+.panel-interno .page-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.35rem;
+}
+
+.panel-interno .mobile-action-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+}
+
+.panel-interno img,
+.panel-interno canvas,
+.panel-interno iframe,
+.panel-interno svg {
+    max-width: 100%;
+}
+
+@media (max-width: 768px) {
+    .panel-interno {
+        --panel-page-inline: clamp(.55rem, 2.8vw, .85rem);
+        --panel-page-block: .75rem;
+        --panel-card-padding: .75rem;
+        --panel-section-gap: .75rem;
+        --panel-control-height: 2.625rem;
+    }
+
+    .panel-interno > main,
+    .panel-interno > .container,
+    .panel-interno > .container-fluid,
+    .panel-interno .panel-page {
+        padding-inline: var(--panel-page-inline);
+    }
+
+    .panel-interno .form-control,
+    .panel-interno .form-select,
+    .panel-interno .input-group-text,
+    .panel-interno .panel-actions .btn,
+    .panel-interno .panel-filter-actions .btn {
+        min-height: var(--panel-control-height);
+    }
+
+    .panel-interno .modal {
+        padding-inline: .25rem !important;
+    }
+
+    .panel-interno .modal-dialog {
+        width: calc(100% - .5rem);
+        max-width: calc(100% - .5rem);
+        max-height: calc(100dvh - .5rem);
+        margin: .25rem auto;
+    }
+
+    .panel-interno .modal-content {
+        max-height: calc(100dvh - .5rem);
+        border-radius: var(--panel-radius);
+    }
+
+    .panel-interno .modal-header,
+    .panel-interno .modal-body,
+    .panel-interno .modal-footer {
+        padding: .75rem;
+    }
+
+    .panel-interno .modal-header {
+        gap: .5rem;
+    }
+
+    .panel-interno .modal-title {
+        font-size: 1rem;
+        line-height: 1.25;
+    }
+
+    .panel-interno .modal-footer {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .panel-interno .modal-footer > * {
+        min-width: 0;
+        margin: 0 !important;
+    }
+
+    .panel-interno .pagination {
+        justify-content: center;
+    }
+
+    .panel-interno .mobile-action-group {
+        display: flex !important;
+        grid-template-columns: none !important;
+        width: 100%;
+        gap: .4rem !important;
+    }
+
+    .panel-interno .mobile-action-group .btn,
+    .panel-interno td.mobile-action-group > .btn {
+        flex: 0 0 auto;
+        width: auto !important;
+        min-width: 2.5rem !important;
+        height: 2.5rem;
+        min-height: 2.5rem !important;
+        padding: .35rem .55rem !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 !important;
+        border-radius: .65rem !important;
+        white-space: nowrap;
+    }
+
+    .panel-interno .panel-responsive-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .625rem;
+    }
+
+    .panel-interno .panel-responsive-grid > * {
+        min-width: 0;
+    }
+
+    .panel-interno .panel-span-full {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 359.98px) {
+    .panel-interno .panel-responsive-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .panel-interno .panel-span-full {
+        grid-column: 1;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .panel-interno *,
+    .panel-interno *::before,
+    .panel-interno *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

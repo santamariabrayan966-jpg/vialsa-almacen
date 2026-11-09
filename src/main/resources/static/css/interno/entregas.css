@@ -1,0 +1,233 @@
+.entregas-module {
+    background: #f6f8fb;
+}
+
+.entregas-module .nav-pills .nav-link {
+    color: #334155;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    font-weight: 600;
+}
+
+.entregas-module .nav-pills .nav-link.active {
+    background: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+.entregas-module .card {
+    border-radius: 18px;
+}
+
+.entregas-module .form-control,
+.entregas-module .input-group-text,
+.entregas-module .btn {
+    border-radius: 12px;
+}
+
+.entregas-module .table th {
+    white-space: nowrap;
+    font-size: .85rem;
+}
+
+.entregas-module .table td {
+    white-space: nowrap;
+    font-size: .9rem;
+}
+
+.entregas-module .modal-xl {
+    max-width: 1180px;
+}
+.entregas-module .pedido-card{
+    transition: all .2s ease;
+    cursor: pointer;
+}
+
+.entregas-module .pedido-card:hover{
+    transform: translateY(-2px);
+    background: #f8fbff !important;
+    border-color: #0d6efd !important;
+}
+
+.entregas-module main.container-fluid {
+    width: 100%;
+    max-width: none;
+    padding-inline: clamp(.625rem, 1.5vw, 1.5rem) !important;
+}
+
+@media (max-width: 768px) {
+    .entregas-module main.container-fluid {
+        padding-top: .75rem !important;
+        padding-bottom: calc(4.75rem + env(safe-area-inset-bottom)) !important;
+    }
+
+    .entregas-module .entregas-resumen-grid {
+        --bs-gutter-x: .55rem;
+        --bs-gutter-y: .55rem;
+    }
+
+    .entregas-module .entregas-resumen-grid > [class*="col-"] {
+        width: 50%;
+    }
+
+    .entregas-module .entregas-resumen-grid .card-body {
+        min-height: 4.5rem;
+        padding: .7rem;
+        gap: .5rem;
+    }
+
+    .entregas-module .entregas-resumen-grid .card-body > div:last-child {
+        padding: .55rem !important;
+    }
+
+    .entregas-module .nav-pills {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .4rem;
+        width: 100%;
+        overflow: visible;
+        padding: 0;
+    }
+
+    .entregas-module .nav-pills .nav-item {
+        min-width: 0;
+    }
+
+    .entregas-module .nav-pills .nav-link {
+        width: 100%;
+        min-height: 2.5rem;
+        padding: .45rem .35rem;
+        font-size: .84rem;
+        line-height: 1.15;
+        white-space: normal;
+    }
+
+    .entregas-module .tab-content,
+    .entregas-module .tab-pane,
+    .entregas-module .tab-pane > .row,
+    .entregas-module .tab-pane [class*="col-"] {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .entregas-module .tab-pane .alert {
+        padding: .7rem;
+        overflow-wrap: anywhere;
+    }
+
+    .entregas-module .entrega-pedido-card,
+    .entregas-module .entrega-pedido-card .card-body,
+    .entregas-module .entrega-pedido-layout,
+    .entregas-module .entrega-pedido-main,
+    .entregas-module .pedido-listo-item,
+    .entregas-module .pedido-listo-item .pedido-card {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .entregas-module .entrega-pedido-layout {
+        flex-direction: column;
+        gap: .65rem !important;
+    }
+
+    .entregas-module .entrega-pedido-main > div:last-child {
+        min-width: 0;
+    }
+
+    .entregas-module .entrega-pedido-main .badge {
+        max-width: 100%;
+        padding: .45rem .6rem !important;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .entregas-module .pedido-listo-layout,
+    .entregas-module .entrega-seleccion-header {
+        min-width: 0;
+        flex-wrap: wrap;
+    }
+
+    .entregas-module .pedido-listo-layout > div,
+    .entregas-module .entrega-seleccion-header > div {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .entregas-module .entrega-seleccion-header .badge {
+        max-width: 100%;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .entregas-module .entrega-pedido-acciones {
+        width: 100%;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        padding-top: .55rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .entregas-module .entrega-pedido-acciones .btn {
+        min-height: 2.5rem;
+        width: auto;
+        max-width: 100%;
+        white-space: normal;
+    }
+
+    .entregas-module #entrega .input-group {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr);
+    }
+
+    .entregas-module #entrega .input-group > .btn {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin-top: .45rem;
+        border-radius: .65rem !important;
+    }
+
+    .entregas-module .pedido-card .card-body,
+    .entregas-module .tab-pane > .card > .card-body {
+        padding: .75rem;
+    }
+
+    .entregas-module .table-responsive {
+        max-width: 100%;
+        overflow-x: auto;
+    }
+
+    .entregas-module .modal-xl {
+        max-width: calc(100% - .5rem);
+    }
+}
+
+@media (max-width: 359.98px) {
+    .entregas-module .nav-pills .nav-link {
+        font-size: .78rem;
+        padding-inline: .2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .entregas-module .table-responsive { overflow: visible; }
+    .entregas-module .table-responsive > table,
+    .entregas-module .table-responsive > table > tbody { display: block; width: 100%; min-width: 0; }
+    .entregas-module .table-responsive > table > thead { display: none; }
+    .entregas-module .table-responsive > table > tbody > tr {
+        display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem;
+        margin-bottom: .65rem; padding: .7rem; border: 1px solid #dbe4f0;
+        border-radius: .8rem; background: #fff;
+    }
+    .entregas-module .table-responsive > table > tbody > tr > td {
+        display: block; min-width: 0; padding: 0; border: 0; white-space: normal;
+    }
+    .entregas-module .table-responsive > table > tbody > tr > td::before {
+        display: block; margin-bottom: .1rem; content: attr(data-label);
+        color: #64748b; font-size: .68rem; font-weight: 700;
+    }
+    .entregas-module .table-responsive > table > tbody > tr > td:first-child,
+    .entregas-module .table-responsive > table > tbody > tr > td:last-child,
+    .entregas-module .table-responsive > table > tbody > tr > td[colspan] { grid-column: 1 / -1; }
+    .entregas-module .table-responsive > table > tbody > tr > td:last-child { padding-top: .45rem; border-top: 1px solid #edf2f7; }
+}

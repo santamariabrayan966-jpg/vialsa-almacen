@@ -1,0 +1,324 @@
+﻿/* =========================================
+   DASHBOARD DentIA - LIMPIO Y PROFESIONAL
+   Bootstrap first / CSS mínimo
+========================================= */
+
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* CONTENEDOR GENERAL */
+.dashboard-page {
+    min-height: calc(100vh - 78px);
+    overflow-x: hidden;
+    background: #f5f6f8;
+}
+
+/* TEXTOS */
+.dashboard-page h2,
+.dashboard-page h4,
+.dashboard-page h5,
+.dashboard-page h6 {
+    letter-spacing: -0.3px;
+}
+
+.dashboard-page p {
+    color: #6b7280;
+}
+
+/* CARDS */
+.dashboard-page .card {
+    border: 1px solid #e5e7eb !important;
+    background: #ffffff;
+}
+
+/* EFECTO SUAVE SOLO EN CARDS IMPORTANTES */
+.dashboard-page .card {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-page .card:hover {
+    box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+
+/* GRÁFICOS */
+.chart-box {
+    position: relative;
+    width: 100%;
+    height: 260px;
+}
+
+#graficoCanalVenta,
+#graficoVentasDia,
+#graficoFormaPago {
+    width: 100% !important;
+    height: 260px !important;
+}
+
+/* TABLAS */
+.dashboard-page .table {
+    margin-bottom: 0;
+}
+
+.dashboard-page .table thead th {
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.35px;
+    color: #475569;
+    font-weight: 700;
+    border-bottom: 1px solid #e5e7eb;
+    white-space: nowrap;
+}
+
+.dashboard-page .table tbody td {
+    font-size: 0.9rem;
+    color: #334155;
+    vertical-align: middle;
+}
+
+.dashboard-page .table-hover tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* BOTONES */
+.dashboard-page .btn {
+    font-weight: 600;
+}
+
+/* BADGES */
+.dashboard-page .badge {
+    font-weight: 600;
+}
+
+/* RESPONSIVE TABLET */
+@media (max-width: 992px) {
+
+    .dashboard-page {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+
+    .chart-box {
+        height: 230px;
+    }
+
+    #graficoCanalVenta,
+    #graficoVentasDia,
+    #graficoFormaPago {
+        height: 230px !important;
+    }
+}
+
+/* RESPONSIVE MOBILE */
+@media (max-width: 768px) {
+
+    .dashboard-page {
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    .dashboard-page h2 {
+        font-size: 1.45rem;
+    }
+
+    .dashboard-page h4 {
+        font-size: 1.15rem;
+    }
+
+    .dashboard-page h5 {
+        font-size: 1rem;
+    }
+
+    .dashboard-page .card-body {
+        padding: 1rem;
+    }
+
+    .chart-box {
+        height: 220px;
+    }
+
+    #graficoCanalVenta,
+    #graficoVentasDia,
+    #graficoFormaPago {
+        height: 220px !important;
+    }
+
+    .dashboard-page .table thead th {
+        font-size: 0.72rem;
+    }
+
+    .dashboard-page .table tbody td {
+        font-size: 0.82rem;
+    }
+}
+
+/* CELULARES PEQUEÑOS */
+@media (max-width: 576px) {
+
+    .dashboard-page {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .chart-box {
+        height: 200px;
+    }
+
+    #graficoCanalVenta,
+    #graficoVentasDia,
+    #graficoFormaPago {
+        height: 200px !important;
+    }
+
+    .dashboard-page .btn-sm {
+        font-size: 0.78rem;
+        padding: 0.38rem 0.5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-page .dashboard-ventas-table,
+    .dashboard-page .dashboard-ventas-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dashboard-page .dashboard-ventas-table thead { display: none; }
+
+    .dashboard-page .dashboard-ventas-table tbody tr {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: .45rem .65rem;
+        margin-bottom: .65rem;
+        padding: .7rem;
+        border: 1px solid #dbe4f0;
+        border-radius: .8rem;
+        background: #fff;
+    }
+
+    .dashboard-page .dashboard-ventas-table tbody td {
+        display: block;
+        min-width: 0;
+        padding: 0 !important;
+        border: 0;
+        text-align: left !important;
+        overflow-wrap: anywhere;
+    }
+
+    .dashboard-page .dashboard-ventas-table tbody td::before {
+        display: block;
+        margin-bottom: .1rem;
+        content: attr(data-label);
+        color: #64748b;
+        font-size: .68rem;
+        font-weight: 700;
+    }
+
+    .dashboard-page .dashboard-ventas-table tbody td:first-child,
+    .dashboard-page .dashboard-ventas-table tbody td:nth-child(3),
+    .dashboard-page .dashboard-ventas-table tbody td[colspan] {
+        grid-column: 1 / -1;
+    }
+}
+
+/* =========================================
+   COLORES COMPLEMENTARIOS DentIA
+========================================= */
+
+.icon-dentia-red {
+    background-color: rgba(220, 53, 69, 0.10);
+    color: #dc3545;
+}
+
+.icon-dentia-blue {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: #2563eb;
+}
+
+.icon-dentia-indigo {
+    background-color: rgba(99, 102, 241, 0.12);
+    color: #4f46e5;
+}
+
+.icon-dentia-green {
+    background-color: rgba(34, 197, 94, 0.12);
+    color: #16a34a;
+}
+
+.icon-dentia-orange {
+    background-color: rgba(245, 158, 11, 0.14);
+    color: #d97706;
+}
+
+.icon-dentia-teal {
+    background-color: rgba(20, 184, 166, 0.12);
+    color: #0f766e;
+}
+
+@media (max-width: 575.98px) {
+    .dashboard-inicio {
+        padding: 1rem .65rem 6rem !important;
+    }
+
+    .dashboard-inicio .dashboard-heading {
+        gap: .65rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .dashboard-inicio .dashboard-heading h1 {
+        font-size: 1.65rem;
+        line-height: 1.15;
+    }
+
+    .dashboard-inicio .dashboard-heading p,
+    .dashboard-inicio .dashboard-heading > div > span {
+        font-size: .85rem;
+    }
+
+    .dashboard-inicio .dashboard-heading .badge {
+        font-size: .72rem;
+    }
+
+    .dashboard-inicio .dashboard-grid {
+        --bs-gutter-x: .65rem;
+        --bs-gutter-y: .65rem;
+    }
+
+    .dashboard-inicio .dentia-card {
+        padding: 1rem !important;
+        border-radius: 1rem;
+    }
+
+    .dashboard-inicio .dashboard-stat .dentia-card {
+        background: linear-gradient(145deg, #fff 60%, #effaf7);
+    }
+
+    .dashboard-inicio .dashboard-stat .text-secondary {
+        font-size: .79rem;
+        line-height: 1.25;
+    }
+
+    .dashboard-inicio .dashboard-stat .display-6 {
+        margin-top: .35rem !important;
+        font-size: 1.65rem;
+    }
+
+    .dashboard-inicio .dashboard-stat small {
+        margin-top: .5rem !important;
+    }
+
+    .dashboard-inicio .dentia-stat-icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        flex: 0 0 2.4rem;
+        font-size: 1.1rem;
+    }
+
+    .dashboard-inicio .dentia-coming {
+        padding: 1.5rem .75rem !important;
+        margin-top: 1rem !important;
+    }
+}

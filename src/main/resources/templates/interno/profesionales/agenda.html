@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Agenda profesional | DentIA</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css}">
+</head>
+<body>
+<div th:if="${!fragment}" th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<div class="agenda-modal-shell w-100" th:fragment="agendaContent" data-agenda-fragment="true"
+     th:classappend="${!fragment} ? 'dentia-page container-fluid admin-page py-4' : 'py-1'"
+     style="width: 100% !important; max-width: 100% !important; margin: 0 !important; box-sizing: border-box !important;">
+
+    <a class="text-success text-decoration-none mb-3 d-inline-block" th:if="${!fragment}" th:href="@{/interno/profesionales}">
+        <i class="bi bi-arrow-left"></i> Profesionales
+    </a>
+
+    <!-- Encabezado con datos del especialista (Ocupa el 100% del ancho con distribución perfecta) -->
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3 pb-2.5 border-bottom w-100">
+        <div class="d-flex align-items-center gap-3">
+            <div class="user-avatar-initials-sm shadow-xs" style="width: 44px; height: 44px; font-size: 1rem; border-radius: 50%;">
+                <span th:text="${#strings.substring(profesional.nombres, 0, 1) + #strings.substring(profesional.apellidos, 0, 1)}">BG</span>
+            </div>
+            <div>
+                <h5 class="fw-bold mb-0 text-dark fs-6" th:text="${profesional.nombreCompleto}">Brayan Gonzales</h5>
+                <small class="text-secondary d-flex align-items-center gap-1" th:text="${profesional.especialidadesTexto() != null and !#strings.isEmpty(profesional.especialidadesTexto()) ? profesional.especialidadesTexto() : 'Especialista Odontológico'}">Odontología General</small>
+            </div>
+        </div>
+        <span class="badge rounded-pill px-3 py-1.5 fw-semibold" th:classappend="${profesional.activo ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-secondary-subtle text-secondary border'}"
+              th:text="${profesional.activo ? '● Activo en consultorio' : 'Inactivo'}">● Activo en consultorio</span>
+    </div>
+
+    <!-- Mensajes de alerta -->
+    <div class="alert alert-success alert-dismissible fade show py-2 px-3 mb-3 small w-100" th:if="${ok}">
+        <i class="bi bi-check-circle-fill me-1"></i> <span th:text="${ok}"></span>
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+    </div>
+    <div class="alert alert-danger alert-dismissible fade show py-2 px-3 mb-3 small w-100" th:if="${error}">
+        <i class="bi bi-exclamation-triangle-fill me-1"></i> <span th:text="${error}"></span>
+        <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Pestañas de navegación superiores (Grid 50%/50% sin espacios muertos) -->
+    <ul class="nav nav-pills agenda-nav-pills mb-3 w-100" id="agendaTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="tab-horarios-btn" data-bs-toggle="pill" data-bs-target="#tab-horarios" type="button" role="tab">
+                <i class="bi bi-clock-history"></i>
+                <span>Horarios de Atención Semanal</span>
+                <span class="badge" th:text="${#lists.size(horarios) + ' turnos'}">0 turnos</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tab-bloqueos-btn" data-bs-toggle="pill" data-bs-target="#tab-bloqueos" type="button" role="tab">
+                <i class="bi bi-calendar-x"></i>
+                <span>Vacaciones y Bloqueos</span>
+                <span class="badge" th:text="${#lists.size(bloqueos) + ' registrados'}">0</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content w-100" id="agendaTabsContent">
+
+        <!-- PESTAÑA 1: HORARIOS Y TURNOS -->
+        <div class="tab-pane fade show active w-100" id="tab-horarios" role="tabpanel">
+
+            <!-- Formulario Agregar Nuevo Turno -->
+            <div class="card border rounded-3 p-3 mb-3 bg-light-subtle shadow-none w-100">
+                <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                    <span class="fw-bold text-dark small d-flex align-items-center gap-1.5">
+                        <i class="bi bi-plus-circle-fill text-teal"></i>
+                        <span>Agregar nuevo turno de atención</span>
+                    </span>
+                    <span class="badge bg-white text-secondary border small fw-normal">Varios turnos por día permitidos</span>
+                </div>
+                <form method="post" th:action="@{'/interno/profesionales/'+${profesional.idProfesional}+'/horarios'(fragment=${fragment})}" class="row g-2 align-items-end">
+                    <div class="col-12 col-sm-4">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Día de la semana</label>
+                        <select class="form-select form-select-sm" name="diaSemana" required>
+                            <option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option>
+                            <option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Hora Inicio</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white text-muted px-2"><i class="bi bi-clock"></i></span>
+                            <input type="time" class="form-control form-control-sm text-center" name="horaInicio" required>
+                        </div>
+                    </div>
+                    <div class="col-6 col-sm-3">
+                        <label class="form-label small fw-semibold text-secondary mb-1">Hora Fin</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text bg-white text-muted px-2"><i class="bi bi-clock-history"></i></span>
+                            <input type="time" class="form-control form-control-sm text-center" name="horaFin" required>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-2 d-grid">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <button class="btn btn-sm btn-success fw-semibold d-inline-flex align-items-center justify-content-center gap-1 shadow-xs" style="height: 31px;">
+                            <i class="bi bi-plus-lg"></i> <span>Agregar</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Listado de Turnos -->
+            <div th:if="${#lists.isEmpty(horarios)}" class="text-secondary text-center py-4 bg-light rounded-3 border w-100">
+                <i class="bi bi-calendar-plus fs-2 text-muted d-block mb-1"></i>
+                <h6 class="fw-bold text-dark mb-1">Sin turnos configurados</h6>
+                <p class="text-secondary small mb-0">Usa el formulario superior para agregar el primer turno de atención.</p>
+            </div>
+
+            <div th:if="${!#lists.isEmpty(horarios)}" class="mb-1 w-100">
+                <th:block th:each="h,iter : ${horarios}">
+
+                    <!-- Encabezado de Día cuando cambia -->
+                    <div th:if="${iter.first or h.diaSemana != horarios[iter.index - 1].diaSemana}"
+                         class="agenda-day-banner">
+                        <span class="d-inline-flex align-items-center gap-1.5 text-teal">
+                            <i class="bi bi-calendar2-check-fill"></i> <span th:text="${h.nombreDia}">Lunes</span>
+                        </span>
+                        <span class="badge bg-white text-secondary border fw-normal" style="font-size: 0.7rem;">JORNADA DE ATENCIÓN</span>
+                    </div>
+
+                    <!-- Fila de Turno en una sola línea elegante sin quiebres adaptable al 100% -->
+                    <form method="post" class="agenda-turn-row d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2 w-100" th:action="@{'/interno/profesionales/'+${profesional.idProfesional}+'/horarios'(fragment=${fragment})}">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                        <input type="hidden" name="idHorario" th:value="${h.idHorario}">
+
+                        <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0 flex-wrap flex-sm-nowrap">
+                            <span class="badge bg-teal-subtle text-teal border border-teal-subtle px-2.5 py-1.5 fw-bold flex-shrink-0 rounded-pill" style="font-size: 0.75rem;" th:text="${'Turno ' + h.numeroTurnoDia}">Turno 1</span>
+
+                            <div style="min-width: 115px;" class="flex-shrink-0">
+                                <select class="form-select form-select-sm" name="diaSemana" style="font-size: 0.8125rem;">
+                                    <option th:each="d:${#numbers.sequence(1,7)}" th:value="${d}" th:text="${T(java.time.DayOfWeek).of(d).getDisplayName(T(java.time.format.TextStyle).FULL,T(java.util.Locale).forLanguageTag('es'))}" th:selected="${d==h.diaSemana}"></option>
+                                </select>
+                            </div>
+
+                            <div class="input-group input-group-sm flex-nowrap" style="max-width: 220px; min-width: 170px;">
+                                <span class="input-group-text bg-light text-muted px-2"><i class="bi bi-clock"></i></span>
+                                <input type="time" class="form-control form-control-sm text-center px-1" name="horaInicio" th:value="${h.horaInicio}" required style="font-size: 0.8125rem;">
+                                <span class="input-group-text bg-light text-muted px-1.5">–</span>
+                                <input type="time" class="form-control form-control-sm text-center px-1" name="horaFin" th:value="${h.horaFin}" required style="font-size: 0.8125rem;">
+                            </div>
+
+                            <span class="badge bg-light text-secondary border px-2.5 py-1.5 flex-shrink-0 d-none d-sm-inline-block" style="font-size: 0.75rem;" th:text="${h.duracionTexto}">3h 00m</span>
+                        </div>
+
+                        <div class="d-flex align-items-center gap-1.5 flex-shrink-0 ms-auto">
+                            <button type="submit" class="btn btn-sm btn-outline-success px-2.5 py-1 fw-semibold d-inline-flex align-items-center gap-1 shadow-xs" style="font-size: 0.785rem;" title="Guardar cambios de este turno">
+                                <i class="bi bi-check2"></i> <span>Guardar</span>
+                            </button>
+                            <button type="submit" class="btn btn-sm btn-outline-danger px-2.5 py-1 d-inline-flex align-items-center gap-1 shadow-xs" style="font-size: 0.785rem;" th:formaction="@{'/interno/profesionales/'+${profesional.idProfesional}+'/horarios/'+${h.idHorario}+'/eliminar'(fragment=${fragment})}" title="Eliminar este turno">
+                                <i class="bi bi-trash3"></i> <span>Eliminar</span>
+                            </button>
+                        </div>
+                    </form>
+                </th:block>
+            </div>
+        </div>
+
+        <!-- PESTAÑA 2: VACACIONES Y BLOQUEOS (Adaptable de borde a borde) -->
+        <div class="tab-pane fade w-100" id="tab-bloqueos" role="tabpanel">
+            <div class="row g-3 w-100 m-0">
+                <!-- Columna Izquierda: Formulario de Bloqueo -->
+                <div class="col-12 col-md-5 ps-0 pe-md-2">
+                    <div class="agenda-block-card bg-light-subtle h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <h6 class="fw-bold mb-0 text-danger d-flex align-items-center gap-1.5" style="font-size: 0.925rem;">
+                                <i class="bi bi-calendar-plus"></i>
+                                <span>Registrar Vacaciones / Permiso</span>
+                            </h6>
+                        </div>
+                        <p class="text-secondary small mb-3" style="font-size: 0.8rem; line-height: 1.4;">
+                            Los días registrados se marcarán en <strong>color rojo</strong> en el calendario de citas, evitando reservas en esas fechas.
+                        </p>
+
+                        <form method="post" th:action="@{'/interno/profesionales/'+${profesional.idProfesional}+'/bloqueos'(fragment=${fragment})}" class="row g-2 mt-auto">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Motivo del bloqueo</label>
+                                <select class="form-select form-select-sm" name="motivo">
+                                    <option th:each="m:${motivosBloqueo}" th:value="${m}" th:text="${m}"></option>
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Fecha / Hora Inicio</label>
+                                <input type="datetime-local" class="form-control form-control-sm" name="inicio" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Fecha / Hora Fin</label>
+                                <input type="datetime-local" class="form-control form-control-sm" name="fin" required>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label small fw-semibold text-secondary mb-1">Observación (Opcional)</label>
+                                <textarea class="form-control form-control-sm" name="observacion" maxlength="500" rows="2" placeholder="Ej. Vacaciones anuales, permiso médico..."></textarea>
+                            </div>
+
+                            <div class="col-12 d-grid mt-2">
+                                <button class="btn btn-danger btn-sm fw-semibold d-inline-flex align-items-center justify-content-center gap-1.5 shadow-xs py-1.5">
+                                    <i class="bi bi-lock-fill"></i> <span>Bloquear agenda</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Columna Derecha: Lista de Bloqueos Activos -->
+                <div class="col-12 col-md-7 pe-0 ps-md-2">
+                    <div class="agenda-block-card bg-white h-100">
+                        <div class="d-flex align-items-center justify-content-between mb-2 pb-2 border-bottom">
+                            <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-1.5" style="font-size: 0.925rem;">
+                                <i class="bi bi-calendar-check text-teal"></i>
+                                <span>Bloqueos y Vacaciones Activas</span>
+                            </h6>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" th:text="${#lists.size(bloqueos) + ' registrados'}">0</span>
+                        </div>
+
+                        <div class="custom-scrollbar flex-grow-1" style="max-height: 380px; overflow-y: auto;">
+                            <div th:if="${#lists.isEmpty(bloqueos)}" class="text-secondary text-center py-5 px-3 bg-light rounded-3 border d-flex flex-column align-items-center justify-content-center h-100">
+                                <div class="avatar-circle-sm bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center mb-2" style="width: 50px; height: 50px;">
+                                    <i class="bi bi-shield-check fs-2 text-success"></i>
+                                </div>
+                                <strong class="d-block text-dark mb-1">Agenda 100% disponible</strong>
+                                <small class="text-secondary">No hay bloqueos ni vacaciones programadas.</small>
+                            </div>
+
+                            <div th:each="b:${bloqueos}" class="border rounded-3 p-3 mb-2 bg-light-subtle shadow-xs hover-shadow">
+                                <div class="d-flex justify-content-between align-items-start gap-2">
+                                    <div>
+                                        <span class="badge bg-danger text-white fw-semibold mb-1" th:text="${b.motivo}">VACACIONES</span>
+                                        <div class="text-dark fw-bold small">
+                                            <i class="bi bi-calendar3 me-1 text-muted"></i>
+                                            <span th:text="${#temporals.format(b.fechaHoraInicio,'dd/MM/yyyy HH:mm') + ' al ' + #temporals.format(b.fechaHoraFin,'dd/MM/yyyy HH:mm')}"></span>
+                                        </div>
+                                        <div class="text-secondary small mt-1" th:if="${b.observacion}" th:text="${b.observacion}"></div>
+                                    </div>
+                                    <form method="post" th:action="@{'/interno/profesionales/'+${profesional.idProfesional}+'/bloqueos/'+${b.idBloqueo}+'/eliminar'(fragment=${fragment})}">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+                                        <button class="btn btn-sm btn-outline-danger py-1 px-2" title="Eliminar este bloqueo"><i class="bi bi-trash3"></i></button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div th:if="${!fragment}" th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

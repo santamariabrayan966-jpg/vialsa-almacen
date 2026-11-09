@@ -1,0 +1,197 @@
+.gestion-page{--gestion-primary:#0b7f86;max-width:1800px;font-size:.94rem}
+.gestion-page .btn-primary,.gestion-dialog .btn-primary{--bs-btn-bg:#0b7f86;--bs-btn-border-color:#0b7f86;--bs-btn-hover-bg:#07676e;--bs-btn-hover-border-color:#07676e;--bs-btn-disabled-bg:#0b7f86;--bs-btn-disabled-border-color:#0b7f86}
+.gestion-heading{display:flex;justify-content:space-between;align-items:center;gap:1.5rem;margin-bottom:1.7rem}.gestion-heading h1{font-size:2rem;font-weight:750;letter-spacing:-.055em;margin-bottom:.5rem}.gestion-eyebrow{font-size:.68rem;letter-spacing:.15em;color:#0b7f86;font-weight:800;margin-bottom:.6rem}.gestion-create{white-space:nowrap;padding:.75rem 1.15rem;border-radius:.65rem}.gestion-create i{margin-right:.4rem}
+.gestion-tabs{display:flex;gap:1.5rem;border-bottom:1px solid #dbe7e6;margin-bottom:1.6rem;overflow-x:auto}.gestion-tabs a{display:flex;align-items:center;gap:.5rem;white-space:nowrap;text-decoration:none;color:#687f83;padding:.7rem .1rem 1rem;font-weight:600;border-bottom:3px solid transparent}.gestion-tabs a.active{color:#087a7f;border-color:#0b7f86}.gestion-tabs a:hover{color:#075a63}
+.gestion-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem;margin:0 0 1.4rem}.gestion-metric{background:#fff;border:1px solid #dfebe9;border-radius:.9rem;padding:1.1rem 1.3rem;display:flex;gap:1rem;align-items:center}.gestion-metric-icon{background:#e9f6f3;color:#138b80;border-radius:.8rem;padding:.75rem;font-size:1.35rem}.gestion-metric small{display:block;color:#72868a;font-size:.78rem;margin-bottom:.3rem}.gestion-metric strong{font-size:1.5rem;line-height:1.3;letter-spacing:-.04em}.gestion-metric p{margin:.2rem 0 0;color:#8b9a9d;font-size:.7rem}
+.gestion-surface{background:#fff;border:1px solid #dfebe9;border-radius:.9rem;margin-bottom:1.3rem;overflow:hidden}.gestion-filter{padding:1.15rem}.gestion-filter-grid{display:grid;grid-template-columns:1.5fr 1.5fr 1fr 1fr 1fr auto;gap:.8rem;align-items:end}.gestion-filter label,.gestion-dialog label{display:block;font-size:.77rem;font-weight:650;color:#4b646b}.gestion-filter input,.gestion-filter select,.gestion-dialog input,.gestion-dialog select,.gestion-dialog textarea{margin-top:.4rem;font-size:.88rem;border-color:#d6e3e2;border-radius:.5rem}.gestion-filter-actions{display:flex;gap:.4rem}.gestion-filter .btn{font-size:.88rem}.gestion-results-head{padding:1.2rem 1.4rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;border-bottom:1px solid #eef3f2}.gestion-results-head h2{font-size:1rem;font-weight:700;margin:0 0 .2rem}
+.gestion-table-wrap{overflow-x:auto}.gestion-table{width:100%;border-collapse:collapse}.gestion-table th{background:#f8fbfa;color:#769095;text-transform:uppercase;letter-spacing:.055em;font-weight:650;font-size:.64rem;white-space:nowrap;padding:.85rem 1.2rem}.gestion-table td{padding:1rem 1.2rem;border-top:1px solid #edf2f1;font-size:.85rem;vertical-align:middle}.gestion-table tbody tr:hover{background:#fbfdfc}.gestion-table td strong{display:block;font-weight:650}.gestion-table td small{display:block;font-size:.72rem;color:#879a9e;margin-top:.25rem}.gestion-money{font-variant-numeric:tabular-nums;white-space:nowrap}.gestion-pill{display:inline-flex;align-items:center;padding:.3rem .65rem;border-radius:5rem;background:#eff3f6;color:#64748b;font-size:.67rem;font-weight:700;letter-spacing:.015em;white-space:nowrap}.gestion-pill.aprobado,.gestion-pill.completado,.gestion-pill.registrado,.gestion-pill.activo{background:#e5f5ee;color:#20835a}.gestion-pill.pendiente,.gestion-pill.borrador{background:#fff3dd;color:#a27220}.gestion-pill.anulado,.gestion-pill.cancelado,.gestion-pill.rechazado{background:#fbeeee;color:#b45454}.gestion-overdue{color:#b75c42!important}.gestion-open{border:1px solid #d9e6e3;background:#fff;border-radius:.5rem;color:#0b7f86;font-size:.75rem;font-weight:650;padding:.4rem .65rem;white-space:nowrap}.gestion-open:hover{background:#edf8f5}.gestion-pagination{display:flex;align-items:center;justify-content:flex-end;gap:1rem;padding:1rem 1.4rem;border-top:1px solid #edf2f1;color:#7a8e92}.gestion-empty{text-align:center;padding:3.5rem 1rem;color:#7a9095}.gestion-empty i{font-size:2.3rem;display:block;color:#9dc3be;margin-bottom:.8rem}.gestion-empty strong{color:#3e6168;display:block;margin-bottom:.4rem}.gestion-empty p{font-size:.84rem;max-width:440px;margin:0 auto}.gestion-footnote{color:#8b9b9e;font-size:.71rem;text-align:center;margin:1.7rem 0 .5rem}.gestion-footnote i{margin-right:.4rem}#aviso{padding:.85rem 1rem;border-radius:.7rem;margin-bottom:1rem;background:#e3f4ed;color:#246c50}#aviso.error{background:#fff1f0;color:#a54040}
+.gestion-dialog{border:1px solid #dbe7e4;border-radius:1.1rem;padding:0;width:min(720px,94vw);max-height:90dvh;color:#17313a;box-shadow:0 24px 80px #092c3b33;overflow:auto}.gestion-dialog::backdrop{background:#092a35a3;backdrop-filter:blur(3px)}.gestion-dialog-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1.4rem 1.6rem;border-bottom:1px solid #e7efed}.gestion-dialog-head h2{font-size:1.2rem;font-weight:750;margin:0;letter-spacing:-.02em}.gestion-dialog-body{padding:1.5rem 1.6rem}.gestion-dialog-footer{display:flex;gap:.6rem;justify-content:flex-end;flex-wrap:wrap;padding:1rem 1.6rem;border-top:1px solid #e7efed;background:#fafcfb}.gestion-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.gestion-form-grid .full{grid-column:1/-1}.gestion-hint{font-size:.74rem;color:#7c9297;display:block;margin:.45rem 0 0;font-weight:400}.gestion-form-error{margin:0 1.6rem 1rem;padding:.85rem;border-radius:.5rem;background:#fff0f0;color:#a44949;font-size:.85rem}.gestion-items{margin:1.4rem 0}.gestion-items-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem}.gestion-items-head h3{font-size:.9rem;margin:0}.gestion-item{display:grid;grid-template-columns:minmax(160px,1fr) 80px 105px 32px;gap:.5rem;align-items:end;margin:.7rem 0}.gestion-remove{border:0;background:#f9efee;border-radius:.4rem;color:#b75a52;height:38px}.gestion-total{display:flex;justify-content:space-between;padding:1rem 0 .3rem;border-top:1px solid #e5efec;font-weight:700;color:#137f77}.gestion-info{padding:1rem;background:#f1f8f6;border-radius:.65rem;color:#557973;font-size:.83rem;margin-bottom:1.2rem}.gestion-detail h3{font-size:1rem;font-weight:700;margin:1.5rem 0 .9rem}.gestion-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}.gestion-detail-grid dt{font-size:.72rem;font-weight:500;color:#7f9499}.gestion-detail-grid dd{font-size:.9rem;margin:.2rem 0;overflow-wrap:anywhere;white-space:pre-wrap}.gestion-detail-grid .full{grid-column:1/-1}.gestion-history{list-style:none;padding:0;margin:0}.gestion-history li{padding:.5rem 0 .8rem 1rem;border-left:2px solid #d6eae4;margin-left:.25rem}.gestion-history strong{display:block;font-size:.77rem;color:#347c72}.gestion-history p{font-size:.79rem;margin:.25rem 0;white-space:pre-wrap;overflow-wrap:anywhere}.gestion-history small{font-size:.69rem;color:#94a3a5}.gestion-links{display:flex;flex-wrap:wrap;gap:.4rem;margin:1rem 0}.gestion-links a{font-size:.74rem;text-decoration:none;padding:.4rem .7rem;background:#edf6f4;border-radius:.4rem;color:#0b7f86}.gestion-report-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:1.4rem}.gestion-report-grid h3{font-size:.87rem;font-weight:700;margin-bottom:1.3rem}.gestion-bar-row{margin:.9rem 0;font-size:.79rem}.gestion-bar-label{display:flex;justify-content:space-between;margin-bottom:.4rem;gap:1rem}.gestion-bar-track{height:7px;background:#edf4f1;border-radius:10px;overflow:hidden}.gestion-bar-fill{height:100%;background:#39ad97;border-radius:10px}.gestion-report-note{padding:0 1.4rem 1rem;font-size:.75rem;color:#81969a}.gestion-print-head{display:none}
+@media(max-width:1250px){.gestion-filter-grid{grid-template-columns:repeat(3,1fr)}.gestion-metric{padding:1rem;gap:.7rem}.gestion-metric strong{font-size:1.2rem}.gestion-metric-icon{font-size:1rem;padding:.6rem}}
+@media(max-width:700px){.gestion-heading{align-items:flex-start;flex-direction:column;gap:.5rem;margin-bottom:.75rem}.gestion-heading h1{font-size:1.25rem;margin-bottom:.2rem}.gestion-create{width:100%;padding:.45rem .8rem;font-size:.85rem}.gestion-tabs{gap:.65rem;font-size:.8rem;margin-bottom:.8rem}.gestion-metrics{grid-template-columns:repeat(3,1fr);gap:.45rem;margin-bottom:.85rem}.gestion-metric{padding:.55rem .65rem;border-radius:.65rem;gap:.5rem}.gestion-metric-icon{font-size:.95rem;padding:.45rem;border-radius:.5rem}.gestion-metric strong{font-size:1.05rem}.gestion-metric p{display:none}.gestion-metric small{margin-bottom:0;font-size:.68rem}.gestion-filter-grid{grid-template-columns:1fr 1fr;gap:.5rem}.gestion-filter-grid>label:first-child{grid-column:1/-1}.gestion-filter-actions{align-self:end}.gestion-dialog-body,.gestion-dialog-head{padding:.85rem}.gestion-form-grid,.gestion-detail-grid,.gestion-report-grid{grid-template-columns:1fr;gap:.5rem}.gestion-item{grid-template-columns:1fr 1fr 32px;border-bottom:1px solid #e5efec;padding-bottom:.5rem}.gestion-item>label:first-child{grid-column:1/-1}.gestion-table th,.gestion-table td{padding:.45rem .65rem;font-size:.8rem}.gestion-pagination{justify-content:center;padding:.65rem .85rem}}
+@media print{body.panel-interno{padding:0!important;background:white!important}body>*,.gestion-dialog-head .btn-close,.gestion-dialog-footer,.gestion-links{display:none!important}body #detalle[open]{display:block!important;position:static;margin:0;width:100%;max-height:none;border:0;box-shadow:none;overflow:visible}.gestion-dialog::backdrop{background:white}.gestion-print-head{display:block;font-size:.8rem;color:#777;margin-bottom:1rem}.gestion-history{break-inside:avoid}.gestion-table{font-size:10pt}.gestion-detail-grid{grid-template-columns:1fr 1fr}}
+
+
+/* ==============================================================
+   DISEÑO MÓVIL PAGOS Y GESTIÓN: CERO TABLAS, MÁXIMA COMPACIDAD
+   ============================================================== */
+@media (max-width: 991.98px) {
+    .gestion-page {
+        padding: 0.65rem 0.5rem 1.5rem !important;
+    }
+    .gestion-heading {
+        margin-bottom: 0.75rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.4rem !important;
+    }
+    .gestion-heading h1 {
+        font-size: 1.35rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+    .gestion-eyebrow {
+        font-size: 0.65rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+    .gestion-create {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.82rem !important;
+        width: 100% !important;
+        border-radius: 0.65rem !important;
+    }
+    .gestion-tabs {
+        margin-bottom: 0.75rem !important;
+        gap: 0.75rem !important;
+    }
+    .gestion-tabs a {
+        padding: 0.5rem 0.2rem 0.75rem !important;
+        font-size: 0.84rem !important;
+    }
+    .gestion-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.35rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .gestion-metric {
+        padding: 0.45rem 0.55rem !important;
+        border-radius: 0.7rem !important;
+        gap: 0.35rem !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    .gestion-metric-icon {
+        display: none !important;
+    }
+    .gestion-metric small {
+        font-size: 0.65rem !important;
+        margin-bottom: 0.1rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+    .gestion-metric strong {
+        font-size: 0.95rem !important;
+        line-height: 1.1 !important;
+    }
+    .gestion-metric p {
+        display: none !important;
+    }
+    .gestion-surface {
+        border-radius: 0.8rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .gestion-filter {
+        padding: 0.65rem 0.75rem !important;
+    }
+    .gestion-filter-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.4rem !important;
+    }
+    .gestion-filter-grid > label:first-child {
+        grid-column: 1 / -1 !important;
+    }
+    .gestion-filter label {
+        font-size: 0.72rem !important;
+    }
+    .gestion-filter input,
+    .gestion-filter select {
+        height: 38px !important;
+        font-size: 0.82rem !important;
+        margin-top: 0.15rem !important;
+    }
+    .gestion-filter-actions {
+        grid-column: 1 / -1 !important;
+        display: flex !important;
+        gap: 0.4rem !important;
+        margin-top: 0.2rem !important;
+    }
+    .gestion-filter-actions .btn {
+        height: 38px !important;
+        font-size: 0.84rem !important;
+    }
+    .gestion-filter-actions .btn-primary {
+        flex: 1 1 auto !important;
+    }
+    #filtro-ayuda {
+        display: none !important;
+    }
+    .gestion-results-head {
+        padding: 0.65rem 0.85rem !important;
+    }
+    .gestion-results-head h2 {
+        font-size: 0.95rem !important;
+    }
+
+    /* Tarjetas móviles para cobros y pagos - CERO TABLAS */
+    .gestion-cards-mobile {
+        padding: 0.65rem !important;
+    }
+    .gestion-m-card {
+        background: #ffffff;
+        border: 1px solid #dce8e6;
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 1px 4px rgba(18, 50, 50, 0.04);
+    }
+    .gestion-m-card:last-child {
+        margin-bottom: 0;
+    }
+    .gestion-m-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 6px;
+    }
+    .gestion-m-patient strong {
+        font-size: 0.88rem;
+        color: #123c43;
+        display: block;
+        line-height: 1.25;
+    }
+    .gestion-m-patient small {
+        font-size: 0.72rem;
+        color: #728a8f;
+    }
+    .gestion-m-card-body {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-top: 1px dashed #e5efec;
+        border-bottom: 1px dashed #e5efec;
+        margin-bottom: 6px;
+    }
+    .gestion-m-op {
+        font-weight: 700;
+        font-size: 0.84rem;
+        color: #164047;
+    }
+    .gestion-m-amount {
+        text-align: right;
+    }
+    .gestion-m-amount strong {
+        font-size: 0.98rem;
+        color: #0d8a5f;
+        display: block;
+        line-height: 1.2;
+    }
+    .gestion-m-amount small {
+        font-size: 0.68rem;
+        color: #7a8e92;
+    }
+    .gestion-m-card-foot {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.72rem;
+    }
+    .gestion-pagination {
+        padding: 0.65rem 0.85rem !important;
+        justify-content: center !important;
+    }
+    .gestion-footnote {
+        display: none !important;
+    }
+}

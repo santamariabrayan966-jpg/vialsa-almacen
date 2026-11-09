@@ -1,0 +1,922 @@
+:root {
+    --dentia-header-height: 54px;
+    --dentia-sidebar-width: 240px;
+    --dentia-primary: #008b99;
+    --dentia-primary-dark: #007380;
+    --dentia-accent: #00c2cb;
+    --dentia-accent-light: #e0f2fe;
+    --dentia-bg: #f8fafc;
+    --dentia-surface: #ffffff;
+    --dentia-ink: #0f172a;
+    --dentia-muted: #64748b;
+    --dentia-border: #e2e8f0;
+
+    /* Sidebar Futurista (Deep Ocean Navy exacto a la imagen: rgb(2, 41, 63)) */
+    --dentia-sidebar-bg: #02293f;
+    --dentia-sidebar-border: rgba(255, 255, 255, 0.06);
+}
+
+html { scroll-padding-top: var(--dentia-header-height); }
+
+body.panel-interno {
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding-top: var(--dentia-header-height);
+    background: var(--dentia-bg);
+    color: var(--dentia-ink);
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   1. SIDEBAR FUTURISTA EXACTO (DENTIA VOICE 3D + NEON TOOTH)
+   ══════════════════════════════════════════════════════════════ */
+.dentia-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--dentia-sidebar-width);
+    background: var(--dentia-sidebar-bg);
+    border-right: 1px solid var(--dentia-sidebar-border);
+    display: flex;
+    flex-direction: column;
+    z-index: 1050;
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+/* Cabecera del Sidebar con Icono Neón */
+.sidebar-brand-wrap {
+    padding: 1.15rem 1.15rem 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    flex-shrink: 0;
+}
+
+.dentia-brand-futuristic {
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    line-height: 1 !important;
+    color: #ffffff !important;
+    min-width: 0 !important;
+}
+
+.dentia-brand-futuristic:hover {
+    color: #ffffff !important;
+    text-decoration: none !important;
+}
+
+.brand-tooth-img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(0, 194, 203, 0.75));
+    flex-shrink: 0;
+}
+
+.brand-custom-logo {
+    width: 36px;
+    height: 36px;
+    max-width: 36px;
+    max-height: 36px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 2px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.brand-text-block {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    min-width: 0 !important;
+    line-height: 1.15 !important;
+}
+
+.brand-text {
+    display: flex !important;
+    align-items: baseline !important;
+    font-size: 1.3rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.01em !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    line-height: 1.15 !important;
+}
+
+.brand-dent {
+    color: #ffffff;
+}
+
+.brand-ia {
+    color: #00c2cb;
+    text-shadow: 0 0 10px rgba(0, 194, 203, 0.5);
+}
+
+.brand-subtitle {
+    font-size: 0.62rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.12em !important;
+    color: #00c2cb !important;
+    text-transform: uppercase !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    margin-top: 3px !important;
+    line-height: 1 !important;
+}
+
+/* Navegación */
+.sidebar-nav {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0.75rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+    width: 3px;
+}
+.sidebar-nav::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 3px;
+}
+
+/* Items de navegación: redondeados, flotantes, idénticos a Image 3 */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    margin: 0.2rem 0.85rem;
+    padding: 0.65rem 0.95rem;
+    color: #8fa8b8;
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: 500;
+    border-radius: 12px;
+    transition: all 0.18s ease;
+    border: none;
+}
+
+.sidebar-link i,
+.sidebar-link .sidebar-svg-icon {
+    font-size: 1.15rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: #8fa8b8;
+    text-align: center;
+    transition: color 0.18s ease, transform 0.18s ease;
+    flex-shrink: 0;
+}
+
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+}
+
+.sidebar-link:hover i,
+.sidebar-link:hover .sidebar-svg-icon {
+    color: #00c2cb;
+    transform: scale(1.08);
+}
+
+/* Estado Activo: Cápsula redondeada flotante sólida en cian/teal idéntica a Image 3 */
+.sidebar-link.active {
+    background: #0096a6 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0, 150, 166, 0.35);
+    border: none !important;
+}
+
+.sidebar-link.active i,
+.sidebar-link.active .sidebar-svg-icon {
+    color: #ffffff !important;
+}
+
+/* Títulos de Sección en Navegación (Clínica, Finanzas y Gestión, Administración) */
+.sidebar-section-title {
+    padding: 0.85rem 1.15rem 0.25rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #588b9f;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   2. TOPBAR SLIM Y RESPONSIVE
+   ══════════════════════════════════════════════════════════════ */
+.dentia-topbar {
+    position: fixed !important;
+    top: 0;
+    right: 0;
+    z-index: 1040;
+    height: var(--dentia-header-height);
+    min-height: var(--dentia-header-height);
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, 0.04);
+    display: flex;
+    align-items: center;
+    padding: 0 1rem;
+    transition: left 0.28s ease, width 0.28s ease;
+}
+
+/* Pantallas Grandes (>= 992px) */
+@media (min-width: 992px) {
+    body.panel-interno .dentia-topbar {
+        left: var(--dentia-sidebar-width) !important;
+        width: calc(100% - var(--dentia-sidebar-width)) !important;
+    }
+
+    body.panel-interno > main,
+    body.panel-interno main,
+    body.panel-interno .dentia-page,
+    body.panel-interno .clinica-luminous-workspace,
+    body.panel-interno .gestion-page,
+    body.panel-interno .admin-page,
+    body.panel-interno .dentia-main,
+    body.panel-interno .dentia-form-shell,
+    body.panel-interno .container-fluid {
+        margin-left: var(--dentia-sidebar-width) !important;
+        width: calc(100% - var(--dentia-sidebar-width)) !important;
+        max-width: calc(100% - var(--dentia-sidebar-width)) !important;
+        box-sizing: border-box !important;
+        transition: margin-left 0.28s ease, width 0.28s ease;
+    }
+}
+
+/* Pantallas Móviles y Tablets (< 992px) */
+@media (max-width: 991.98px) {
+    .dentia-sidebar {
+        transform: translateX(-100%) !important;
+        z-index: 1065 !important;
+        width: 260px !important;
+        max-width: 85vw !important;
+    }
+    .dentia-sidebar.show {
+        transform: translateX(0) !important;
+        box-shadow: 12px 0 40px rgba(0, 0, 0, 0.6) !important;
+    }
+    .sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 1060;
+        display: none;
+    }
+    .sidebar-backdrop.show {
+        display: block !important;
+    }
+
+    body.panel-interno .dentia-topbar {
+        left: 0 !important;
+        width: 100% !important;
+        padding-left: 0.65rem !important;
+        padding-right: 0.65rem !important;
+    }
+
+    body.panel-interno > main,
+    body.panel-interno main,
+    body.panel-interno .dentia-page,
+    body.panel-interno .clinica-luminous-workspace,
+    body.panel-interno .gestion-page,
+    body.panel-interno .admin-page,
+    body.panel-interno .dentia-main,
+    body.panel-interno .dentia-form-shell,
+    body.panel-interno .container-fluid,
+    body.panel-interno .footer-interno {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 0.65rem !important;
+        padding-right: 0.65rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    /* Ocultar elementos sobrantes en móvil para ahorrar espacio */
+    .topbar-search-text { display: none !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   3. ESTILOS BASE Y CONTENEDOR PRINCIPAL
+   ══════════════════════════════════════════════════════════════ */
+.dentia-page {
+    min-height: calc(100vh - var(--dentia-header-height));
+    min-height: calc(100dvh - var(--dentia-header-height));
+    padding: 1.4rem 1.8rem 40px !important;
+}
+
+.dentia-card {
+    border: 1px solid #e2e8f0;
+    border-radius: 1.15rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.04);
+    background: #ffffff;
+}
+
+.dentia-stat-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    color: var(--dentia-primary);
+    background: #e6f7f6;
+    font-size: 1.3rem;
+}
+
+.dentia-coming {
+    border: 1px dashed #cbd5e1;
+    background: #ffffff;
+}
+
+
+
+@media (max-width: 768px) {
+    .dentia-page {
+        padding: 1rem 0.85rem 30px !important;
+    }
+}
+
+/* Pie de página elegante, moderno, completamente neto y fijo en escritorio */
+@media (min-width: 992px) {
+    body.panel-interno {
+        padding-bottom: 38px !important;
+    }
+    body.panel-interno .footer-interno {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: var(--dentia-sidebar-width) !important;
+        right: 0 !important;
+        width: auto !important;
+        max-width: none !important;
+        margin: 0 !important;
+        margin-left: 0 !important;
+        height: 34px !important;
+        padding: 0 1.25rem !important;
+        background: #ffffff !important;
+        border-top: 1px solid #e2e8f0 !important;
+        box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.04) !important;
+        z-index: 1020 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+}
+
+.footer-interno {
+    color: var(--dentia-muted);
+    background: #ffffff !important;
+    padding: 0.45rem 1rem !important;
+    text-align: center;
+    font-size: 0.76rem;
+    border-top: 1px solid #e2e8f0;
+    flex-shrink: 0;
+}
+
+.footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.footer-brand .brand-dent {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.footer-brand .brand-ia {
+    color: #00c2cb;
+    font-weight: 800;
+}
+
+.footer-sep {
+    color: #cbd5e1;
+}
+
+.footer-text {
+    color: #64748b;
+    font-weight: 500;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   4. BUSCADOR GLOBAL SPOTLIGHT (CTRL + K)
+   ══════════════════════════════════════════════════════════════ */
+.spotlight-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(6px);
+    z-index: 2000;
+    display: flex;
+    justify-content: center;
+    padding-top: 8vh;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.spotlight-dialog {
+    width: 100%;
+    max-width: 540px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+    height: fit-content;
+}
+
+.spotlight-input-wrap {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1.15rem;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 0.65rem;
+}
+
+.spotlight-icon {
+    font-size: 1.1rem;
+    color: #008b99;
+}
+
+.spotlight-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.spotlight-esc {
+    font-size: 0.68rem;
+    color: #94a3b8;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 2px 6px;
+}
+
+.spotlight-results {
+    max-height: 340px;
+    overflow-y: auto;
+    padding: 0.4rem;
+}
+
+.spotlight-result-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    color: #334155;
+    text-decoration: none;
+    font-size: 0.86rem;
+    transition: all 0.15s;
+}
+
+.spotlight-result-item:hover {
+    background: #f1f5f9;
+    color: #008b99;
+    transform: translateX(3px);
+}
+
+.spotlight-result-item i {
+    color: #008b99;
+    font-size: 1.05rem;
+}
+
+/* Botón hamburguesa móvil */
+.btn-hamburger-mobile {
+    background: transparent;
+    border: none;
+    color: #1e293b;
+    padding: 0.25rem 0.4rem;
+    font-size: 1.35rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.4rem;
+    transition: background 0.15s;
+}
+.btn-hamburger-mobile:hover {
+    background: #f1f5f9;
+    color: #008b99;
+}
+
+/* Modo lectura accesible y scroll horizontal de dock */
+html[data-dentia-reading-mode="large"],
+body[data-dentia-reading-mode="large"],
+[data-dentia-reading-mode="large"] {
+    --dentia-font-scale: 1.15;
+    font-size: 18px !important;
+}
+
+.dentia-mobile-dock {
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+.dentia-mobile-dock::-webkit-scrollbar {
+    display: none;
+}
+
+
+@media (max-width: 991.98px) {
+    .dentia-topbar .topbar-search { display: none !important; }
+    .dentia-topbar .topbar-actions { gap: .45rem !important; }
+    .dentia-topbar .topbar-actions > .dropdown,
+    .dentia-topbar .topbar-actions > button,
+    .dentia-topbar .mobile-profile-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .dentia-topbar .mobile-profile-link {
+        width: 2.25rem;
+        height: 2.25rem;
+        border: 1px solid #dce4e8;
+        border-radius: 50%;
+        color: #075d63;
+        background: #f8fafb;
+        font-size: 1.35rem;
+        text-decoration: none;
+    }
+    .profile-logout { margin: 1.25rem 0 1rem; }
+}
+
+/* Comunicación individual */
+.wa-modal { z-index: 1080; }
+.wa-modal .modal-dialog { max-width: 520px; }
+.wa-modal .modal-content { border: 0; border-radius: 1.25rem; overflow: hidden; box-shadow: 0 24px 70px #102f3050; }
+.wa-modal .modal-header { align-items: flex-start; gap: 1rem; padding: 1.25rem; color: #fff; background: linear-gradient(130deg, #075e5c, #0b887a); border: 0; }
+.wa-heading { display: flex; align-items: flex-start; gap: .8rem; min-width: 0; }
+.wa-heading-icon { display: grid; place-items: center; flex: 0 0 2.7rem; height: 2.7rem; border-radius: .85rem; background: #ffffff24; font-size: 1.45rem; }
+.wa-heading h2 { margin: 0; font-size: 1.15rem; font-weight: 750; }
+.wa-heading p { margin: .3rem 0 0; color: #e0f6f0; font-size: .82rem; line-height: 1.4; }
+.wa-close { display: grid; place-items: center; flex: 0 0 2.5rem; height: 2.5rem; border: 1px solid #ffffff66; border-radius: .75rem; background: #ffffff1a; color: white; cursor: pointer; }
+.wa-close:focus-visible { outline: 3px solid #b4ffe5; outline-offset: 3px; }
+.wa-close-hint { animation: wa-close-attention .65s ease 2; }
+@keyframes wa-close-attention { 50% { transform: scale(1.15); background: #fff; color: #075e5c; } }
+.wa-body { padding: 1.25rem; }
+.wa-field { margin-bottom: 1rem; }
+.wa-field label { display: block; margin-bottom: .4rem; color: #17363e; font-size: .88rem; font-weight: 700; }
+.wa-field label span { color: #73878b; font-weight: 400; }
+.wa-field small, .wa-label-row small { color: #647a80; font-size: .75rem; }
+.wa-field .form-control, .wa-field .form-select { min-height: 2.8rem; border-color: #cbdeda; border-radius: .7rem; font-size: 1rem; }
+.wa-field textarea.form-control { min-height: 6.5rem; }
+.wa-search { position: relative; }
+.wa-search i { position: absolute; left: .85rem; top: 50%; transform: translateY(-50%); color: #71888a; }
+.wa-search input { padding-left: 2.4rem; }
+.wa-results:not(:empty) { margin-top: .5rem; border: 1px solid #d6e6e2; border-radius: .7rem; max-height: 12rem; overflow-y: auto; background: #fff; }
+.wa-result { display: flex; flex-direction: column; gap: .15rem; width: 100%; padding: .7rem .85rem; text-align: left; border: 0; border-bottom: 1px solid #e7efed; background: #fff; }
+.wa-result:hover, .wa-result:focus-visible { background: #eaf8f4; }
+.wa-result small { color: #647a80; }
+.wa-recipient { display: flex; flex-wrap: wrap; gap: .3rem .75rem; align-items: baseline; margin-bottom: 1rem; padding: .7rem .85rem; border-radius: .7rem; background: #eef8f5; font-size: .85rem; overflow-wrap: anywhere; }
+.wa-recipient span { color: #5c7773; }
+.wa-label-row { display: flex; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.wa-status { margin: 0; color: #aa4224; font-size: .85rem; }
+.wa-status:not(:empty) { margin-bottom: .75rem; }
+.wa-submit { display: flex; justify-content: center; align-items: center; gap: .6rem; width: 100%; min-height: 3.1rem; border: 0; border-radius: .8rem; background: #128b55; color: #fff; font-weight: 700; cursor: pointer; transition: transform .18s, background .18s; }
+.wa-submit:hover { background: #087348; transform: translateY(-2px); }
+.wa-submit:focus-visible { outline: 3px solid #28a975; outline-offset: 3px; }
+.wa-footnote { margin: .7rem 0 0; text-align: center; color: #667d79; font-size: .77rem; }
+@media (max-width: 575.98px) {
+    .wa-modal .modal-dialog { margin: .65rem; min-height: calc(100% - 1.3rem); }
+    .wa-modal .modal-content { max-height: calc(100dvh - 1.3rem); }
+    .wa-modal .modal-header, .wa-body { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wa-close-hint { animation: none; outline: 3px solid #b4ffe5; }
+    .wa-submit { transition: none; }
+}
+
+@media (max-width: 991.98px) {
+    .dentia-topbar .mobile-reading-control {
+        display: inline-grid;
+        place-items: center;
+        width: 2.25rem;
+        height: 2.25rem;
+        padding: 0;
+        border: 1px solid #c9dfdb;
+        border-radius: .75rem;
+        background: #f4faf8;
+        color: #075d63;
+        font-size: .8rem;
+        font-weight: 800;
+    }
+    .dentia-topbar .mobile-reading-control[aria-pressed="true"] { background: #075d63; color: white; }
+    .dentia-topbar .mobile-reading-control:focus-visible { outline: 3px solid #0b7f86; outline-offset: 2px; }
+}
+
+@media (max-width: 991.98px) {
+    .dentia-topbar .notifications-menu[data-bs-popper] {
+        position: fixed !important;
+        top: calc(var(--dentia-header-height) + .5rem) !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+        width: min(340px, calc(100vw - 1.5rem)) !important;
+        max-width: none !important;
+        margin: 0 !important;
+    }
+    .footer-interno { display: none !important; }
+}
+
+.topbar-profile {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    overflow: hidden;
+    border: 1px solid #cddeda;
+    border-radius: 50%;
+    background: #f4faf8;
+    color: #075d63;
+    text-decoration: none;
+    font-size: 1.35rem;
+}
+.topbar-profile-image { width: 100%; height: 100%; object-fit: cover; }
+.topbar-profile:focus-visible { outline: 3px solid #008b99; outline-offset: 2px; }
+.sidebar-logout { flex-shrink: 0; padding: .85rem; border-top: 1px solid #ffffff1c; }
+.sidebar-logout button {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    width: 100%;
+    padding: .8rem 1rem;
+    border: 1px solid #52c8c988;
+    border-radius: .8rem;
+    background: #0d6170;
+    color: #fff;
+    font-weight: 700;
+    text-align: left;
+}
+.sidebar-logout button:hover { background: #087d89; }
+.sidebar-logout button:focus-visible { outline: 3px solid #8ce8dc; outline-offset: 2px; }
+
+.dentia-topbar .topbar-actions { gap: .6rem !important; }
+.dentia-topbar .reading-control,
+.dentia-topbar #btnNotificacionesBell,
+.dentia-topbar .topbar-profile {
+    width: 2.6rem !important;
+    height: 2.6rem !important;
+    display: inline-grid !important;
+    place-items: center;
+    flex-shrink: 0;
+}
+.dentia-topbar .reading-control {
+    border: 1px solid #c9dfdb;
+    border-radius: .8rem;
+    background: #f4faf8;
+    color: #075d63;
+    font-size: .85rem;
+    font-weight: 800;
+}
+.dentia-topbar .reading-control[aria-pressed="true"] { background: #075d63; color: #fff; }
+.dentia-topbar .reading-control:focus-visible { outline: 3px solid #0b7f86; outline-offset: 2px; }
+.dentia-topbar #btnWaHeader { min-height: 2.6rem; padding: .45rem .85rem !important; font-size: .85rem !important; gap: .4rem !important; }
+.dentia-topbar #btnWaHeader i { font-size: 1.1rem; }
+@media (max-width: 575.98px) {
+    .dentia-topbar .topbar-actions { gap: .4rem !important; }
+    .dentia-topbar #btnWaHeader { width: 2.6rem; justify-content: center; padding: 0 !important; }
+}
+
+.mobile-settings-header { display: none; }
+@media (max-width: 991.98px) {
+    body.mobile-settings-module,
+    body.profile-edit-mode {
+        padding-top: 0 !important;
+        padding-bottom: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    body.mobile-settings-module .dentia-topbar,
+    body.profile-edit-mode .dentia-topbar {
+        display: none !important;
+    }
+    body.mobile-settings-module .dentia-mobile-nav,
+    body.profile-edit-mode .dentia-mobile-nav {
+        display: none !important;
+    }
+    body.mobile-settings-module .footer-interno,
+    body.profile-edit-mode .footer-interno {
+        display: none !important;
+    }
+    .mobile-settings-module .mobile-settings-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 54px !important;
+        z-index: 1040 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: .85rem !important;
+        padding: 0 1rem !important;
+        background: #ffffff !important;
+        border-bottom: 1px solid #dceae6 !important;
+        box-shadow: 0 2px 8px rgba(18, 50, 50, 0.05) !important;
+    }
+    .mobile-settings-header a {
+        display: grid;
+        place-items: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        border: 1px solid #d0e5df;
+        border-radius: .75rem;
+        background: #f8fafc;
+        color: #075d63;
+        font-size: 1.15rem;
+        text-decoration: none;
+        flex-shrink: 0;
+        transition: transform 0.15s, background 0.15s;
+    }
+    .mobile-settings-header a:active {
+        transform: scale(0.95);
+        background: #e6f5f3;
+    }
+    .mobile-settings-header span {
+        font-size: 1.05rem;
+        font-weight: 750;
+        color: #134e4a;
+    }
+    body.mobile-settings-module main.dentia-page,
+    body.profile-edit-mode main.dentia-page {
+        margin-top: 0 !important;
+        padding-top: 66px !important;
+        padding-bottom: 1.5rem !important;
+        padding-left: 0.85rem !important;
+        padding-right: 0.85rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    .mobile-settings-module .view-switcher,
+    .mobile-settings-module #vistaTablaContainer { display: none !important; }
+    .mobile-settings-module #vistaCardsContainer { display: block !important; }
+    div.modal {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    div.modal .modal-dialog,
+    div.modal.show .modal-dialog,
+    div.modal .modal-dialog-centered,
+    div.modal .modal-lg,
+    div.modal .modal-xl,
+    .modal:not(.modal-dialog-confirm) .modal-dialog,
+    .mobile-settings-module .modal-dialog,
+    #modalUsuario .modal-dialog,
+    #modalNuevoUsuario .modal-dialog,
+    #modalEditarUsuario .modal-dialog,
+    #modalPermisos .modal-dialog,
+    .wa-modal .modal-dialog {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: none !important;
+        display: flex !important;
+        align-items: stretch !important;
+    }
+    div.modal .modal-content,
+    div.modal .modal-content.rounded-4,
+    div.modal .modal-content.rounded-3,
+    div.modal .modal-content.rounded-2,
+    .modal:not(.modal-dialog-confirm) .modal-content,
+    .mobile-settings-module .modal-content,
+    #modalUsuario .modal-content,
+    #modalNuevoUsuario .modal-content,
+    #modalEditarUsuario .modal-content,
+    #modalPermisos .modal-content,
+    .wa-modal .modal-content {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        min-width: 100vw !important;
+        height: 100dvh !important;
+        min-height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        box-shadow: none !important;
+    }
+    div.modal .modal-content > form,
+    div.modal form,
+    .modal:not(.modal-dialog-confirm) .modal-dialog:not(.modal-sm) .modal-content > form,
+    .mobile-settings-module .modal-content > form,
+    #modalUsuario form {
+        display: flex !important;
+        flex-direction: column !important;
+        flex: 1 1 auto !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        margin: 0 !important;
+    }
+    div.modal .modal-header,
+    .modal:not(.modal-dialog-confirm) .modal-dialog:not(.modal-sm) .modal-header,
+    .mobile-settings-module .modal-header,
+    #modalUsuario .modal-header,
+    #modalPermisos .modal-header {
+        flex-shrink: 0 !important;
+        border-radius: 0 !important;
+        position: sticky !important;
+        top: 0 !important;
+        z-index: 1055 !important;
+        background: #fff !important;
+        padding: 0.85rem 1rem !important;
+    }
+    div.modal .modal-body,
+    .modal:not(.modal-dialog-confirm) .modal-dialog:not(.modal-sm) .modal-body,
+    .mobile-settings-module .modal-body,
+    .mobile-settings-module #modalPermisos .modal-body,
+    #modalUsuario .modal-body,
+    #modalPermisos .modal-body {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 1rem !important;
+    }
+    div.modal .modal-footer,
+    .modal:not(.modal-dialog-confirm) .modal-dialog:not(.modal-sm) .modal-footer,
+    .mobile-settings-module .modal-footer,
+    #modalUsuario .modal-footer,
+    #modalPermisos .modal-footer {
+        flex-shrink: 0 !important;
+        border-radius: 0 !important;
+        position: sticky !important;
+        bottom: 0 !important;
+        z-index: 1055 !important;
+        background: #fff !important;
+        padding: 0.75rem 1rem !important;
+    }
+}
+
+
+.modal-close-attention { animation: modal-close-pulse .6s ease 2; }
+@keyframes modal-close-pulse {
+    50% { transform: scale(1.25); box-shadow: 0 0 0 .35rem #30ad9f55; border-radius: .4rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .modal-close-attention { animation: none; outline: 3px solid #0b7f86; }
+}
+.state-feedback { display:block; margin-top:.5rem; font-size:.8rem; color:#087a55; }
+.state-feedback.is-error { color:#a32e35; }
+
+
+/* ==============================================================
+   REGLA GLOBAL MÓVIL: CERO TABLAS EN CELULARES, ESPACIOS LIMPIOS
+   ============================================================== */
+@media (max-width: 991.98px) {
+    .table-responsive {
+        border: none !important;
+        background: transparent !important;
+        overflow-x: visible !important;
+    }
+    .dentia-page .table-responsive table:not(.table-keep-desktop) thead {
+        display: none !important;
+    }
+    .dentia-page .table-responsive table:not(.table-keep-desktop),
+    .dentia-page .table-responsive table:not(.table-keep-desktop) tbody,
+    .dentia-page .table-responsive table:not(.table-keep-desktop) tr,
+    .dentia-page .table-responsive table:not(.table-keep-desktop) td {
+        display: block !important;
+        width: 100% !important;
+    }
+    .dentia-page .table-responsive table:not(.table-keep-desktop) tbody tr {
+        background: #ffffff !important;
+        border: 1px solid #dce8e6 !important;
+        border-radius: 12px !important;
+        padding: 10px 12px !important;
+        margin-bottom: 8px !important;
+        box-shadow: 0 1px 4px rgba(18, 50, 50, 0.04) !important;
+    }
+    .dentia-page .table-responsive table:not(.table-keep-desktop) td {
+        padding: 3px 0 !important;
+        border: none !important;
+    }
+}

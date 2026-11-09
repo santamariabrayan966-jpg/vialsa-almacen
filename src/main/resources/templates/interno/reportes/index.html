@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" th:content="${_csrf.token}">
+    <meta name="csrf-header" th:content="${_csrf.headerName}">
+    <title>Reportes clínicos y estadísticas | DentIA</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- DentIA Styles -->
+    <link rel="stylesheet" th:href="@{/css/dentia/admin.css}">
+    <link rel="stylesheet" th:href="@{/css/dentia/reportes-clinicos.css(v='1.1')}">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8fafc; }
+    </style>
+</head>
+<body>
+<div th:replace="~{fragments/interno/header :: headerInterno}"></div>
+
+<main class="dentia-page reportes-container">
+    <!-- Encabezado y Filtros Principales -->
+    <div class="reportes-header">
+        <div class="reportes-title-group">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-teal-subtle text-teal rounded-pill px-2.5 py-1 fw-bold" style="background:#e0f2fe; color:#0b7f86; font-size:0.75rem;">
+                    <i class="bi bi-hospital me-1"></i>Consultorio Clínico
+                </span>
+            </div>
+            <h1>Reportes clínicos</h1>
+            <p>Analiza la actividad, tratamientos y evolución de tu consultorio</p>
+        </div>
+
+        <form method="get" th:action="@{/interno/reportes}" id="formFiltrosReporte" class="reportes-controls">
+            <!-- Selector de Rango de Fechas -->
+            <div class="dropdown">
+                <button class="reportes-select-control dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="btnRangoFechas">
+                    <i class="bi bi-calendar3 text-teal"></i>
+                    <span id="labelRangoFechas" th:text="${#temporals.format(desde, 'dd/MM/yyyy') + ' - ' + #temporals.format(hasta, 'dd/MM/yyyy')}">01/04/2026 - 30/04/2026</span>
+                </button>
+                <div class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-4" style="min-width: 290px;">
+                    <h6 class="dropdown-header px-0 text-dark fw-bold mb-2">Seleccionar período</h6>
+                    <button type="button" class="dropdown-item rounded-2 py-1.5 mb-1" onclick="aplicarPeriodoRapido('este_mes')">
+                        <i class="bi bi-calendar-check me-2 text-teal"></i>Este mes
+                    </button>
+                    <button type="button" class="dropdown-item rounded-2 py-1.5 mb-1" onclick="aplicarPeriodoRapido('mes_anterior')">
+                        <i class="bi bi-calendar-minus me-2 text-secondary"></i>Mes anterior
+                    </button>
+                    <button type="button" class="dropdown-item rounded-2 py-1.5 mb-1" onclick="aplicarPeriodoRapido('ultimos_3_meses')">
+                        <i class="bi bi-calendar-range me-2 text-primary"></i>Últimos 3 meses
+                    </button>
+                    <hr class="my-2">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Desde</label>
+                            <input type="date" class="form-control form-control-sm" name="desde" id="inputDesde" th:value="${desde}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Hasta</label>
+                            <input type="date" class="form-control form-control-sm" name="hasta" id="inputHasta" th:value="${hasta}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-teal btn-sm text-white w-100 mt-2.5 fw-semibold" style="background:#0b7f86;">
+                        Aplicar rango
+                    </button>
+                </div>
+            </div>
+
+            <!-- Selector de Odontólogo -->
+            <div class="dropdown">
+                <select class="reportes-select-control" name="profesionalId" id="selectProfesional" onchange="this.form.submit()">
+                    <option value="">👨‍⚕️ Todos los doctores</option>
+                    <option th:each="prof:${profesionales}"
+                            th:value="${prof.idProfesional}"
+                            th:text="${'Dr(a). ' + prof.nombreCompleto}"
+                            th:selected="${profesionalId != null and profesionalId == prof.idProfesional}">
+                    </option>
+                </select>
+            </div>
+
+            <!-- Botón Exportar con Modal / Opciones -->
+            <button type="button" class="btn-exportar" data-bs-toggle="modal" data-bs-target="#modalExportar">
+                <i class="bi bi-download"></i>
+                <span>Exportar</span>
+            </button>
+        </form>
+    </div>
+
+    <!-- 1. Fila de KPIs Principales (4 Tarjetas) -->
+    <section class="kpi-grid">
+        <!-- KPI 1: Pacientes atendidos -->
+        <article class="kpi-card">
+            <div class="kpi-icon-wrap green">
+                <i class="bi bi-people"></i>
+            </div>
+            <div class="kpi-info">
+                <div class="kpi-label">Pacientes atendidos</div>
+                <div class="kpi-value" id="kpiPacientes" th:text="${stats.pacientesAtendidos}">124</div>
+                <span class="kpi-badge">
+                    <i class="bi bi-arrow-up-short"></i>
+                    <span th:text="${stats.cambioPacientes + ' disponible'}">+12% vs. mes anterior</span>
+                </span>
+            </div>
+        </article>
+
+        <!-- KPI 2: Tratamientos realizados -->
+        <article class="kpi-card">
+            <div class="kpi-icon-wrap purple">
+                <i class="bi bi-calendar4-event"></i>
+            </div>
+            <div class="kpi-info">
+                <div class="kpi-label">Tratamientos realizados</div>
+                <div class="kpi-value" id="kpiTratamientos" th:text="${stats.tratamientosRealizados}">86</div>
+                <span class="kpi-badge">
+                    <i class="bi bi-arrow-up-short"></i>
+                    <span th:text="${stats.cambioTratamientos + ' disponible'}">+18% vs. mes anterior</span>
+                </span>
+            </div>
+        </article>
+
+        <!-- KPI 3: Diagnósticos registrados -->
+        <article class="kpi-card">
+            <div class="kpi-icon-wrap blue">
+                <i class="bi bi-file-earmark-medical"></i>
+            </div>
+            <div class="kpi-info">
+                <div class="kpi-label">Diagnósticos registrados</div>
+                <div class="kpi-value" id="kpiDiagnosticos" th:text="${stats.diagnosticosRegistrados}">97</div>
+                <span class="kpi-badge">
+                    <i class="bi bi-arrow-up-short"></i>
+                    <span th:text="${stats.cambioDiagnosticos + ' disponible'}">+9% vs. mes anterior</span>
+                </span>
+            </div>
+        </article>
+
+        <!-- KPI 4: Ocupación de agenda -->
+        <article class="kpi-card">
+            <div class="kpi-icon-wrap teal">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="kpi-info">
+                <div class="kpi-label">Ocupación de agenda</div>
+                <div class="kpi-value" id="kpiOcupacion" th:text="${stats.ocupacionAgenda + '%'}">78%</div>
+                <span class="kpi-badge">
+                    <i class="bi bi-arrow-up-short"></i>
+                    <span th:text="${stats.cambioOcupacion + ' disponible'}">+15% vs. mes anterior</span>
+                </span>
+            </div>
+        </article>
+    </section>
+
+    <!-- 2. Fila Media: Pacientes atendidos (Barras) & Tratamientos realizados (Donut) -->
+    <div class="row g-3 mb-3">
+        <!-- Gráfico 1: Pacientes atendidos por semana -->
+        <div class="col-lg-6">
+            <div class="rep-card">
+                <div class="rep-card-header">
+                    <div class="rep-card-title-group">
+                        <i class="bi bi-people rep-card-icon"></i>
+                        <div>
+                            <h2 class="rep-card-title">Pacientes atendidos</h2>
+                            <p class="rep-card-subtitle">Total de pacientes por semana</p>
+                        </div>
+                    </div>
+                    <select class="form-select form-select-sm border-0 bg-light fw-semibold text-secondary" style="width: auto; font-size: 0.8rem;">
+                        <option>Por semana</option>
+                        <option>Por mes</option>
+                    </select>
+                </div>
+
+                <div class="chart-bars-wrap">
+                    <div class="chart-bar-col" th:each="sem:${stats.pacientesPorSemana}">
+                        <span class="chart-bar-value" th:text="${sem.valor}">28</span>
+                        <div class="chart-bar-fill" th:style="'height: ' + ${sem.pct} + '%;'" th:title="${sem.label + ': ' + sem.valor + ' pacientes'}"></div>
+                    </div>
+                </div>
+                <div class="chart-bar-footer">
+                    <div class="chart-bar-label-group" th:each="sem:${stats.pacientesPorSemana}">
+                        <span class="chart-bar-label-title" th:text="${sem.label}">Sem 1</span>
+                        <span class="chart-bar-label-sub" th:text="${sem.rango}">01 - 07 abril</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico 2: Tratamientos realizados (Donut SVG de alta fidelidad) -->
+        <div class="col-lg-6">
+            <div class="rep-card">
+                <div class="rep-card-header">
+                    <div class="rep-card-title-group">
+                        <i class="bi bi-heart-pulse rep-card-icon" style="color:#8b5cf6;"></i>
+                        <div>
+                            <h2 class="rep-card-title">Tratamientos realizados</h2>
+                            <p class="rep-card-subtitle">Distribución por tipo de tratamiento</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="donut-section">
+                    <!-- SVG Donut Chart Interactivo -->
+                    <div class="donut-chart-box">
+                        <svg class="donut-svg" viewBox="0 0 42 42">
+                            <!-- Background track ring -->
+                            <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="#f1f5f9" stroke-width="4.8"></circle>
+
+                            <circle th:each="tipo:${stats.tratamientosPorTipo}" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke-width="4.8"
+                                    th:attr="stroke=${tipo.color},stroke-dasharray=${tipo.porcentaje + ' ' + (100 - tipo.porcentaje)},stroke-dashoffset=${tipo.offset}"></circle>
+                        </svg>
+
+                        <!-- Centro del donut con total -->
+                        <div class="donut-center-info">
+                            <div class="donut-center-value" th:text="${stats.totalTratamientosDonut}">86</div>
+                            <div class="donut-center-label">tratamientos</div>
+                        </div>
+                    </div>
+
+                    <!-- Leyenda detallada -->
+                    <div class="donut-legend">
+                        <div class="donut-legend-item" th:each="tipo:${stats.tratamientosPorTipo}">
+                            <div class="d-flex align-items-center">
+                                <span class="donut-legend-bullet" th:style="'background-color: ' + ${tipo.color}"></span>
+                                <span class="donut-legend-name" th:text="${tipo.nombre}">Revisión / Control</span>
+                            </div>
+                            <span class="donut-legend-qty" th:text="${tipo.cantidad}">28</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Fila Inferior: Diagnósticos más frecuentes (Ranking) & Evolución mensual (Grupos) -->
+    <div class="row g-3">
+        <!-- Gráfico 3: Diagnósticos más frecuentes -->
+        <div class="col-lg-6">
+            <div class="rep-card">
+                <div class="rep-card-header">
+                    <div class="rep-card-title-group">
+                        <i class="bi bi-file-earmark-text rep-card-icon"></i>
+                        <div>
+                            <h2 class="rep-card-title">Diagnósticos más frecuentes</h2>
+                            <p class="rep-card-subtitle">Principales diagnósticos registrados en el período</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="diagnosticos-list">
+                    <div class="diag-row" th:each="d:${stats.diagnosticosFrecuentes}">
+                        <span class="diag-name" th:text="${d.nombre}" th:title="${d.nombre}">Caries dental</span>
+                        <div class="diag-track">
+                            <div class="diag-bar" th:style="'width: ' + ${d.porcentaje} + '%;'"></div>
+                        </div>
+                        <div class="diag-stats">
+                            <span th:text="${d.cantidad}">32</span>
+                            <span class="diag-pct" th:text="${d.porcentaje + '%'}">33%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico 4: Evolución mensual (Comparación 6 meses) -->
+        <div class="col-lg-6">
+            <div class="rep-card">
+                <div class="rep-card-header">
+                    <div class="rep-card-title-group">
+                        <i class="bi bi-bar-chart-steps rep-card-icon" style="color:#3b82f6;"></i>
+                        <div>
+                            <h2 class="rep-card-title">Evolución mensual</h2>
+                            <p class="rep-card-subtitle">Comparación de pacientes y tratamientos en los últimos 6 meses</p>
+                        </div>
+                    </div>
+                    <div class="monthly-legend">
+                        <div class="monthly-legend-item">
+                            <span class="monthly-legend-dot teal"></span>
+                            <span class="text-secondary small">Pacientes atendidos</span>
+                        </div>
+                        <div class="monthly-legend-item">
+                            <span class="monthly-legend-dot blue"></span>
+                            <span class="text-secondary small">Tratamientos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="monthly-chart-wrap">
+                    <div class="monthly-group" th:each="m:${stats.evolucionMensual}">
+                        <!-- Barra Pacientes -->
+                        <div class="monthly-bar-col">
+                            <span class="monthly-bar-val" th:text="${m.pacientes}">98</span>
+                            <div class="monthly-bar teal" th:style="${'height: ' + (m.pacientes * 100.0 / stats.maximoMensual) + '%;'}" th:title="${m.mes + ': ' + m.pacientes + ' pacientes'}"></div>
+                        </div>
+                        <!-- Barra Tratamientos -->
+                        <div class="monthly-bar-col">
+                            <span class="monthly-bar-val" th:text="${m.tratamientos}">62</span>
+                            <div class="monthly-bar blue" th:style="${'height: ' + (m.tratamientos * 100.0 / stats.maximoMensual) + '%;'}" th:title="${m.mes + ': ' + m.tratamientos + ' tratamientos'}"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="monthly-footer">
+                    <span th:each="m:${stats.evolucionMensual}" th:text="${m.mes}">Mar 2026</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Modal de Exportación -->
+<div class="modal fade" id="modalExportar" tabindex="-1" aria-labelledby="modalExportarTitulo" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <h5 class="modal-title fw-bold" id="modalExportarTitulo">Exportar informe clínico</h5>
+                    <p class="text-secondary small mb-0">Selecciona el formato en el que deseas obtener las estadísticas.</p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body py-4">
+                <a th:href="@{/interno/reportes/exportar/csv(desde=${desde},hasta=${hasta},profesionalId=${profesionalId})}" class="modal-export-option">
+                    <div class="modal-export-icon">
+                        <i class="bi bi-file-earmark-spreadsheet-fill text-success"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark">Descargar archivo Excel / CSV</strong>
+                        <small class="text-secondary">Incluye tabla de KPIs, distribución de tratamientos y diagnósticos.</small>
+                    </div>
+                </a>
+
+                <a href="javascript:void(0)" onclick="window.print();" class="modal-export-option" data-bs-dismiss="modal">
+                    <div class="modal-export-icon">
+                        <i class="bi bi-printer-fill text-teal"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark">Imprimir o Guardar en PDF</strong>
+                        <small class="text-secondary">Genera una vista optimizada en hoja A4 con todos los gráficos.</small>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{fragments/interno/footer :: footerInterno}"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function aplicarPeriodoRapido(tipo) {
+    const inputDesde = document.getElementById('inputDesde');
+    const inputHasta = document.getElementById('inputHasta');
+    const form = document.getElementById('formFiltrosReporte');
+    const hoy = new Date();
+
+    if (tipo === 'este_mes') {
+        const y = hoy.getFullYear();
+        const m = String(hoy.getMonth() + 1).padStart(2, '0');
+        const ultimoDia = new Date(y, hoy.getMonth() + 1, 0).getDate();
+        inputDesde.value = `${y}-${m}-01`;
+        inputHasta.value = `${y}-${m}-${String(ultimoDia).padStart(2, '0')}`;
+    } else if (tipo === 'mes_anterior') {
+        const d = new Date(hoy.getFullYear(), hoy.getMonth() - 1, 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const ultimoDia = new Date(y, d.getMonth() + 1, 0).getDate();
+        inputDesde.value = `${y}-${m}-01`;
+        inputHasta.value = `${y}-${m}-${String(ultimoDia).padStart(2, '0')}`;
+    } else if (tipo === 'ultimos_3_meses') {
+        const d = new Date(hoy.getFullYear(), hoy.getMonth() - 2, 1);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const hoyY = hoy.getFullYear();
+        const hoyM = String(hoy.getMonth() + 1).padStart(2, '0');
+        const ultimoDia = new Date(hoyY, hoy.getMonth() + 1, 0).getDate();
+        inputDesde.value = `${y}-${m}-01`;
+        inputHasta.value = `${hoyY}-${hoyM}-${String(ultimoDia).padStart(2, '0')}`;
+    }
+
+    form.submit();
+}
+</script>
+</body>
+</html>

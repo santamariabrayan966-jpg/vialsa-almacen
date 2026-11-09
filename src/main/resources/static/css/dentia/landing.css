@@ -1,0 +1,590 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --dentia-primary: #0b7f86;
+    --dentia-primary-dark: #065459;
+    --dentia-primary-light: #e0f4f3;
+    --dentia-accent: #10b981;
+    --dentia-accent-cyan: #06b6d4;
+    --dentia-dark: #0f172a;
+    --dentia-slate: #334155;
+    --dentia-muted: #64748b;
+    --dentia-bg: #f8fafc;
+    --dentia-surface: #ffffff;
+    --dentia-border: #e2e8f0;
+    --dentia-shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    --dentia-shadow-md: 0 10px 25px -3px rgba(11, 127, 134, 0.08), 0 4px 6px -4px rgba(11, 127, 134, 0.04);
+    --dentia-shadow-lg: 0 20px 40px -5px rgba(11, 127, 134, 0.12), 0 8px 10px -6px rgba(11, 127, 134, 0.06);
+    --dentia-radius: 1.25rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    color: var(--dentia-slate);
+    background-color: var(--dentia-bg);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Typography Helpers */
+h1, h2, h3, h4, .font-heading {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--dentia-dark);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+/* Glassmorphic Navbar */
+.dentia-header {
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+    transition: all 0.3s ease;
+}
+
+.dentia-nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.brand-icon-box {
+    width: 2.75rem;
+    height: 2.75rem;
+    background: linear-gradient(135deg, var(--dentia-primary), var(--dentia-accent-cyan));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.85rem;
+    font-size: 1.35rem;
+    box-shadow: 0 6px 16px rgba(11, 127, 134, 0.25);
+    transition: transform 0.3s ease;
+    overflow: hidden;
+}
+
+.brand-icon-box.has-custom-logo,
+.brand-icon-box:has(img) {
+    background: #ffffff !important;
+    border: 1px solid rgba(11, 127, 134, 0.2);
+    padding: 3px;
+}
+
+.brand-icon-box img {
+    max-width: 100% !important;
+    max-height: 100% !important;
+    width: auto !important;
+    height: auto !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    display: block !important;
+    margin: auto !important;
+}
+
+.dentia-nav-brand:hover .brand-icon-box {
+    transform: rotate(5deg) scale(1.05);
+}
+
+.brand-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--dentia-dark);
+    letter-spacing: -0.04em;
+}
+
+.brand-title span {
+    color: var(--dentia-primary);
+}
+
+.brand-subtitle-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background: var(--dentia-primary-light);
+    color: var(--dentia-primary);
+    padding: 0.15rem 0.5rem;
+    border-radius: 2rem;
+    margin-left: 0.4rem;
+}
+
+.nav-link-custom {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--dentia-slate);
+    transition: color 0.2s ease;
+    padding: 0.5rem 0.85rem;
+    text-decoration: none;
+}
+
+.nav-link-custom:hover {
+    color: var(--dentia-primary);
+}
+
+/* Primary Buttons */
+.btn-dentia-google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    background: #ffffff;
+    color: #1e293b;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.75rem 1.4rem;
+    border-radius: 2rem;
+    border: 1.5px solid #e2e8f0;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-dentia-google:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    color: #0f172a;
+}
+
+.btn-dentia-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background: linear-gradient(135deg, var(--dentia-primary), #0d9488);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    padding: 0.8rem 1.6rem;
+    border-radius: 2rem;
+    text-decoration: none;
+    box-shadow: 0 8px 20px rgba(11, 127, 134, 0.25);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: none;
+}
+
+.btn-dentia-primary:hover {
+    background: linear-gradient(135deg, var(--dentia-primary-dark), var(--dentia-primary));
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(11, 127, 134, 0.35);
+    color: #ffffff;
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+    padding: 5rem 0 4rem;
+    background: radial-gradient(circle at 80% 20%, rgba(6, 182, 212, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 10% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                var(--dentia-bg);
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    color: #065f46;
+    border-radius: 2rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+}
+
+.hero-badge .pulse-dot {
+    width: 0.55rem;
+    height: 0.55rem;
+    background: #10b981;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.hero-title {
+    font-size: clamp(2.5rem, 5vw, 3.8rem);
+    font-weight: 800;
+    line-height: 1.15;
+    margin-bottom: 1.5rem;
+}
+
+.hero-title .gradient-text {
+    background: linear-gradient(135deg, var(--dentia-primary), var(--dentia-accent-cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hero-description {
+    font-size: 1.15rem;
+    color: var(--dentia-muted);
+    margin-bottom: 2.2rem;
+    max-width: 36rem;
+}
+
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+}
+
+.hero-card-preview {
+    background: var(--dentia-surface);
+    border-radius: var(--dentia-radius);
+    padding: 2.2rem;
+    box-shadow: var(--dentia-shadow-lg);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-card-preview::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--dentia-primary), var(--dentia-accent-cyan));
+}
+
+.quick-google-box {
+    background: linear-gradient(135deg, #f0fdf9, #e6fffa);
+    border: 1.5px dashed #99f6e4;
+    border-radius: 1rem;
+    padding: 1.4rem;
+    text-align: center;
+    margin-top: 1.25rem;
+}
+
+/* Stats Counter Grid */
+.stats-banner {
+    background: var(--dentia-surface);
+    border-radius: 1.5rem;
+    padding: 2rem 2.5rem;
+    box-shadow: var(--dentia-shadow-md);
+    border: 1px solid var(--dentia-border);
+    margin-top: -2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.stat-item h3 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: var(--dentia-primary);
+    margin-bottom: 0.2rem;
+}
+
+.stat-item p {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--dentia-muted);
+    margin-bottom: 0;
+}
+
+/* Bento Grid Features */
+.section-padding {
+    padding: 5.5rem 0;
+}
+
+.section-tag {
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--dentia-primary);
+    margin-bottom: 0.6rem;
+    display: inline-block;
+}
+
+.section-title {
+    font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+    margin-bottom: 1rem;
+}
+
+.bento-card {
+    background: var(--dentia-surface);
+    border-radius: var(--dentia-radius);
+    padding: 2rem;
+    box-shadow: var(--dentia-shadow-sm);
+    border: 1px solid var(--dentia-border);
+    height: 100%;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.bento-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--dentia-shadow-lg);
+    border-color: rgba(11, 127, 134, 0.25);
+}
+
+.bento-icon {
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1.3rem;
+}
+
+.icon-teal { background: #e0f2f1; color: var(--dentia-primary); }
+.icon-cyan { background: #cffafe; color: #0891b2; }
+.icon-emerald { background: #d1fae5; color: #059669; }
+.icon-indigo { background: #e0e7ff; color: #4338ca; }
+.icon-rose { background: #ffe4e6; color: #e11d48; }
+.icon-amber { background: #fef3c7; color: #d97706; }
+
+.bento-card h4 {
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+}
+
+.bento-card p {
+    color: var(--dentia-muted);
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+/* Specialists / Doctor Cards */
+.doctor-card {
+    background: var(--dentia-surface);
+    border-radius: var(--dentia-radius);
+    overflow: hidden;
+    box-shadow: var(--dentia-shadow-sm);
+    border: 1px solid var(--dentia-border);
+    transition: all 0.3s ease;
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.doctor-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--dentia-shadow-lg);
+}
+
+.doctor-avatar-circle {
+    width: 5.5rem;
+    height: 5.5rem;
+    border-radius: 50%;
+    margin: 0 auto 1.25rem;
+    background: linear-gradient(135deg, var(--dentia-primary-light), #cffafe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    color: var(--dentia-primary);
+    border: 3px solid #ffffff;
+    box-shadow: 0 6px 16px rgba(11, 127, 134, 0.15);
+}
+
+.doctor-specialty {
+    color: var(--dentia-primary);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+/* Reviews */
+.review-card {
+    background: var(--dentia-surface);
+    border-radius: var(--dentia-radius);
+    padding: 1.8rem;
+    box-shadow: var(--dentia-shadow-sm);
+    border: 1px solid var(--dentia-border);
+    height: 100%;
+}
+
+.stars-row {
+    color: #f59e0b;
+    font-size: 1rem;
+    margin-bottom: 0.85rem;
+}
+
+/* Interactive Accordion */
+.accordion-dentia .accordion-item {
+    border: 1px solid var(--dentia-border);
+    border-radius: 1rem !important;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    background: var(--dentia-surface);
+}
+
+.accordion-dentia .accordion-button {
+    font-weight: 700;
+    color: var(--dentia-dark);
+    padding: 1.2rem 1.5rem;
+}
+
+.accordion-dentia .accordion-button:not(.collapsed) {
+    background: var(--dentia-primary-light);
+    color: var(--dentia-primary-dark);
+}
+
+/* Footer & Discrete Staff Trigger */
+.dentia-footer {
+    background: #0f172a;
+    color: #94a3b8;
+    padding: 4.5rem 0 2rem;
+    border-top: 1px solid #1e293b;
+}
+
+.footer-brand {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+.footer-link {
+    color: #94a3b8;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: inline-block;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.footer-link:hover {
+    color: #ffffff;
+}
+
+.footer-divider {
+    border-color: #1e293b;
+    margin: 2.5rem 0 1.5rem;
+}
+
+/* Discrete Staff Button in Footer */
+.staff-discrete-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: #475569;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.staff-discrete-btn:hover {
+    color: #e2e8f0;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Modal Acceso Administrativo Oculto & Fondo Oscuro de Enfoque */
+body:has(#modalAccesoStaff.show) .modal-backdrop,
+.modal-backdrop.show {
+    background-color: #01080e !important;
+    opacity: 0.92 !important;
+    backdrop-filter: blur(14px) !important;
+    -webkit-backdrop-filter: blur(14px) !important;
+    transition: opacity 0.35s ease, backdrop-filter 0.35s ease !important;
+}
+
+.modal-dentia .modal-dialog {
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.modal-dentia .modal-content {
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 1.5rem;
+    box-shadow: 0 30px 80px -10px rgba(0, 0, 0, 0.9), 
+                0 0 0 1px rgba(255, 255, 255, 0.15),
+                0 0 50px rgba(11, 143, 136, 0.35) !important;
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.modal-dentia .modal-header {
+    background: linear-gradient(135deg, #05484f, #0b7f86, #0d9488);
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: none;
+    box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.modal-dentia .modal-header .btn-close {
+    filter: brightness(0) invert(1);
+}
+
+.modal-dentia .modal-body {
+    padding: 2.2rem 2rem;
+    background: #ffffff;
+}
+
+#btnToggleStaffPassword:hover {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+}
+
+/* Slots y Reserva en Vivo */
+.slots-grid {
+    min-height: 110px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.slot-btn {
+    border: 1.5px solid #cbd5e1;
+    color: #1e293b;
+    background: #ffffff;
+    padding: 0.65rem 1rem;
+    border-radius: 0.85rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: pointer;
+    text-align: center;
+    min-width: 120px;
+}
+
+.slot-btn:hover {
+    background: #f0fdfa;
+    border-color: #0d9488;
+    color: #0d9488;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(13, 148, 136, 0.15);
+}
+
+.slot-btn.active {
+    background: linear-gradient(135deg, #0b7f86, #0d9488) !important;
+    color: #ffffff !important;
+    border-color: #0b7f86 !important;
+    box-shadow: 0 6px 16px rgba(11, 127, 134, 0.35);
+    transform: translateY(-2px);
+}
+
+.slot-btn.active small {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
