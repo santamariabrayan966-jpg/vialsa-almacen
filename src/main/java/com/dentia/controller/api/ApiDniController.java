@@ -57,16 +57,22 @@ public class ApiDniController {
         }
 
         String nombreCompleto = ruc
-                ? resultado.razonSocial()
-                : (resultado.nombres() + " " + resultado.apellidos()).trim();
-        return ResponseEntity.ok(Map.of("data", Map.of(
-                "nombre_completo", nombreCompleto,
-                "nombres", resultado.nombres(),
-                "apellidos", resultado.apellidos(),
-                "razon_social", resultado.razonSocial(),
-                "direccion", resultado.direccion(),
-                "fecha_nacimiento", resultado.fechaNacimiento()
-        ), "origen", "externo"));
+                ? (resultado.razonSocial() != null ? resultado.razonSocial() : "")
+                : ((resultado.nombres() != null ? resultado.nombres() : "") + " "
+                + (resultado.apellidos() != null ? resultado.apellidos() : "")).trim();
+
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("nombre_completo", nombreCompleto);
+        data.put("nombres", resultado.nombres() != null ? resultado.nombres() : "");
+        data.put("apellidos", resultado.apellidos() != null ? resultado.apellidos() : "");
+        data.put("razon_social", resultado.razonSocial() != null ? resultado.razonSocial() : "");
+        data.put("direccion", resultado.direccion() != null ? resultado.direccion() : "");
+        data.put("fecha_nacimiento", resultado.fechaNacimiento() != null ? resultado.fechaNacimiento() : "");
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("data", data);
+        response.put("origen", "externo");
+        return ResponseEntity.ok(response);
     }
 
     /**

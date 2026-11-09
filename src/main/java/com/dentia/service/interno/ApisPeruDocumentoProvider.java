@@ -10,10 +10,15 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.time.Duration;
 @Service
-@ConditionalOnProperty(name="dentia.documento.provider", havingValue="apisperu", matchIfMissing=true)
+@ConditionalOnProperty(name="dentia.documento.provider", havingValue="apisperu", matchIfMissing=false)
 public class ApisPeruDocumentoProvider implements DocumentoExternoProvider {
- private final RestTemplate client; private final String token;
- public ApisPeruDocumentoProvider(RestTemplateBuilder builder, @Value("${apisperu.token:}") String token) { this.client=builder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(10)).build(); this.token=token; }
+    private static final String DEFAULT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6InNhbnRhbWFyaWFicmF5YW45NjZAZ21haWwuY29tIiwianRpIjoiMTkyN2YyMDZkMzJmYjhmNSJ9.-RjjHorebfJo5JopQwcDpfDAf3-DDma9z1tY0KbjN3Y";
+    private final RestTemplate client;
+    private final String token;
+    public ApisPeruDocumentoProvider(RestTemplateBuilder builder, @Value("${apisperu.token:}") String token) {
+        this.client = builder.setConnectTimeout(Duration.ofSeconds(5)).setReadTimeout(Duration.ofSeconds(10)).build();
+        this.token = (token != null && !token.isBlank()) ? token.trim() : DEFAULT_TOKEN;
+    }
  private String value(JsonNode n, String... keys) { for(String key:keys) if(n.hasNonNull(key) && !n.get(key).asText().isBlank()) return n.get(key).asText().trim(); return ""; }
  public DocumentoExternoResultadoDto consultar(String documento) {
   if(token.isBlank()) return DocumentoExternoResultadoDto.noDisponible("Configura APISPERU_TOKEN en el servidor.");

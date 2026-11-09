@@ -22,11 +22,12 @@ import java.time.Duration;
 import java.util.List;
 
 @Service
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name="dentia.documento.provider", havingValue="miapi")
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(name="dentia.documento.provider", havingValue="miapi", matchIfMissing=true)
 public class MiApiDocumentoExternoProvider implements DocumentoExternoProvider {
 
     private static final Logger log = LoggerFactory.getLogger(MiApiDocumentoExternoProvider.class);
     private static final String BASE_URL = "https://miapi.cloud/v1/";
+    private static final String DEFAULT_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjozNTAsImV4cCI6MTc2NjA4OTcyNH0.o6p7LzGOh208vlILr70MLsUIktN9G-t0neMzIBh-iqY";
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -36,19 +37,19 @@ public class MiApiDocumentoExternoProvider implements DocumentoExternoProvider {
     public MiApiDocumentoExternoProvider(
             RestTemplateBuilder builder,
             ObjectMapper objectMapper,
-            @Value("${miapi.token}") String token) {
+            @Value("${miapi.token:}") String token) {
         this.restTemplate = builder
                 .setConnectTimeout(Duration.ofSeconds(3))
                 .setReadTimeout(Duration.ofSeconds(5))
                 .build();
         this.objectMapper = objectMapper;
-        this.token = token;
+        this.token = (token != null && !token.isBlank()) ? token.trim() : DEFAULT_TOKEN;
     }
 
     MiApiDocumentoExternoProvider(RestTemplate restTemplate, ObjectMapper objectMapper, String token) {
         this.restTemplate = restTemplate;
         this.objectMapper = objectMapper;
-        this.token = token;
+        this.token = (token != null && !token.isBlank()) ? token.trim() : DEFAULT_TOKEN;
     }
 
     @Override
